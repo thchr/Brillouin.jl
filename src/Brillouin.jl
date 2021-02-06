@@ -1,5 +1,10 @@
 module Brillouin
 
-# Write your package code here.
+using Reexport
+
+include("KPath.jl")
+include("BrillouinZone.jl")
+@reexport using .KPath
+@reexport using .BrillouinZone
 
 end

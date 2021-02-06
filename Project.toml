@@ -3,5 +3,9 @@ uuid = "23470ee3-d0df-4052-8b1a-8cbd6363e7f0"
 authors = ["Thomas Christensen <tchr@mit.edu> and contributors"]
 version = "0.1.0"
 
+[deps]
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
+
 [compat]
 julia = "1.5"
