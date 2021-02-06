@@ -1,0 +1,7 @@
+name = "Brillouin"
+uuid = "23470ee3-d0df-4052-8b1a-8cbd6363e7f0"
+authors = ["Thomas Christensen <tchr@mit.edu> and contributors"]
+version = "0.1.0"
+
+[compat]
+julia = "1.5"
