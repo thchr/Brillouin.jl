@@ -1,34 +1,56 @@
 module WignerSeitz
 
-using StaticArrays, Crystalline
-using GeometryBasics
-using PyCall
-using GLMakie
+# ---------------------------------------------------------------------------------------- #
+using StaticArrays
+using Crystalline
 using Crystalline: Basis
-using LinearAlgebra: dot, cross
+using LinearAlgebra: dot, cross, norm
+
+using GLMakie
 using Colors
 
+import Base: getindex, size, IndexStyle
+
+using PyCall
 const PySpatial = PyNULL()
 function __init__()
     copy!(PySpatial, pyimport_conda("scipy.spatial", "scipy"))
 end
 
-export wignerseitz
+# ---------------------------------------------------------------------------------------- #
+
+export wignerseitz, visualize
+
+# ---------------------------------------------------------------------------------------- #
+
+struct Cell{D} <: AbstractVector{Vector{SVector{D, Float64}}} # of polygons
+    verts :: Vector{SVector{D, Float64}}
+    faces :: Vector{Vector{Int}}
+end
+faces(c::Cell)    = c.faces
+vertices(c::Cell) = c.verts
+
+# abstract array interface
+Base.@propagate_inbounds getindex(c::Cell, i::Int) = vertices(c)[faces(c)[i]]
+size(c::Cell) = size(c.faces)
+IndexStyle(::Type{<:Cell}) = IndexLinear()
+
+# ---------------------------------------------------------------------------------------- #
 
 """
-    wignerseitz(Vs::Basis, output::Val = Val(:polygons); Nmax::Integer = 3)
+    wignerseitz(Vs::Basis{D}, output::Symbol = :polygons; Nmax::Integer = 3)
 
 Return the vertices and associated (outward oriented) faces of the Wigner-Seitz cell defined
 by a basis `Vs`.
 
-If the `output = Val(:polygons)` (default), co-planar faces are merged to form polygonal
-planar faces of arbitrary order. If instead `output = Val(:triangles)` "unprocessed"
-triangles (face of order 3) are returned instead.
+If the `output = :polygons` (default), co-planar faces are merged to form polygonal planar
+faces of arbitrary order. If `output = :triangles` "unprocessed" triangles/lines (face of
+order `D`) are returned instead.
 """
-function wignerseitz(Vs::Basis{D}, ::Val{O} = Val(:polygons); Nmax::Integer = 3) where {D, O}
+function wignerseitz(Vs::Basis{D}, output::Symbol = :polygons; Nmax::Integer = 3) where D
     # "supercell" lattice of G-vectors
     Ns = -Nmax:Nmax
-    lattice = Vector{Point{D,Float64}}(undef, length(Ns)^D)
+    lattice = Vector{SVector{D,Float64}}(undef, length(Ns)^D)
     idx_cntr = 0
     for (idx, I) in enumerate(CartesianIndices(ntuple(_->Ns, Val(D))))
                    V =  Vs[1]*I[1]
@@ -44,99 +66,111 @@ function wignerseitz(Vs::Basis{D}, ::Val{O} = Val(:polygons); Nmax::Integer = 3)
     verts_cntr =  # NB: offsets by 1 due to Julia 1-based vs. Python 0-based indexing
         [vor.vertices[idx+1,:] for idx in vor.regions[vor.point_region[idx_cntr]+1]]
 
-    # get convex hull of central verts
+    # get convex hull of central vertices
     hull = PySpatial.ConvexHull(verts_cntr)
-    m    = convert_to_mesh(hull, Val(D))
-    m    = reorient_normals!(m)
+    c    = convert_to_cell(hull, Val(D))
+    c    = reorient_normals!(c)
 
     # return either triangles or polygons
-    if O == :polygons
-        return merge_coplanar(m)
-    elseif O == :triangles
-        return m
+    if output == :polygons
+        return merge_coplanar!(c)
+    elseif output == :triangles
+        return c
     else
-        error(DomainError(O, "invalid output type"))
+        error(DomainError(output, "invalid output type"))
     end
 end
 
 
-function convert_to_mesh(hull, ::Val{D}) where D
+function convert_to_cell(hull, ::Val{D}) where D
     vs′ = hull.points         # vertices
     fs′ = hull.simplices .+ 1 # faces
 
-    vs = Point{D}.(eachrow(vs′))
-    fs = NgonFace{D}.(eachrow(fs′))
-    return Mesh(vs, fs)
+    vs = SVector{D, Float64}.(eachrow(vs′))
+    fs = Vector{Int}.(eachrow(fs′))
+    return Cell(vs, fs)
 end
 
 
 """
-    is_outward_pointing(c, n)
+is_outward_oriented(c, n)
     
 Return whether a face, specified by its center `c` and normal `n`, is outward pointing,
 assuming the face is part of a convex hull centered around origo.
 """
-function is_outward_pointing(c, n)
-    return dot(c,n) > 0
-end
+is_outward_oriented(c::SVector{D}, n::SVector{D}) where D = dot(c,n) > zero(eltype(c))
 
-function reorient_normals!(m::Mesh)
-    fs = faces(m)
+function reorient_normals!(c::Cell)
+    fs = faces(c)
     for (i,f) in enumerate(fs)
-        c, n = face_normal(m[i]), face_center(m[i])
-        if !is_outward_pointing(c, n)
-            fs[i] = typeof(f)(reverse(f)...)
+        cntr = face_center(c, i)
+        n    = face_normal(c, i)
+        if !is_outward_oriented(cntr, n)
+            reverse!(fs[i])
         end
     end
-    return m
+    return c
 end
 
-function merge_coplanar(m::Mesh{D}) where D
-    fs = faces(m)
-    ns = face_normal.(m)
+function merge_coplanar!(c::Cell{D}) where D
+    fs = faces(c)
+    ns = face_normals(c)
 
     # merge the all co-planar face; step forward in a "conquering" fashion
-    mfs = Vector{NgonFace}(fs) # merged faces
     i = 1
-    while i ≤ length(mfs)
-        fᵢ = mfs[i]
-        j  = i+1
-        while j ≤ length(mfs)
-            fⱼ = mfs[j]
-            # can be co-planar faces if they share two or more vertices; we only 
-            # support merging with two vertices currently, so just check for that
-            if sum(∈(fᵢ), fⱼ) == D-1 && is_coplanar(ns[i], ns[j])
-                mfs[i] = fᵢ = merge_coplanar(fᵢ, fⱼ)
-                deleteat!(mfs, j), deleteat!(ns, j)
-                was_merged = true
-            else
-                was_merged = false
+    while i ≤ length(fs)
+        fᵢ = fs[i]
+        maybe_more_to_merge = true
+        while maybe_more_to_merge 
+            # this outer loop is here to ensure we do the j-loop until convergence (each
+            # j-loop can create new merge-options if two faces were indeed merged)
+            j  = i+1
+            maybe_more_to_merge = false
+            while j ≤ length(fs)
+                fⱼ = fs[j]
+                # can be co-planar faces if they share two or more vertices; we only 
+                # support merging with two vertices currently, so just check for that
+                if sum(∈(fᵢ), fⱼ) == D-1 && is_coplanar(ns[i], ns[j])
+                    fs[i] = fᵢ = merge_coplanar(fᵢ, fⱼ)
+                    deleteat!(fs, j), deleteat!(ns, j)
+                    was_merged = true
+                    maybe_more_to_merge = true
+                else
+                    was_merged = false
+                end
+                was_merged || (j += 1)
             end
-            was_merged || (j += 1)
         end
         i += 1
     end
 
-    return coordinates(m), mfs
+    return c
 end
 
-# compute an (oriented) face-normal
-function face_normal(p::GeometryBasics.Ngon{D}) where D
+# compute an (oriented) face-normal from a face `f` and a list of associated vertices `vs`
+function face_normal(vs::Vector{SVector{D,Float64}}, f::Vector{Int}) where D
     D == 2 && error("cannot compute a face normal for a 2D Ngon")
 
-    v₁₂ = p[2] - p[1]
-    v₂₃ = p[3] - p[2]
+    v₁₂ = vs[f[2]] - vs[f[1]]
+    v₂₃ = vs[f[3]] - vs[f[2]]
     n = cross(v₁₂, v₂₃)
-    #n = GeometryBasics.orthogonal_vector(p[1], p[2], p[3])
-    return GeometryBasics.normalize(n)
-end
 
-face_center(p::GeometryBasics.Ngon) = sum(p)/length(p)
+    return n/norm(n)
+end
+face_normal(c::Cell, i::Int) = face_normal(vertices(c), faces(c)[i])
+face_normals(c::Cell)        = face_normal.(Ref(vertices(c)), faces(c))
+
+# compute a *rough* center position of a polygon
+function face_center(vs::Vector{SVector{D,Float64}}, f::Vector{Int}) where D
+    return sum(i -> vs[i], f)/D
+end
+face_center(c::Cell, i::Int) = face_center(vertices(c), faces(c)[i])
+
 
 # assumes normal vectors to be normalized and identically oriented
 is_coplanar(n1, n2, atol::Real=1e-8) = isapprox(dot(n1, n2), 1.0, atol=atol)
 
-function merge_coplanar(fᵢ::NgonFace{Dᵢ,T}, fⱼ::NgonFace{Dⱼ,T}) where {Dᵢ,Dⱼ,T}
+function merge_coplanar(fᵢ::Vector{Int}, fⱼ::Vector{Int})
     idxs_sharedᵢ = sort!(findall(∈(fⱼ), fᵢ))
     idxs_sharedⱼ = [findfirst(==(fᵢ[i]), fⱼ)::Int for i in idxs_sharedᵢ]
 
@@ -148,7 +182,8 @@ function merge_coplanar(fᵢ::NgonFace{Dᵢ,T}, fⱼ::NgonFace{Dⱼ,T}) where {D
     # is to jump at from face i to j and vice versa when we hit a shared vertex; it's made
     # tedious by the fact that the face is not "cyclical" and we have to emulate that 
     # ourselves
-    f = MVector{Dᵢ+Dⱼ-2, Int}(undef)
+    Dᵢ, Dⱼ = length(fᵢ), length(fⱼ)
+    f = Vector{Int}(undef, Dᵢ+Dⱼ-2)
     n = 1
     # start in ngon i
     idxsᵢ, neighbourⱼ = if idxs_sharedᵢ[1] == 1 && idxs_sharedᵢ[2] == Dᵢ
@@ -165,14 +200,13 @@ function merge_coplanar(fᵢ::NgonFace{Dᵢ,T}, fⱼ::NgonFace{Dⱼ,T}) where {D
     if idxs_sharedⱼ[neighbourⱼ] == Dⱼ
         idxsⱼ = Iterators.flatten((1:Dⱼ-1,))
     else
-        other_neighborⱼ = neighbourⱼ == 2 ? 1 : 2
         if idxs_sharedⱼ[neighbourⱼ] == 1
             idxsⱼ = Iterators.flatten((idxs_sharedⱼ[neighbourⱼ]+1:Dⱼ,))
         else
+            other_neighborⱼ = neighbourⱼ == 2 ? 1 : 2
             idxsⱼ = Iterators.flatten((idxs_sharedⱼ[neighbourⱼ]+1:Dⱼ, 1:idxs_sharedⱼ[other_neighborⱼ]))
         end
     end
-
     for idxⱼ in idxsⱼ
         f[n] = fⱼ[idxⱼ]
         n += 1
@@ -185,32 +219,17 @@ function merge_coplanar(fᵢ::NgonFace{Dᵢ,T}, fⱼ::NgonFace{Dⱼ,T}) where {D
         n += 1
     end
 
-    return NgonFace{Dᵢ+Dⱼ-2}(f...)
+    return f
 end
 
-function visualize_mesh(m::Mesh, s::Scene=Scene())
-    #mesh!(s, m, color=:blue, transparent=true)
-    wireframe!(s, m, color=:black, linewidth=4)
-    ns = face_normal.(m)
-    cs = face_center.(m)
-    #for (n, c) in zip(ns, cs)
-    @show ns
-        arrows!(s,
-                getindex.(cs, 1), getindex.(cs, 2), getindex.(cs, 3),
-                getindex.(ns, 1), getindex.(ns, 2), getindex.(ns, 3),)
-    #end
-    display(s)
-end
-
-function visualize_ngons(vs, fs, s::Scene=Scene())
+function visualize(c::Cell, s::Scene=Scene())
     cam3d!(s)
-    for (i,f) in enumerate(fs)
-        path = vs[f]
-        lines!(s, vcat(collect(getindex.(path, 1)), path[1][1]), 
-                  vcat(collect(getindex.(path, 2)), path[1][2]), 
-                  vcat(collect(getindex.(path, 3)), path[1][3]),
+    for (i,poly) in enumerate(c)
+        lines!(s, vcat(getindex.(poly, 1), poly[1][1]),
+                  vcat(getindex.(poly, 2), poly[1][2]),
+                  vcat(getindex.(poly, 3), poly[1][3]),
                   color=RGB(.15,.25,.8), linewidth=2
-                  )
+        )
     end
     display(s)
 end
