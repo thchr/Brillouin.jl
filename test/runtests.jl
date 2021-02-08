@@ -32,11 +32,19 @@ end
         permute!(vs, I)
         # relabel the face-indices to match the new vertex sorting
         replace!.(fs, (I .=> eachindex(I))...)
-        # sort the faces in some canonical order
+        # sort the faces in some canonical order; note that each face
+        # must themselves also be sorted (because they are cyclical)
+        map!(circshift_minimal_first, fs, fs)
         sort!(fs)
 
         return c
     end
+
+    function circshift_minimal_first(v::Vector)
+        _, idx = findmin(v)
+        return circshift(v, length(v)-idx+1)
+    end
+
     let io = IOBuffer()
         show(io, MIME"text/plain"(), canonicalize!(cell))
         show_str = """
@@ -53,14 +61,14 @@ end
                 [2.094, 3.628, 2.513]
                 [4.189, 0.0, -2.513]
                 [4.189, 0.0, 2.513]
-         faces: [1, 3, 4, 2]
-                [2, 6, 5, 1]
-                [5, 9, 11, 7, 3, 1]
-                [7, 8, 4, 3]
+         faces: [1, 2, 6, 5]
+                [1, 3, 4, 2]
+                [1, 5, 9, 11, 7, 3]
+                [2, 4, 8, 12, 10, 6]
+                [3, 7, 8, 4]
+                [5, 6, 10, 9]
                 [7, 11, 12, 8]
                 [9, 10, 12, 11]
-                [10, 6, 2, 4, 8, 12]
-                [10, 9, 5, 6]
         """
         
         @test String(take!(io)) == show_str
