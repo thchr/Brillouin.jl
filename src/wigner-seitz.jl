@@ -2,8 +2,6 @@ module WignerSeitz
 
 # ---------------------------------------------------------------------------------------- #
 using StaticArrays
-using Crystalline
-using Crystalline: Basis
 using LinearAlgebra: dot, cross, norm
 
 using GLMakie
@@ -38,7 +36,7 @@ IndexStyle(::Type{<:Cell}) = IndexLinear()
 # ---------------------------------------------------------------------------------------- #
 
 """
-    wignerseitz(Vs::Basis{D}, output::Symbol = :polygons; Nmax::Integer = 3)
+    wignerseitz(Vs::AbstractVector{<:SVector{D}}, output::Symbol = :polygons; Nmax = 3)
 
 Return the vertices and associated (outward oriented) faces of the Wigner-Seitz cell defined
 by a basis `Vs`.
@@ -47,7 +45,8 @@ If the `output = :polygons` (default), co-planar faces are merged to form polygo
 faces of arbitrary order. If `output = :triangles` "unprocessed" triangles/lines (face of
 order `D`) are returned instead.
 """
-function wignerseitz(Vs::Basis{D}, output::Symbol = :polygons; Nmax::Integer = 3) where D
+function wignerseitz(Vs::AbstractVector{<:SVector{D,<:Real}}, output::Symbol = :polygons;
+            Nmax::Integer = 3) where D
     # "supercell" lattice of G-vectors
     Ns = -Nmax:Nmax
     lattice = Vector{SVector{D,Float64}}(undef, length(Ns)^D)
