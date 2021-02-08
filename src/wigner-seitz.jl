@@ -11,7 +11,7 @@ import Base: getindex, size, IndexStyle, show, summary
 
 # ---------------------------------------------------------------------------------------- #
 
-export wignerseitz
+export wignerseitz, faces, vertices
 
 # ---------------------------------------------------------------------------------------- #
 
@@ -64,12 +64,12 @@ function summary(io::IO, c::Cell{D}) where D
 end
 function show(io::IO, ::MIME"text/plain", c::Cell)
     summary(io, c)
-    println(":")
+    println(io, ":")
 
-    println(" verts: ", round.(first(vertices(c)), digits=3))
+    println(io, " verts: ", round.(first(vertices(c)), digits=3))
     foreach(v -> println(io, "        ", round.(v, digits=3)), @view vertices(c)[2:end])
      
-    println(" faces: ", first(faces(c)))
+    println(io, " faces: ", first(faces(c)))
     foreach(f -> println(io, "        ", f), @view faces(c)[2:end])
 end
 # ---------------------------------------------------------------------------------------- #
