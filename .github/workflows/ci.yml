@@ -12,9 +12,9 @@ jobs:
       matrix:
         version:
           - '1.5'
-         #- 'nightly' (GLMakie is broken nightly via GLFW binaries)
+          - 'nightly'
         os:
-          - ubuntu-latest
+         #- ubuntu-latest # `pyimport_conda("scipy.spatial", "scipy")` is broken on Ubuntu on Github Actions for some reason? Disable...
           - macOS-latest
           - windows-latest
         arch:
