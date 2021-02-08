@@ -26,9 +26,10 @@ end
     function canonicalize!(c::WignerSeitz.Cell)
         vs = vertices(c)
         fs = faces(c)
-        # sort the vertices in some canonical order
-        I = sortperm(vs)
-        sort!(vs)
+        # sort the vertices in some canonical order (we also use `round` to be robust to 
+        # floating point differences across architectures)
+        I = sortperm(vs, by=v->round.(v, digits=5))
+        permute!(vs, I)
         # relabel the face-indices to match the new vertex sorting
         replace!.(fs, (I .=> eachindex(I))...)
         # sort the faces in some canonical order
@@ -42,24 +43,24 @@ end
         Cell{3} (8 faces, 12 vertices):
          verts: [-4.189, 0.0, -2.513]
                 [-4.189, 0.0, 2.513]
+                [-2.094, -3.628, -2.513]
                 [-2.094, -3.628, 2.513]
                 [-2.094, 3.628, -2.513]
                 [-2.094, 3.628, 2.513]
-                [-2.094, -3.628, -2.513]
                 [2.094, -3.628, -2.513]
                 [2.094, -3.628, 2.513]
                 [2.094, 3.628, -2.513]
                 [2.094, 3.628, 2.513]
                 [4.189, 0.0, -2.513]
                 [4.189, 0.0, 2.513]
-         faces: [1, 6, 3, 2]
-                [2, 5, 4, 1]
-                [4, 9, 11, 7, 6, 1]
-                [7, 8, 3, 6]
+         faces: [1, 3, 4, 2]
+                [2, 6, 5, 1]
+                [5, 9, 11, 7, 3, 1]
+                [7, 8, 4, 3]
                 [7, 11, 12, 8]
                 [9, 10, 12, 11]
-                [10, 5, 2, 3, 8, 12]
-                [10, 9, 4, 5]
+                [10, 6, 2, 4, 8, 12]
+                [10, 9, 5, 6]
         """
         
         @test String(take!(io)) == show_str
