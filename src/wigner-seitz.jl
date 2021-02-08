@@ -7,7 +7,7 @@ using StaticArrays
 using LinearAlgebra: dot, cross, norm
 using PyCall
 
-import Base: getindex, size, IndexStyle
+import Base: getindex, size, IndexStyle, show, summary
 
 # ---------------------------------------------------------------------------------------- #
 
@@ -57,6 +57,21 @@ Base.@propagate_inbounds getindex(c::Cell, i::Int) = vertices(c)[faces(c)[i]]
 size(c::Cell) = size(c.faces)
 IndexStyle(::Type{<:Cell}) = IndexLinear()
 
+function summary(io::IO, c::Cell{D}) where D
+    print(io, "Cell{", D, "} (", 
+              length(c), " faces, ", 
+              length(vertices(c)), " vertices)")
+end
+function show(io::IO, ::MIME"text/plain", c::Cell)
+    summary(io, c)
+    println(":")
+
+    println(" verts: ", round.(first(vertices(c)), digits=3))
+    foreach(v -> println(io, "        ", round.(v, digits=3)), @view vertices(c)[2:end])
+     
+    println(" faces: ", first(faces(c)))
+    foreach(f -> println(io, "        ", f), @view faces(c)[2:end])
+end
 # ---------------------------------------------------------------------------------------- #
 # MAIN FUNCTION
 
