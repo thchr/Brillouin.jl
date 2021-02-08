@@ -1,13 +1,13 @@
 module WignerSeitz
 
 # ---------------------------------------------------------------------------------------- #
+
 using Requires
 using StaticArrays
 using LinearAlgebra: dot, cross, norm
 using PyCall
 
 import Base: getindex, size, IndexStyle
-
 
 # ---------------------------------------------------------------------------------------- #
 
@@ -43,8 +43,9 @@ function __init__()
 end
 
 # ---------------------------------------------------------------------------------------- #
+# STRUCTURES
 
-struct Cell{D} <: AbstractVector{Vector{SVector{D, Float64}}} # of polygons
+struct Cell{D} <: AbstractVector{Vector{SVector{D, Float64}}} # over of polygons
     verts :: Vector{SVector{D, Float64}}
     faces :: Vector{Vector{Int}}
 end
@@ -57,6 +58,7 @@ size(c::Cell) = size(c.faces)
 IndexStyle(::Type{<:Cell}) = IndexLinear()
 
 # ---------------------------------------------------------------------------------------- #
+# MAIN FUNCTION
 
 """
     wignerseitz(Vs::AbstractVector{<:SVector{D}}, output::Symbol = :polygons; Nmax = 3)
@@ -103,6 +105,8 @@ function wignerseitz(Vs::AbstractVector{<:SVector{D,<:Real}}, output::Symbol = :
     end
 end
 
+# ---------------------------------------------------------------------------------------- #
+# UTILITIES & SUBFUNCTIONS
 
 function convert_to_cell(hull, ::Val{D}) where D
     vs′ = hull.points         # vertices
@@ -115,7 +119,7 @@ end
 
 
 """
-is_outward_oriented(c, n)
+    is_outward_oriented(c, n)
     
 Return whether a face, specified by its center `c` and normal `n`, is outward pointing,
 assuming the face is part of a convex hull centered around origo.
@@ -187,7 +191,6 @@ function face_center(vs::Vector{SVector{D,Float64}}, f::Vector{Int}) where D
     return sum(i -> vs[i], f)/D
 end
 face_center(c::Cell, i::Int) = face_center(vertices(c), faces(c)[i])
-
 
 # assumes normal vectors to be normalized and identically oriented
 is_coplanar(n1, n2, atol::Real=1e-8) = isapprox(dot(n1, n2), 1.0, atol=atol)
