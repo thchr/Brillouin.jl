@@ -1,23 +1,46 @@
 module WignerSeitz
 
 # ---------------------------------------------------------------------------------------- #
+using Requires
 using StaticArrays
 using LinearAlgebra: dot, cross, norm
-
-using GLMakie
-using Colors
+using PyCall
 
 import Base: getindex, size, IndexStyle
 
-using PyCall
-const PySpatial = PyNULL()
-function __init__()
-    copy!(PySpatial, pyimport_conda("scipy.spatial", "scipy"))
-end
 
 # ---------------------------------------------------------------------------------------- #
 
-export wignerseitz, visualize
+export wignerseitz
+
+# ---------------------------------------------------------------------------------------- #
+
+const PySpatial = PyNULL()
+function __init__()
+    # bringing in SciPy's Spatial module (for `Voronoi` and `ConvexHull`)
+    copy!(PySpatial, pyimport_conda("scipy.spatial", "scipy"))
+
+    # plotting extensions on GLMakie load
+    @require GLMakie="e9467ef8-e4e7-5192-8a1a-b1aee30e663a" begin
+        using GLMakie
+        import GLMakie: plot, plot!
+        using Colors: RGB
+
+        export plot, plot!
+
+        function plot!(s::Scene, c::Cell)
+            cam3d!(s)
+            for (i,poly) in enumerate(c)
+                lines!(s, vcat(getindex.(poly, 1), poly[1][1]),
+                        vcat(getindex.(poly, 2), poly[1][2]),
+                        vcat(getindex.(poly, 3), poly[1][3]),
+                        color=RGB(.15,.25,.8), linewidth=2
+                    )
+            end
+        end
+        plot(c::Cell) = (s=Scene(); plot!(s, c); s)
+    end
+end
 
 # ---------------------------------------------------------------------------------------- #
 
@@ -221,16 +244,6 @@ function merge_coplanar(fᵢ::Vector{Int}, fⱼ::Vector{Int})
     return f
 end
 
-function visualize(c::Cell, s::Scene=Scene())
-    cam3d!(s)
-    for (i,poly) in enumerate(c)
-        lines!(s, vcat(getindex.(poly, 1), poly[1][1]),
-                  vcat(getindex.(poly, 2), poly[1][2]),
-                  vcat(getindex.(poly, 3), poly[1][3]),
-                  color=RGB(.15,.25,.8), linewidth=2
-        )
-    end
-    display(s)
-end
+# ---------------------------------------------------------------------------------------- #
 
-end
+end # module
