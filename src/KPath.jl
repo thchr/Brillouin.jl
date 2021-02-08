@@ -9,7 +9,7 @@
 module KPath
 
 # ---------------------------------------------------------------------------------------- #
-export cumdists, irrfbz_path
+export irrfbz_path, cumdists
 # ---------------------------------------------------------------------------------------- #
 using Crystalline: interpolate_kvpath, splice_kvpath, DirectBasis, bravaistype
 using LinearAlgebra: norm
@@ -17,76 +17,7 @@ using LinearAlgebra: norm
 
 const AVec = AbstractVector
 
-
-"""
-    interp_paths_from_labs(lab2kv, paths_labs, Nk::Integer, [splice::Bool=false])
-
-Interpolated k-paths through vertices in `lab2kv` via labels in `paths_labs`.
-
-If `splice=false` (default), approximately `Nk` sampling points are used _in total_.
-If `splice=true`, `Nk` points is used per segment for each path.
-"""
-function interp_paths_from_labs(lab2kv, paths_labs, Nk::Integer, splice::Bool=false, 
-            legacy::Bool=false)
-    paths_verts = map(labs->[lab2kv[lab] for lab in labs], paths_labs)
-    if !legacy
-        if !splice
-            # calculate length of each path
-            cumdist_per_path = zeros(Float64, length(paths_verts))
-            for (p,path_verts) in enumerate(paths_verts)
-                for i in Base.OneTo(length(path_verts)-1)
-                    kᵢ, kᵢ₊₁ = path_verts[i], path_verts[i+1]
-                    cumdist_per_path[p] += norm(kᵢ₊₁ .- kᵢ)
-                end
-            end
-            cumdist = sum(cumdist_per_path)
-
-            # number of points per path
-            Nksᵖ = round.(Int64, (Nk/cumdist).*cumdist_per_path, RoundUp)
-
-            paths_kvs = map(zip(paths_verts, Nksᵖ)) do args # this map-form seems needed for
-                interpolate_kvpath(args[1], args[2])[1]     # inference to succeed...
-            end                                             # (a generator does e.g. not infer)
-            return paths_kvs
-            
-        else
-            return splice_kvpath.(paths_verts, Nk)
-        end
-
-    else # old stupid legacy approach; see __legacy_get_kvpath
-        splice && throw("splice and legacy cannot be simultaneously true")
-        return __legacy_get_kvpath.(paths_verts, Nk)
-    end
-
-end
-
-
-# Get the cumulative k-path length
-cumdists(kvs::AVec{<:AVec{Float64}}) = vcat(0.0, cumsum(norm.((@views kvs[2:end]) .- (@views kvs[1:end-1])))...)
-cumdists(paths_kvs::AVec{<:AVec{<:AVec{Float64}}}) = cumdists.(paths_kvs)
-
-# This is an old an pretty broken implementation, but we keep it around because some of the
-# datasets (e.g. sgs 68, 86, & 230) were created with this implementation, and we need it to
-# be able to refresh the kpaths associated with those calculations.
-function __legacy_get_kvpath(kvs::AVec{<:AVec{<:Real}}, Ninterp::Integer)
-    Nkpairs = length(kvs)-1
-    dists = Vector{Float64}(undef, Nkpairs)
-    @inbounds for i in Base.OneTo(Nkpairs)
-        dists[i] = norm(kvs[i] .- kvs[i+1])
-    end
-    meandist = sum(dists)/Nkpairs
-
-    kvpath = [float.(kvs[1])]
-    @inbounds for i in Base.OneTo(Nkpairs)
-        # try to maintain an even distribution of k-points along path
-        Ninterp_i = round(Int64, dists[i]./meandist*Ninterp)
-        # new k-points
-        newkvs = range(kvs[i],kvs[i+1],length=Ninterp_i)
-        # append new kvecs to kpath
-        append!(kvpath, (@view newkvs[2:end]))
-    end
-    return kvpath
-end
+include("interpolate-paths.jl")
 
 # ---------------------------------------------------------------------------------------- #
 
@@ -369,7 +300,7 @@ function irrfbz_data_tI1_without_inversion_or_tr(a::Real, c::Real; pathtype::Str
     return lab2kv, paths_labs
 end
 
-
+# ---------------------------------------------------------------------------------------- #
 _throw_pathtype(pathtype::String) = throw(DomainError(pathtype, "undefined pathtype"))
 _throw_requires_direct_basis()    = throw(DomainError(nothing, "the k-path of the requested space group requires information about the direct basis; `Rs` must be of type `DirectBasis` here"))
 # ---------------------------------------------------------------------------------------- #
