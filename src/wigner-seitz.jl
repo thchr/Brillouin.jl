@@ -119,6 +119,14 @@ function wignerseitz(Vs::AbstractVector{<:SVector{D,<:Real}}, output::Symbol = :
         error(DomainError(output, "invalid output type"))
     end
 end
+# overload for input as ordinary vectors; type-unstable obviously, but convenient sometimes
+function wignerseitz(Vs::AbstractVector{AbstractVector{<:Real}}, output::Symbol = :polygons;
+            kwargs...)
+    D = length(first(Vs))
+    all(V->length(V) == D, @view Vs[2:end]) || error(DomainError(Vs, "provided vectors `Vs` must have identical dimension"))
+
+    return wignerseitz(SVector{D,Float64}.(Vs), output; kwargs...)
+end
 
 # ---------------------------------------------------------------------------------------- #
 # UTILITIES & SUBFUNCTIONS
