@@ -34,6 +34,9 @@ jobs:
             ${{ runner.os }}-test-${{ env.cache-name }}-
             ${{ runner.os }}-test-
             ${{ runner.os }}-
+      # add the BoffinStuff and tchrReseach registries (in addition to default registry General), which is needed for Crystalline
+      - run: julia --color=yes --check-bounds=yes --project -e 'using Pkg; Pkg.Registry.add([RegistrySpec("General"), RegistrySpec(url="https://github.com/wildart/BoffinStuff.git"), RegistrySpec(url="https://github.com/thchr/tchrResearch.git")])'
+        shell: bash # avoid escaping issues w/ pwsh on Windows (cf. https://github.com/julia-actions/setup-julia#matrix-testing)
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
       - uses: julia-actions/julia-processcoverage@v1
