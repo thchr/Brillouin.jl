@@ -39,7 +39,7 @@ Cell{3} (8 faces, 12 vertices):
         [5, 8, 9, 1]
         [4, 11, 5, 1]
 ```
-The resulting Brillouin zone can be plotted using [`GLMakie.jl`](https://github.com/JuliaPlots/GLMakie.jl):
+The resulting Brillouin zone can be plotted using e.g. [`GLMakie.jl`](https://github.com/JuliaPlots/GLMakie.jl) or other 3D-capable backends of [`AbstractPlotting.jl`](https://github.com/JuliaPlots/AbstractPlotting.jl):
 ```jl
 julia> using GLMakie
 julia> plot(cell)

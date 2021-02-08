@@ -21,24 +21,24 @@ function __init__()
     copy!(PySpatial, pyimport_conda("scipy.spatial", "scipy"))
 
     # plotting extensions on GLMakie load
-    @require GLMakie="e9467ef8-e4e7-5192-8a1a-b1aee30e663a" begin
-        using GLMakie
-        import GLMakie: plot, plot!
-        using Colors: RGB
+    @require AbstractPlotting="537997a7-5e4e-5d89-9595-2241ea00577e" begin
+        using AbstractPlotting
+        import AbstractPlotting: plot, plot!
 
-        export plot, plot!
-
-        function plot!(s::Scene, c::Cell)
+        const DEFAULT_PLOT_OPTS = (color=:mediumblue, linewidth=2)
+        function plot!(s::Scene, c::Cell; kwargs...)
             cam3d!(s)
             for (i,poly) in enumerate(c)
-                lines!(s, vcat(getindex.(poly, 1), poly[1][1]),
-                        vcat(getindex.(poly, 2), poly[1][2]),
-                        vcat(getindex.(poly, 3), poly[1][3]),
-                        color=RGB(.15,.25,.8), linewidth=2
-                    )
+                lines!(s, push!(getindex.(poly, 1), poly[1][1]),
+                          push!(getindex.(poly, 2), poly[1][2]),
+                          push!(getindex.(poly, 3), poly[1][3]);
+                          DEFAULT_PLOT_OPTS..., # default options
+                          kwargs...             # possible keyword overrides
+                      )
             end
+            return s
         end
-        plot(c::Cell) = (s=Scene(); plot!(s, c); s)
+        plot(c::Cell; kwargs...) = plot!(Scene(), c; kwargs...)
     end
 end
 
