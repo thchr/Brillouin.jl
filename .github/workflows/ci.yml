@@ -11,7 +11,7 @@ jobs:
       matrix:
         version:
           - '1.5'
-          - 'nightly'
+         #- 'nightly' (GLMakie is broken nightly via GLFW binaries)
         os:
           - ubuntu-latest
           - macOS-latest

@@ -14,36 +14,52 @@ end
 @testset "WignerSeitz" begin
     # --- `wignerseitz` ---
     # hexagonal lattice (example from space group 147)
-    Rs = SVector{3,Float64}.([1,0,0], [-.5,√3/2,0], [0,0,1.25])         # direct basis
-    Gs = SVector{3,Float64}.([[2π,0,0], [2π/√3,4π/√3,0], [0,0,2π/1.25]]) # reciprocal basis
+    Rs = SVector{3,Float64}.([[1,0,0], [-.5,√3/2,0], [0,0,1.25]])        # direct basis
+    Gs = SVector{3,Float64}.([[2π,2π/√3,0], [0,4π/√3,0], [0,0,2π/1.25]]) # reciprocal basis
     cell = wignerseitz(Gs)
     @test length(cell) == 8
     @test length(vertices(cell)) == 12
 
+    # for CI and testing generally, we cannot depend on a specific sorting/ordering
+    # from `wignerseitz` (and ultimately, `PySpatial.Voronoi` or `PySpatial.ConvexHull`),
+    # so to be robust to this, we compare output after sorting to a canonical order
+    function canonicalize!(c::WignerSeitz.Cell)
+        vs = vertices(c)
+        fs = faces(c)
+        # sort the vertices in some canonical order
+        I = sortperm(vs)
+        sort!(vs)
+        # relabel the face-indices to match the new vertex sorting
+        replace!.(fs, (I .=> eachindex(I))...)
+        # sort the faces in some canonical order
+        sort!(fs)
+
+        return c
+    end
     let io = IOBuffer()
-        show(io, MIME"text/plain"(), cell)
+        show(io, MIME"text/plain"(), canonicalize!(cell))
         show_str = """
         Cell{3} (8 faces, 12 vertices):
-         verts: [0.486, 4.291, -2.513]
-                [-3.142, 2.964, 2.513]
-                [-3.142, 2.964, -2.513]
-                [0.486, 4.291, 2.513]
-                [3.142, 2.964, -2.513]
-                [3.142, -2.964, -2.513]
-                [-0.486, -4.291, -2.513]
-                [-3.142, -2.964, -2.513]
-                [-3.142, -2.964, 2.513]
-                [-0.486, -4.291, 2.513]
-                [3.142, -2.964, 2.513]
-                [3.142, 2.964, 2.513]
-         faces: [5, 12, 11, 6]
-                [7, 6, 11, 10]
-                [8, 3, 1, 5, 6, 7]
-                [8, 7, 10, 9]
-                [9, 2, 3, 8]
-                [10, 11, 12, 4, 2, 9]
-                [1, 3, 2, 4]
-                [12, 5, 1, 4]
+         verts: [-4.189, 0.0, -2.513]
+                [-4.189, 0.0, 2.513]
+                [-2.094, -3.628, 2.513]
+                [-2.094, 3.628, -2.513]
+                [-2.094, 3.628, 2.513]
+                [-2.094, -3.628, -2.513]
+                [2.094, -3.628, -2.513]
+                [2.094, -3.628, 2.513]
+                [2.094, 3.628, -2.513]
+                [2.094, 3.628, 2.513]
+                [4.189, 0.0, -2.513]
+                [4.189, 0.0, 2.513]
+         faces: [1, 6, 3, 2]
+                [2, 5, 4, 1]
+                [4, 9, 11, 7, 6, 1]
+                [7, 8, 3, 6]
+                [7, 11, 12, 8]
+                [9, 10, 12, 11]
+                [10, 5, 2, 3, 8, 12]
+                [10, 9, 4, 5]
         """
         
         @test String(take!(io)) == show_str
