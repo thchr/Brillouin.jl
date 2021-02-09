@@ -76,16 +76,24 @@ end
 # MAIN FUNCTION
 
 """
-    wignerseitz(Vs::AbstractVector{<:SVector{D}}, output::Symbol = :polygons; Nmax = 3)
+    wignerseitz(Vs::AbstractVector{<:SVector{D}}; output::Symbol = :polygons, Nmax = 3)
+    wignerseitz(Vs::AbstractVector{AbstractVector}; output::Symbol = :polygons, Nmax = 3)
+                                                                --> Cell{D}
 
-Return the vertices and associated (outward oriented) faces of the Wigner-Seitz cell defined
-by a basis `Vs`.
+Return a `Cell{D}` structure, containing the vertices and associated (outward oriented)
+faces, of the Wigner-Seitz cell defined by a basis `Vs` in `D` dimensions.
 
-If the `output = :polygons` (default), co-planar faces are merged to form polygonal planar
-faces of arbitrary order. If `output = :triangles` "unprocessed" triangles/lines (face of
-order `D`) are returned instead.
+## Keyword arguments
+- `output` (default, `:polygons`): if set to `:polygons`, co-planar faces are merged to form
+  polygonal planar faces (triangles, quadrilaterals, and ngons generally). if set to 
+  `:triangles`, "unprocessed" triangles (or, generlaly, faces of order `D`) are returned.
+- `Nmax` (default, `3`): includes `-Nmax:Nmax` points in the initial lattice used to
+  generate the underlying Voronoi tesselation. It is unwise to set this to anything lower
+  than 3 without explicitly testing convergence; and probably unnecessary to increase it
+  beyond 3 as well.
 """
-function wignerseitz(Vs::AbstractVector{<:SVector{D,<:Real}}, output::Symbol = :polygons;
+function wignerseitz(Vs::AbstractVector{<:SVector{D,<:Real}};
+            output::Symbol = :polygons,
             Nmax::Integer = 3) where D
     # "supercell" lattice of G-vectors
     Ns = -Nmax:Nmax
@@ -116,16 +124,15 @@ function wignerseitz(Vs::AbstractVector{<:SVector{D,<:Real}}, output::Symbol = :
     elseif output == :triangles
         return c
     else
-        error(DomainError(output, "invalid output type"))
+        throw(DomainError(output, "invalid output type"))
     end
 end
 # overload for input as ordinary vectors; type-unstable obviously, but convenient sometimes
-function wignerseitz(Vs::AbstractVector{AbstractVector{<:Real}}, output::Symbol = :polygons;
-            kwargs...)
+function wignerseitz(Vs::AbstractVector{<:AbstractVector{<:Real}}; kwargs...)
     D = length(first(Vs))
     all(V->length(V) == D, @view Vs[2:end]) || error(DomainError(Vs, "provided vectors `Vs` must have identical dimension"))
 
-    return wignerseitz(SVector{D,Float64}.(Vs), output; kwargs...)
+    return wignerseitz(SVector{D,Float64}.(Vs); kwargs...)
 end
 
 # ---------------------------------------------------------------------------------------- #
