@@ -20,10 +20,11 @@ end
     @test length(cell) == 8
     @test length(vertices(cell)) == 12
 
+    # ------------------------------------------------------------------------------------ #
     # for CI and testing generally, we cannot depend on a specific sorting/ordering
     # from `wignerseitz` (and ultimately, `PySpatial.Voronoi` or `PySpatial.ConvexHull`),
     # so to be robust to this, we compare output after sorting to a canonical order
-    function canonicalize!(c::WignerSeitz.Cell)
+    function canonicalize!(c::Cell)
         vs = vertices(c)
         fs = faces(c)
         # sort the vertices in some canonical order (we also use `round` to be robust to 
@@ -45,32 +46,58 @@ end
         return circshift(v, length(v)-idx+1)
     end
 
-    let io = IOBuffer()
-        show(io, MIME"text/plain"(), canonicalize!(cell))
-        show_str = """
-        Cell{3} (8 faces, 12 vertices):
-         verts: [-4.189, 0.0, -2.513]
-                [-4.189, 0.0, 2.513]
-                [-2.094, -3.628, -2.513]
-                [-2.094, -3.628, 2.513]
-                [-2.094, 3.628, -2.513]
-                [-2.094, 3.628, 2.513]
-                [2.094, -3.628, -2.513]
-                [2.094, -3.628, 2.513]
-                [2.094, 3.628, -2.513]
-                [2.094, 3.628, 2.513]
-                [4.189, 0.0, -2.513]
-                [4.189, 0.0, 2.513]
-         faces: [1, 2, 6, 5]
-                [1, 3, 4, 2]
-                [1, 5, 9, 11, 7, 3]
-                [2, 4, 8, 12, 10, 6]
-                [3, 7, 8, 4]
-                [5, 6, 10, 9]
-                [7, 11, 12, 8]
-                [9, 10, 12, 11]
-        """
-        
-        @test String(take!(io)) == show_str
-    end
+    # actually canonicalize `cell`
+    canonicalize!(cell)
+    # ------------------------------------------------------------------------------------ #
+
+    # test show/display (canonicalization is crucial here)
+    io = IOBuffer()
+    show(io, MIME"text/plain"(), cell)
+    show_str = """
+    Cell{3} (8 faces, 12 vertices):
+     verts: [-4.189, 0.0, -2.513]
+            [-4.189, 0.0, 2.513]
+            [-2.094, -3.628, -2.513]
+            [-2.094, -3.628, 2.513]
+            [-2.094, 3.628, -2.513]
+            [-2.094, 3.628, 2.513]
+            [2.094, -3.628, -2.513]
+            [2.094, -3.628, 2.513]
+            [2.094, 3.628, -2.513]
+            [2.094, 3.628, 2.513]
+            [4.189, 0.0, -2.513]
+            [4.189, 0.0, 2.513]
+     faces: [1, 2, 6, 5]
+            [1, 3, 4, 2]
+            [1, 5, 9, 11, 7, 3]
+            [2, 4, 8, 12, 10, 6]
+            [3, 7, 8, 4]
+            [5, 6, 10, 9]
+            [7, 11, 12, 8]
+            [9, 10, 12, 11]
+    """
+    @test String(take!(io)) == show_str
+    display(cell)
+    # test iteration of Cell struct
+    @test cell[1] ≈ [[-4.188790204786391, 0.0, -2.5132741228718345],
+                     [-4.188790204786391, 0.0, 2.5132741228718345],
+                     [-2.0943951023931957, 3.6275987284684357, 2.5132741228718345],
+                     [-2.0943951023931957, 3.6275987284684357, -2.5132741228718345]]
+    @test cell[4] ≈ [[-4.188790204786391, 0.0, 2.5132741228718345],
+                     [-2.0943951023931957, -3.6275987284684357, 2.513274122871834],
+                     [2.0943951023931953, -3.6275987284684357, 2.5132741228718345],
+                     [4.1887902047863905, 0.0, 2.5132741228718345],
+                     [2.0943951023931957, 3.6275987284684357, 2.5132741228718345],
+                     [-2.0943951023931957, 3.6275987284684357, 2.5132741228718345]]
+
+    # test that everything works the same if we use ordinary vectors instead of SVectors
+    @test wignerseitz(Gs) ≈ wignerseitz(collect.(Gs))
+
+    # test error on non-valid output type & out-of-bounds indexing error
+    @test_throws DomainError wignerseitz(Gs; output=:unsupported_output_request)
+    @test_throws BoundsError cell[9]
+
+    # test :triangles output
+    cell′ = wignerseitz(Gs; output=:triangles)
+    @test all(v -> length(v) == 3, vertices(cell′))
 end
