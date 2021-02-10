@@ -21,6 +21,10 @@ include("interpolate-paths.jl")
 
 # ---------------------------------------------------------------------------------------- #
 
+include("codegen_kpoints.jl")
+
+# ---------------------------------------------------------------------------------------- #
+
 """
     irrfbz_path(sgnum::Integer, Nk::Integer, Rs::Union{Nothing, DirectBasis}=nothing; 
         pathtype::String="SeeK", has_inversion_or_tr::Bool=true,
