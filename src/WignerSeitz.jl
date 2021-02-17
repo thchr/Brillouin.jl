@@ -11,7 +11,7 @@ import Base: getindex, size, IndexStyle, show, summary
 
 # ---------------------------------------------------------------------------------------- #
 
-export Cell, wignerseitz, faces, vertices
+export Cell, wignerseitz, faces, vertices, basis
 
 # ---------------------------------------------------------------------------------------- #
 

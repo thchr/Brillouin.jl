@@ -19,6 +19,7 @@ end
     cell = wignerseitz(Gs)
     @test length(cell) == 8
     @test length(vertices(cell)) == 12
+    @test basis(cell) == Gs
 
     # ------------------------------------------------------------------------------------ #
     # for CI and testing generally, we cannot depend on a specific sorting/ordering
@@ -75,6 +76,9 @@ end
             [5, 6, 10, 9]
             [7, 11, 12, 8]
             [9, 10, 12, 11]
+     basis: [6.283185307179586, 3.6275987284684357, 0.0]
+            [0.0, 7.255197456936871, 0.0]
+            [0.0, 0.0, 5.026548245743669]
     """
     @test String(take!(io)) == show_str
     display(cell)
