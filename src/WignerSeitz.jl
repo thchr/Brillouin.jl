@@ -22,23 +22,12 @@ function __init__()
 
     # plotting extensions on GLMakie load
     @require AbstractPlotting="537997a7-5e4e-5d89-9595-2241ea00577e" begin
-        using AbstractPlotting
-        import AbstractPlotting: plot, plot!
+        include("compat/abstractplotting_wignerseitz.jl")
+    end
 
-        const DEFAULT_PLOT_OPTS = (color=:mediumblue, linewidth=2)
-        function plot!(s::Scene, c::Cell; kwargs...)
-            cam3d!(s)
-            for (i,poly) in enumerate(c)
-                lines!(s, push!(getindex.(poly, 1), poly[1][1]),
-                          push!(getindex.(poly, 2), poly[1][2]),
-                          push!(getindex.(poly, 3), poly[1][3]);
-                          DEFAULT_PLOT_OPTS..., # default options
-                          kwargs...             # possible keyword overrides
-                      )
-            end
-            return s
-        end
-        plot(c::Cell; kwargs...) = plot!(Scene(), c; kwargs...)
+    # plotting extensions on PlotlyJS load
+    @require PlotlyJS="f0f68f2c-4968-5e81-91da-67840de0976a" begin
+        include("compat/plotlyjs_wignerseitz.jl")
     end
 end
 
