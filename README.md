@@ -1,6 +1,6 @@
 # Brillouin
 
-[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://thchr.github.io/Brillouin.jl/stable)
+<!--- [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://thchr.github.io/Brillouin.jl/stable) -->
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://thchr.github.io/Brillouin.jl/dev)
 [![Build Status](https://github.com/thchr/Brillouin.jl/workflows/CI/badge.svg)](https://github.com/thchr/Brillouin.jl/actions)
 [![Coverage](https://codecov.io/gh/thchr/Brillouin.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/thchr/Brillouin.jl)
@@ -39,8 +39,8 @@ Cell{3} (8 faces, 12 vertices):
         [5, 8, 9, 1]
         [4, 11, 5, 1]
 ```
-The resulting Brillouin zone can be plotted using e.g. [`GLMakie.jl`](https://github.com/JuliaPlots/GLMakie.jl) or other 3D-capable backends of [`AbstractPlotting.jl`](https://github.com/JuliaPlots/AbstractPlotting.jl):
+The resulting Brillouin zone can be plotted using e.g. [`PlotlyJS.jl`](https://github.com/JuliaPlots/PlotlyJS.jl) (or 3D-capable backends of [`AbstractPlotting.jl`](https://github.com/JuliaPlots/AbstractPlotting.jl) such as [`GLMakie.jl`](https://github.com/JuliaPlots/GLMakie.jl)):
 ```jl
-julia> using GLMakie
+julia> using PlotlyJS
 julia> plot(cell)
 ```

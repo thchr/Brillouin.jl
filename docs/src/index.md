@@ -2,11 +2,11 @@
 CurrentModule = Brillouin
 ```
 
-# Brillouin
+# Brillouin.jl
 
-```@index
-```
+Documentation for [Brillouin.jl](https://github.com/thchr/Brillouin.jl)
 
-```@autodocs
-Modules = [Brillouin]
+```@contents
+Pages = ["wignerseitz.md",
+         "api.md"]
 ```

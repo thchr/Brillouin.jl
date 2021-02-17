@@ -10,15 +10,15 @@ const DEFAULT_PLOTLY_LAYOUT  = Layout(
     scene=attr(
         xaxis=attr(tickvals=[], zeroline=false,
                 showgrid=false, showbackground=false,
-                title=attr(text="")#"k<sub>x</sub>")
+                title=attr(text=""),
                 ),
         yaxis=attr(tickvals=[], zeroline=false,
                 showgrid=false, showbackground=false,
-                title=attr(text="")#"k<sub>y</sub>")
+                title=attr(text=""),
                 ),
         zaxis=attr(tickvals=[], zeroline=false,
                 showgrid=false, showbackground=false,
-                title=attr(text=""),#"k<sub>z</sub>")   
+                title=attr(text=""),
                 ),
         aspectmode = "data",
         camera=attr(up = attr(x=0, z=1, y=0),),
@@ -75,7 +75,7 @@ function plot(c::Cell{3}, layout::Layout=DEFAULT_PLOTLY_LAYOUT)
         tgtips[i] = PlotlyJS.cone(
             x=[V[1]], u=[V′[1]], y=[V[2]], v=[V′[2]], z=[V[3]], w=[V′[3]],
             sizeref=.1*scale, showscale=false, anchor="tail", 
-            colorscale=[[0, BASIS_LIGHT_COL], [1, BASIS_COL]],
+            colorscale=[[0, BASIS_COL], [1, BASIS_COL]],
             hovertext=name, hoverinfo="text+x+y+z")
     end
 
@@ -105,7 +105,7 @@ function plot(c::Cell{3}, layout::Layout=DEFAULT_PLOTLY_LAYOUT)
                     y=[V₁[2]], v=[V[2]],
                     z=[V₁[3]], w=[V[3]],
                     sizeref=.1*scale, showscale=false, anchor="tail", 
-                    colorscale=[[0, AXIS_LIGHT_COL], [1, AXIS_COL]],
+                    colorscale=[[0, AXIS_COL], [1, AXIS_COL]],
                     hovertext=name, hoverinfo="text")
             end
         end
@@ -115,9 +115,8 @@ function plot(c::Cell{3}, layout::Layout=DEFAULT_PLOTLY_LAYOUT)
     ts = vcat(tbz, tgs, tgtips, taxs, taxtips)
     p = PlotlyJS.Plot(ts, layout)
     P = PlotlyJS.plot(p)
-    PlotlyJS.display_blink(P)
 
-    return P, ts
+    return P
 end
 
 # ---------------------------------------------------------------------------------------- #
