@@ -28,7 +28,7 @@ makedocs(;
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", nothing) == "true",
         canonical="https://thchr.github.io/Brillouin.jl",
-        assets=String[],
+        assets = ["assets/custom.css"], # increase logo size
     ),
     pages=[
         "Home" => "index.md",
