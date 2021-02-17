@@ -48,9 +48,11 @@ end
 struct Cell{D} <: AbstractVector{Vector{SVector{D, Float64}}} # over of polygons
     verts :: Vector{SVector{D, Float64}}
     faces :: Vector{Vector{Int}}
+    basis :: SVector{D, SVector{D, Float64}}
 end
 faces(c::Cell)    = c.faces
 vertices(c::Cell) = c.verts
+basis(c::Cell)    = c.basis
 
 # abstract array interface
 Base.@propagate_inbounds getindex(c::Cell, i::Int) = vertices(c)[faces(c)[i]]
@@ -62,7 +64,7 @@ function summary(io::IO, c::Cell{D}) where D
               length(c), " faces, ", 
               length(vertices(c)), " vertices)")
 end
-function show(io::IO, ::MIME"text/plain", c::Cell)
+function show(io::IO, ::MIME"text/plain", c::Cell{D}) where D
     summary(io, c)
     println(io, ":")
 
@@ -71,6 +73,9 @@ function show(io::IO, ::MIME"text/plain", c::Cell)
      
     println(io, " faces: ", first(faces(c)))
     foreach(f -> println(io, "        ", f), @view faces(c)[2:end])
+
+    println(io, " basis: ", first(basis(c)))
+    foreach(v -> println(io, "        ", v), @view basis(c)[2:D])
 end
 # ---------------------------------------------------------------------------------------- #
 # MAIN FUNCTION
@@ -115,7 +120,7 @@ function wignerseitz(Vs::AbstractVector{<:SVector{D,<:Real}};
 
     # get convex hull of central vertices
     hull = PySpatial.ConvexHull(verts_cntr)
-    c    = convert_to_cell(hull, Val(D))
+    c    = convert_to_cell(hull, Vs)
     c    = reorient_normals!(c)
 
     # return either triangles or polygons
@@ -138,13 +143,13 @@ end
 # ---------------------------------------------------------------------------------------- #
 # UTILITIES & SUBFUNCTIONS
 
-function convert_to_cell(hull, ::Val{D}) where D
+function convert_to_cell(hull, Vs::AbstractVector{<:SVector{D,<:Real}}) where D
     vs′ = hull.points         # vertices
     fs′ = hull.simplices .+ 1 # faces
 
     vs = SVector{D, Float64}.(eachrow(vs′))
     fs = Vector{Int}.(eachrow(fs′))
-    return Cell(vs, fs)
+    return Cell(vs, fs, SVector{D, SVector{D, Float64}}(Vs))
 end
 
 
