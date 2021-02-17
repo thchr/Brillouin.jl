@@ -38,9 +38,13 @@ Cell{3} (8 faces, 12 vertices):
         [2, 3, 4, 1, 9, 10]
         [5, 8, 9, 1]
         [4, 11, 5, 1]
+ basis: [6.283, 3.628, 0.0]
+        [0.0, 7.255, 0.0]
+        [0.0, 0.0, 5.027]
 ```
-The resulting Brillouin zone can be plotted using e.g. [`PlotlyJS.jl`](https://github.com/JuliaPlots/PlotlyJS.jl) (or 3D-capable backends of [`AbstractPlotting.jl`](https://github.com/JuliaPlots/AbstractPlotting.jl) such as [`GLMakie.jl`](https://github.com/JuliaPlots/GLMakie.jl)):
+The resulting Brillouin zone can be plotted using e.g. [PlotlyJS.jl](https://github.com/JuliaPlots/PlotlyJS.jl) (or 3D-capable backends of [AbstractPlotting.jl](https://github.com/JuliaPlots/AbstractPlotting.jl) such as [GLMakie.jl](https://github.com/JuliaPlots/GLMakie.jl)):
 ```jl
 julia> using PlotlyJS
 julia> plot(cell)
 ```
+Examples of interactive visualizations are [included in the documentation](https://thchr.github.io/Brillouin.jl/dev/wignerseitz/).

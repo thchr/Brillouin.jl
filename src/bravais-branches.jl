@@ -13,7 +13,8 @@ end
 # this is a translation and simplification (omitting several warnings / edge case handling)
 # of SeeK's `get_path` extended bravais type branch table. It should be pretty much the
 # same as Table 94 of the HPKOT paper (i.e. paper "behind" SeeK). It simply returns the
-# extended Bravais symbol as a `Symbol`
+# extended Bravais symbol as a `Symbol`. Note the input direct basis is expected to
+# be a conventional cell in ITA settings.
 function extended_bravais(sgnum::Integer,
                           bt::String,
                           Rs::AbstractVector{<:SVector{3,<:Real}})

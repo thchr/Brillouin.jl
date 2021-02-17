@@ -32,29 +32,26 @@ include("bravais-branches.jl")
         splice::Bool=false, legacy::Bool=false)
                                                 --> paths_kvs, paths_labs, lab2kv
 
-Returns a *k*-path in the (*primitive*) irreducible Brillouin zone that includes all 
-distinct high-symmetry lines and points.
+Returns a **k**-path in the (primitive) irreducible Brillouin zone that includes all 
+distinct high-symmetry lines and points as well as parts of the Brillouin zone boundary.
 
-`Rs` refers to the direct basis of the *conventional* unitcell. For some space groups, it
+`Rs` refers to the direct basis of the conventional unitcell. For some space groups, it
 is needed to disambiguate the "extended" Bravais types that may differ depending on the
 lengths of the lattice vectors (because the Brillouin zone may depend on these lengths).
 If the requested space group is known to not fall under this case, `Rs` can be supplied
-as `nothing` (default)
-
-## Note
-This method is WIP and does not currently cover all space groups: feel free to submit PRs.
-Currently we only support 3D space groups.
+as `nothing` (default).
 
 ## Data and referencing
-All data is sourced from the SeeK publication [^1]: please cite the original work.
+All data is sourced from the SeeK publication[^1]: please cite the original work.
 
 All paths currently assume time-reversal symmetry (or, equivalently, inversion symmetry), 
 corresponding to the SeeK's `[with inversion]` setting. If neither inversion nor
 time-reversal symmetry is present, additional paths may be required (SeeK's `[no inversion]`
 setting).
 
-[^1] http://dx.doi.org/10.1016/j.commatsci.2016.10.015; see also online interface at 
-https://www.materialscloud.org/work/tools/seekpath
+[1] Hinuma, Pizzi, Kumagai, Oba, & Tanaka, *Band structure diagram paths based on
+    crystallography*, Comp. Mat. Sci. **128**, 140 (2017)](http://dx.doi.org/10.1016/j.commatsci.2016.10.015)
+    (see also online interface at https://www.materialscloud.org/work/tools/seekpath).
 """
 function irrfbz_path(sgnum::Integer, Nk::Integer, 
                 Rs::Union{Nothing, DirectBasis{D}}=nothing;

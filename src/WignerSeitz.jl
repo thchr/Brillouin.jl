@@ -63,8 +63,8 @@ function show(io::IO, ::MIME"text/plain", c::Cell{D}) where D
     println(io, " faces: ", first(faces(c)))
     foreach(f -> println(io, "        ", f), @view faces(c)[2:end])
 
-    println(io, " basis: ", first(basis(c)))
-    foreach(v -> println(io, "        ", v), @view basis(c)[2:D])
+    println(io, " basis: ", round.(first(basis(c)), digits=3))
+    foreach(v -> println(io, "        ", round.(v, digits=3)), @view basis(c)[2:D])
 end
 # ---------------------------------------------------------------------------------------- #
 # MAIN FUNCTION
