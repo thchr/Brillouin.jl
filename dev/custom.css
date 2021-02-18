@@ -1,0 +1,4 @@
+/* increase logo size, cf. https://github.com/JuliaDocs/Documenter.jl/issues/1065#issuecomment-510595992 */
+nav.toc .logo {
+    max-height: 12em;
+}
