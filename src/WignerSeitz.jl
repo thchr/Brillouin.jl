@@ -2,6 +2,7 @@ module WignerSeitz
 
 # ---------------------------------------------------------------------------------------- #
 
+using ..Brillouin: AVec
 using Requires
 using StaticArrays
 using LinearAlgebra: dot, cross, norm
@@ -34,7 +35,7 @@ end
 # ---------------------------------------------------------------------------------------- #
 # STRUCTURES
 
-struct Cell{D} <: AbstractVector{Vector{SVector{D, Float64}}} # over of polygons
+struct Cell{D} <: AVec{Vector{SVector{D, Float64}}} # over of polygons
     verts :: Vector{SVector{D, Float64}}
     faces :: Vector{Vector{Int}}
     basis :: SVector{D, SVector{D, Float64}}
@@ -86,7 +87,7 @@ faces, of the Wigner-Seitz cell defined by a basis `Vs` in `D` dimensions.
   than 3 without explicitly testing convergence; and probably unnecessary to increase it
   beyond 3 as well.
 """
-function wignerseitz(Vs::AbstractVector{<:SVector{D,<:Real}};
+function wignerseitz(Vs::AVec{<:SVector{D,<:Real}};
             output::Symbol = :polygons,
             Nmax::Integer = 3) where D
     # "supercell" lattice of G-vectors
@@ -122,7 +123,7 @@ function wignerseitz(Vs::AbstractVector{<:SVector{D,<:Real}};
     end
 end
 # overload for input as ordinary vectors; type-unstable obviously, but convenient sometimes
-function wignerseitz(Vs::AbstractVector{<:AbstractVector{<:Real}}; kwargs...)
+function wignerseitz(Vs::AVec{<:AVec{<:Real}}; kwargs...)
     D = length(first(Vs))
     all(V->length(V) == D, @view Vs[2:end]) || error(DomainError(Vs, "provided vectors `Vs` must have identical dimension"))
 
@@ -132,7 +133,7 @@ end
 # ---------------------------------------------------------------------------------------- #
 # UTILITIES & SUBFUNCTIONS
 
-function convert_to_cell(hull, Vs::AbstractVector{<:SVector{D,<:Real}}) where D
+function convert_to_cell(hull, Vs::AVec{<:SVector{D,<:Real}}) where D
     vs′ = hull.points         # vertices
     fs′ = hull.simplices .+ 1 # faces
 

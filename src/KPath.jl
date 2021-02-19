@@ -11,8 +11,10 @@ module KPath
 # ---------------------------------------------------------------------------------------- #
 export irrfbz_path, cumdists
 # ---------------------------------------------------------------------------------------- #
-using Crystalline: interpolate_kvpath, splice_kvpath, DirectBasis, bravaistype
+using ..CrystallineBravaisVendor: bravaistype
+using ..Brillouin: AVec, BasisLike
 using LinearAlgebra: norm
+using StaticArrays
 # ---------------------------------------------------------------------------------------- #
 
 const AVec = AbstractVector
@@ -27,7 +29,7 @@ include("bravais-branches.jl")
 # ---------------------------------------------------------------------------------------- #
 
 """
-    irrfbz_path(sgnum::Integer, Nk::Integer, Rs::Union{Nothing, DirectBasis}=nothing; 
+    irrfbz_path(sgnum::Integer, Nk::Integer, Rs::Union{Nothing, $(BasisLike)}=nothing; 
         pathtype::String="SeeK", has_inversion_or_tr::Bool=true,
         splice::Bool=false, legacy::Bool=false)
                                                 --> paths_kvs, paths_labs, lab2kv
@@ -54,11 +56,11 @@ setting).
     (see also online interface at https://www.materialscloud.org/work/tools/seekpath).
 """
 function irrfbz_path(sgnum::Integer, Nk::Integer, 
-                Rs::Union{Nothing, DirectBasis{D}}=nothing;
+                Rs::Union{Nothing, BasisLike{D}}=nothing;
                 pathtype::String="SeeK", has_inversion_or_tr::Bool=true,
                 splice::Bool=false, legacy::Bool=false) where D
 
-    if Rs isa DirectBasis
+    if Rs isa AbstractVector
         D ≠ 3 && throw(DomainError(D, "Currently only implemented for 3D space groups"))
     end
     bt = bravaistype(sgnum, 3)
@@ -77,8 +79,8 @@ function irrfbz_path(sgnum::Integer, Nk::Integer,
 end
 
 # always returns `lab2kv, paths_labs`
-function _irrfbz_path(bt::String, Rs::Union{DirectBasis, Nothing}, sgnum::Integer,
-                         pathtype::String)
+function _irrfbz_path(bt::String, Rs::Union{Nothing, BasisLike{D}}, sgnum::Integer,
+                      pathtype::String) where D
     if bt == "tP"       # ⇒ extended Bravais type tP1
         # sgs 75:78, 81, 83:86, 89:106, 111:118, 123:138
         return irrfbz_data_tP1(; pathtype=pathtype)
@@ -118,7 +120,8 @@ function _irrfbz_path(bt::String, Rs::Union{DirectBasis, Nothing}, sgnum::Intege
 end
 
 # As relevant in systems that have neither inversion nor time-reversal symmetry
-function _irrfbz_path_without_inversion_or_tr(bt::String, Rs::DirectBasis, sgnum::Integer, pathtype::String)
+function _irrfbz_path_without_inversion_or_tr(bt::String, Rs::BasisLike, sgnum::Integer,
+                                              pathtype::String)
     if bt == "tI"  # ⇒ extended Bravais type tI1 and tI2
         # sgs 79, 80, 82, 87, 88, 97, 98, 107, 108:110, 119:122, 139:142
         a, c = norm(Rs[1]), norm(Rs[3])
@@ -304,6 +307,6 @@ end
 
 # ---------------------------------------------------------------------------------------- #
 _throw_pathtype(pathtype::String) = throw(DomainError(pathtype, "undefined pathtype"))
-_throw_requires_direct_basis()    = throw(DomainError(nothing, "the k-path of the requested space group requires information about the direct basis; `Rs` must be of type `DirectBasis` here"))
+_throw_requires_direct_basis()    = throw(DomainError(nothing, "the k-path of the requested space group requires information about the direct basis; `Rs` must be of type `$(BasisLike{3})` here"))
 # ---------------------------------------------------------------------------------------- #
 end # module

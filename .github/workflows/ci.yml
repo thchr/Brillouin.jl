@@ -35,13 +35,6 @@ jobs:
             ${{ runner.os }}-test-${{ env.cache-name }}-
             ${{ runner.os }}-test-
             ${{ runner.os }}-
-      # add the BoffinStuff registry (in addition to default registry General) and then add Crystalline.jl
-      - run: |
-          julia --color=yes --check-bounds=yes --project -e '
-            using Pkg
-            Pkg.Registry.add([RegistrySpec("General"), RegistrySpec(url="https://github.com/wildart/BoffinStuff.git")])
-            Pkg.add(url="https://github.com/thchr/Crystalline.jl", rev="master")'
-        shell: bash # avoid escaping issues w/ pwsh on Windows (cf. https://github.com/julia-actions/setup-julia#matrix-testing)
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
       - uses: julia-actions/julia-processcoverage@v1
@@ -59,8 +52,8 @@ jobs:
       - run: |
           julia --project=docs -e '
             using Pkg
-            Pkg.Registry.add([RegistrySpec("General"), RegistrySpec(url="https://github.com/wildart/BoffinStuff.git")])
-            Pkg.add(url="https://github.com/thchr/Crystalline.jl", rev="master")
+#            Pkg.Registry.add([RegistrySpec("General"), RegistrySpec(url="https://github.com/wildart/BoffinStuff.git")])
+#            Pkg.add(url="https://github.com/thchr/Crystalline.jl", rev="master")
             Pkg.develop(PackageSpec(path=pwd()))
             Pkg.instantiate()'
         shell: bash # avoid escaping issues w/ pwsh on Windows (cf. https://github.com/julia-actions/setup-julia#matrix-testing)

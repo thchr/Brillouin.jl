@@ -11,7 +11,7 @@ The functionalities are inspired by the Python [SeeK-path package](https://githu
 
 ## Examples
 
-Generate the Brillouin zone of a crystal in space group 147 (Bravais type hP):
+Generate the Brillouin zone of a crystal in space group 147 (Bravais type hP; using [Crystalline.jl](https://github.com/thchr/Crystalline.jl) to easily generate a standard basis):
 ```jl
 julia> using Brillouin, Crystalline
 julia> Rs   = directbasis(147)

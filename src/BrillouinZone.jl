@@ -1,19 +1,23 @@
 
 module BrillouinZone
-using Crystalline: DirectBasis, ReciprocalBasis, reciprocalbasis, bravaistype
+# ---------------------------------------------------------------------------------------- #
+using ..CrystallineBravaisVendor: bravaistype
+using ..Brillouin: AVec, BasisLike
 using LinearAlgebra: norm
-
+using StaticArrays
+# ---------------------------------------------------------------------------------------- #
 export brillouin_zone
+# ---------------------------------------------------------------------------------------- #
 
 """
-    brillouin_zone(sgnum::Integer, Rs::DirectBasis{D}) where D
+    brillouin_zone(sgnum::Integer, Rs::AVec{<:AVec{SVector{D, <:Real}) where D
 
 Takes a **conventional** unit cell basis; returns the facets of the associated Brillouin 
 zone in a **primitive** basis. ITA conventions are assumed.
 
 If `sgnum == 0`, a cubic Brillouin zone is returned.
 """
-function brillouin_zone(sgnum::Integer, Rs::DirectBasis{D}) where D
+function brillouin_zone(sgnum::Integer, Rs::BasisLike{D}) where D
     D ≠ 3 && throw(DomainError(D, "Currently only implemented for 3D space groups"))
 
     sgnum == 0 && return bz_data_cube()
@@ -219,12 +223,12 @@ end
 ##
 
 # --- visualization example ---
-# using PyPlot
+# using Brillouin, PyPlot, Crystalline
 # using3D()
 #
 # a, b = 1.0, 1.1; Rs = DirectBasis([a,0,0], [0,b,0], [0,0,1.0])
 # Gs = reciprocalbasis(Rs)
-# lab2kv, cncts=Main.BrillouinZone.brillouin_zone(68, Rs)
+# lab2kv, cncts = BrillouinZone.brillouin_zone(68, Rs)
 #
 # close("all")
 # ax=figure().gca(projection="3d")
