@@ -80,8 +80,8 @@ faces, of the Wigner-Seitz cell defined by a basis `Vs` in `D` dimensions.
 
 ## Keyword arguments
 - `output` (default, `:polygons`): if set to `:polygons`, co-planar faces are merged to form
-  polygonal planar faces (triangles, quadrilaterals, and ngons generally). if set to 
-  `:triangles`, "unprocessed" triangles (or, generlaly, faces of order `D`) are returned.
+  polygonal planar faces (triangles, quadrilaterals, and ngons generally). If set to 
+  `:triangles`, "unprocessed" triangles are returned. Only has effect in for `D=3`.
 - `Nmax` (default, `3`): includes `-Nmax:Nmax` points in the initial lattice used to
   generate the underlying Voronoi tesselation. It is unwise to set this to anything lower
   than 3 without explicitly testing convergence; and probably unnecessary to increase it
@@ -114,9 +114,9 @@ function wignerseitz(Vs::AVec{<:SVector{D,<:Real}};
     c    = reorient_normals!(c)
 
     # return either triangles or polygons
-    if output == :polygons
+    if D == 3 && output == :polygons
         return merge_coplanar!(c)
-    elseif output == :triangles
+    elseif output == :triangles || D ≠ 3
         return c
     else
         throw(DomainError(output, "invalid output type"))
@@ -151,7 +151,8 @@ assuming the face is part of a convex hull centered around origo.
 """
 is_outward_oriented(c::SVector{D}, n::SVector{D}) where D = dot(c,n) > zero(eltype(c))
 
-function reorient_normals!(c::Cell)
+function reorient_normals!(c::Union{D}) where D
+    D == 1 && return c # no sense of "outward" in 1D
     fs = faces(c)
     for (i,f) in enumerate(fs)
         cntr = face_center(c, i)
@@ -199,13 +200,18 @@ function merge_coplanar!(c::Cell{D}) where D
 end
 
 # compute an (oriented) face-normal from a face `f` and a list of associated vertices `vs`
-function face_normal(vs::Vector{SVector{D,Float64}}, f::Vector{Int}) where D
-    D == 2 && error("cannot compute a face normal for a 2D Ngon")
-
+function face_normal(vs::AVec{<:SVector{3,<:Real}}, f::Vector{Int})
     v₁₂ = vs[f[2]] - vs[f[1]]
     v₂₃ = vs[f[3]] - vs[f[2]]
     n = cross(v₁₂, v₂₃)
 
+    return n/norm(n)
+end
+function face_normal(vs::AVec{<:SVector{2,<:Real}}, f::Vector{Int})
+    # define "canonical direction" as 1->2
+    v₁₂ = vs[f[2]] - vs[f[1]]
+    n = SVector{2, eltype(v₁₂)}(v₁₂[2], -v₁₂[1]) # = n = [y, -x]
+    
     return n/norm(n)
 end
 face_normal(c::Cell, i::Int) = face_normal(vertices(c), faces(c)[i])

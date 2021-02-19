@@ -56,7 +56,7 @@ jobs:
             Pkg.instantiate()'
 #            Pkg.Registry.add([RegistrySpec("General"), RegistrySpec(url="https://github.com/wildart/BoffinStuff.git")])
 #            Pkg.add(url="https://github.com/thchr/Crystalline.jl", rev="master")
-        shell: bash # avoid escaping issues w/ pwsh on Windows (cf. https://github.com/julia-actions/setup-julia#matrix-testing)
+#        shell: bash # avoid escaping issues w/ pwsh on Windows (cf. https://github.com/julia-actions/setup-julia#matrix-testing)
       - run: |
           julia --project=docs -e '
             using Documenter: doctest

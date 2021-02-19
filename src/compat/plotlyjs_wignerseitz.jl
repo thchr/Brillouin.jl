@@ -1,11 +1,12 @@
 using .PlotlyJS
 import .PlotlyJS: plot
-
+using LinearAlgebra: norm
+using StaticArrays
 # ---------------------------------------------------------------------------------------- #
 # CONSTANTS
 
 # default layout
-const DEFAULT_PLOTLY_LAYOUT  = Layout(
+const DEFAULT_PLOTLY_LAYOUT_3D  = Layout(
     showlegend=false,
     scene=attr(
         xaxis=attr(tickvals=[], zeroline=false,
@@ -38,8 +39,9 @@ const AXIS_COL        = "rgb(194,54,22)"   # "harley davidson orange"
 const AXIS_LIGHT_COL  = "rgb(242,215,208)" # 20% AXIS_COL, 80% white
 
 # ---------------------------------------------------------------------------------------- #
+# 3D
 
-function plot(c::Cell{3}, layout::Layout=DEFAULT_PLOTLY_LAYOUT)
+function plot(c::Cell{3}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_3D)
     scale = maximum(norm, basis(c))
 
     # BZ
@@ -49,7 +51,7 @@ function plot(c::Cell{3}, layout::Layout=DEFAULT_PLOTLY_LAYOUT)
             x=push!(getindex.(poly, 1), poly[1][1]),
             y=push!(getindex.(poly, 2), poly[1][2]),
             z=push!(getindex.(poly, 3), poly[1][3]); 
-            mode="lines", hovertext="BZ", hoverinfo="text+x+y+z",
+            mode="lines", hovertext="Cell", hoverinfo="text+x+y+z",
             line=attr(color=BZ_COL, width=3)
             )
     end
@@ -75,7 +77,7 @@ function plot(c::Cell{3}, layout::Layout=DEFAULT_PLOTLY_LAYOUT)
         end
         tgtips[i] = PlotlyJS.cone(
             x=[V[1]], u=[V′[1]], y=[V[2]], v=[V′[2]], z=[V[3]], w=[V′[3]],
-            sizeref=.1*scale, showscale=false, anchor="tail", 
+            sizeref=.1*scale, showscale=false, anchor="tail",
             colorscale=[[0, BASIS_COL], [1, BASIS_COL]],
             hovertext=name, hoverinfo="text+x+y+z")
     end
@@ -105,7 +107,7 @@ function plot(c::Cell{3}, layout::Layout=DEFAULT_PLOTLY_LAYOUT)
                     x=[V₁[1]], u=[V[1]],
                     y=[V₁[2]], v=[V[2]],
                     z=[V₁[3]], w=[V[3]],
-                    sizeref=.1*scale, showscale=false, anchor="tail", 
+                    sizeref=.1*scale, showscale=false, anchor="tail",
                     colorscale=[[0, AXIS_COL], [1, AXIS_COL]],
                     hovertext=name, hoverinfo="text")
             end
@@ -121,11 +123,123 @@ function plot(c::Cell{3}, layout::Layout=DEFAULT_PLOTLY_LAYOUT)
 end
 
 # ---------------------------------------------------------------------------------------- #
+# 2D
+
+# default layout
+D_PLOTLY_LAYOUT_2D  = Layout(
+    showlegend=false,
+    xaxis=attr(tickvals=[], zeroline=false,
+            showgrid=false, showbackground=false,
+            title=attr(text=""),
+            ),
+    yaxis=attr(tickvals=[], zeroline=false,
+            showgrid=false, showbackground=false,
+            title=attr(text=""),
+            scaleanchor="x", scaleratio=1
+            ),
+    aspectmode = "data",
+    margin=attr(l=0, r=0, b=0, t=0),
+    autosize=false,
+    plot_bgcolor="rgba(0, 0, 0, 0)", paper_bgcolor="rgba(0, 0, 0, 0)",
+    annotations=PlotlyBase.PlotlyAttribute[]
+    )
+
+function plot(c::Cell{2}, layout::Layout=D_PLOTLY_LAYOUT_2D)
+    layout = deepcopy(layout) # because we have to mutate to get arrows...
+
+    scale = maximum(norm, basis(c))
+    max_x, max_y = maximum(v->abs(v[1]), basis(c)), maximum(v->abs(v[2]), basis(c))
+    get!(layout[:xaxis], :range, [-max_x-scale/15, max_x+scale/15])
+    get!(layout[:yaxis], :range, [-max_y-scale/15, max_y+scale/15])
+
+    # Cell boundaries
+    tbz = Vector{GenericTrace{Dict{Symbol,Any}}}(undef, length(c))
+    for (i,poly) in enumerate(c)
+        tbz[i] = PlotlyJS.scatter(
+            x=push!(getindex.(poly, 1), poly[1][1]),
+            y=push!(getindex.(poly, 2), poly[1][2]);
+            mode="lines", hovertext="Cell", hoverinfo="text",
+            line=attr(color=BZ_COL, width=3)
+            )
+    end
+
+    # lattice vectors
+    tgs    = Vector{GenericTrace{Dict{Symbol,Any}}}(undef, 4)
+    tgtips = Vector{GenericTrace{Dict{Symbol,Any}}}(undef, 2)
+    intersects = axis_intersections(c, basis(c))
+    for (i,V) in enumerate(basis(c))
+        V′ = V./norm(V)
+        name = "<b>v</b><sub>$(i)</sub>"
+        for j in (1,2) # in/outside BZ
+            start = j == 1 ? 0.0           : intersects[i]
+            stop  = j == 1 ? intersects[i] : 1.0
+            V₀ = start*V .+ (j == 1 ? 0.0   : 0.025)*scale*V′
+            V₁ = stop*V  .- (j == 1 ? 0.025 : 0.0)  *scale*V′
+            tgs[i+(j-1)*2] = PlotlyJS.scatter(
+                x=[V₀[1],V₁[1]], y=[V₀[2],V₁[2]];
+                mode="lines", hovertext=name, hoverinfo=ifelse(j==1,"none","text"),
+                line=attr(color=ifelse(j==1, BASIS_LIGHT_COL, BASIS_COL),
+                          width=ifelse(j==1, 4, 6))
+                )
+        end
+        # arrow heads have to be added as annotations to layout in 2D :/
+        haskey(layout, :annotations) || (layout[:annotations] = PlotlyBase.PlotlyAttribute[])
+        push!(layout[:annotations], 
+            attr(x=V[1]+.05V′[1], y=V[2]+.05V′[2],   # awful fidgeting; plotly's
+                    ax=V[1]-.05V′[1], ay=V[2]-.05V′[2], # arrows are stupid
+                    xref="ax", yref="ay", axref="x", ayref="y",
+                    showarrow=true, arrowhead=2, arrowwidth=6, arrowsize=.5,
+                    arrowcolor=BASIS_COL))
+    end
+
+    # Cartesian axes
+    cartVs = cartesian_axes(Val(2))
+    name_axs = ("x", "y") 
+    taxs    = Vector{GenericTrace{Dict{Symbol,Any}}}(undef, 4)
+    taxtips = Vector{GenericTrace{Dict{Symbol,Any}}}(undef, 2)
+    intersects = axis_intersections(c, cartVs)
+    for (i, V) in enumerate(cartVs)
+        name = "<b>"*string(name_axs[i])*"</b>"
+        V′ = V./norm(V)
+        for j in (1,2) # in/outside BZ
+            start = j == 1 ? 0.0           : intersects[i]
+            stop  = j == 1 ? intersects[i] : intersects[i]
+            V₀ = start*V .+ (j == 1 ? 0.0   : 0.025)*scale*V′
+            V₁ = stop*V  .- (j == 1 ? 0.025 : -0.2) *scale*V′
+
+            taxs[i+2(j-1)] = PlotlyJS.scatter(
+                x=[V₀[1],V₁[1]], y=[V₀[2],V₁[2]];
+                mode="lines", hovertext=name, hoverinfo=ifelse(j==1,"none","text"),
+                line=attr(color=ifelse(j==1, AXIS_LIGHT_COL, AXIS_COL),
+                            width=ifelse(j==1, 4, 6))
+                )
+            if j == 2
+                # arrow heads have to be added as annotations to layout in 2D :/
+                haskey(layout, :annotations) || (layout[:annotations] = PlotlyBase.PlotlyAttribute[])
+                push!(layout[:annotations], 
+                    attr(x=V₁[1]+.05V′[1], y=V₁[2]+.05V′[2],   # awful fidgeting; plotly's
+                         ax=V₁[1]-.05V′[1], ay=V₁[2]-.05V′[2], # arrows are stupid
+                         xref="ax", yref="ay", axref="x", ayref="y",
+                         showarrow=true, arrowhead=2, arrowwidth=6, arrowsize=.5,
+                         arrowcolor=AXIS_COL))
+            end
+        end
+    end
+    #return layout[:annotations]
+    # combine traces and plot
+    ts = vcat(tbz, tgs, taxs)
+    p = PlotlyJS.Plot(ts, layout)
+    P = PlotlyJS.plot(p)
+
+    return P
+end
+
+# ---------------------------------------------------------------------------------------- #
 # UTILITIES 
 
-# the "outward" intersections of of lines with direction `Vs` though origo with a cell
+# the "outward" intersections of of lines with direction `Vs` though origo with a cell face
 function axis_intersections(c::Cell{3},
-            Vs::AbstractVector{<:AbstractVector}=cartesian_axes(Val(D)))
+            Vs::AbstractVector{<:AbstractVector}=cartesian_axes(Val(3)))
 
     intersects = MVector{3,Float64}(undef)
     fill!(intersects, Inf)
@@ -135,7 +249,7 @@ function axis_intersections(c::Cell{3},
         r₀ = sum(poly)/length(poly)
         n  = face_normal(c, i)
         for (j,V) in enumerate(Vs)
-            t  = dot(r₀, n)/dot(V, n)
+            t = dot(r₀, n)/dot(V, n)
             if t > 0.0 && t < intersects[j]
                 intersects[j] = t
             end
@@ -144,7 +258,28 @@ function axis_intersections(c::Cell{3},
     return intersects
 end
 
+# the "outward" intersections of of lines with direction `Vs` though origo with a cell segment
+function axis_intersections(c::Cell{2},
+    Vs::AbstractVector{<:AbstractVector}=cartesian_axes(Val(2)))
+
+    intersects = MVector{2,Float64}(undef)
+    fill!(intersects, Inf)
+    # intersection between line rₐ(t) a + nₐt and line rᵦ(t) = β + nᵦt can be gotten by 
+    # linear algebra: [-nₐ|nᵦ][tₐ,tᵦ] = a-β. Here we, pick rᵦ for the axes `Vs` (β=0) and
+    # let rₐ refer to cell segments. We're then only interested in tᵦ:
+    for (i,poly) in enumerate(c)
+        a = first(poly)
+        nₐ = poly[2] - a
+        for (j,V) in enumerate(Vs)
+            nᵦ = V
+            tᵦ = (nₐ[2]*a[1]-nₐ[1]*a[2])/(-nₐ[1]*nᵦ[2] + nₐ[2]*nᵦ[1]) # ~ inv([-nₐ|nᵦ])
+            if tᵦ > 0.0 && tᵦ < intersects[j]
+                intersects[j] = tᵦ
+            end
+        end
+    end
+    return intersects
+end
+
 # a set of cartesian basis vectors in D dimensions
 cartesian_axes(Dᵛ::Val{D}) where D = SVector(ntuple(i->SVector(ntuple(j->i==j ? 1.0 : 0.0, Dᵛ)), Dᵛ))
-
-# ---------------------------------------------------------------------------------------- #
