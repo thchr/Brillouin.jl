@@ -1,4 +1,3 @@
-
 # Paths in the representation domain of the BZ, obtained from the [SeeK] publication. 
 # Methods return *k*-vector coordinates in a primitive reciprocal basis ("reciprocal 
 # crystallographic primitive cell" in the [SeeK]'s nomenclature).
@@ -9,7 +8,7 @@
 module KPath
 
 # ---------------------------------------------------------------------------------------- #
-export irrfbz_path, cumdists
+export irrfbz_path
 # ---------------------------------------------------------------------------------------- #
 using ..CrystallineBravaisVendor: bravaistype
 using ..Brillouin: AVec, BasisLike
@@ -17,9 +16,13 @@ using LinearAlgebra: norm
 using StaticArrays
 # ---------------------------------------------------------------------------------------- #
 
-const AVec = AbstractVector
-
 include("interpolate-paths.jl")
+export splice_path, interpolate_path, cumdists
+
+const interpolate_kpath = interpolate_path
+const splice_kpath      = splice_path
+@deprecate interpolate_kpath interpolate_path true
+@deprecate splice_kpath splice_path true
 
 # ---------------------------------------------------------------------------------------- #
 
