@@ -1,5 +1,5 @@
-using Brillouin
 using Documenter
+using Brillouin
 
 # ---------------------------------------------------------------------------------------- #
 # make PlotlyJS plots showable in ```@example ``` blocks, following the approach suggested
