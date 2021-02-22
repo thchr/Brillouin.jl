@@ -35,7 +35,7 @@ using Brillouin, PlotlyJS
 Rs = [[1.0, 0.0], [-0.5, √3/2]]
 cᴿ = wignerseitz(Rs)
 Pᴿ = plot(cᴿ)
-Main.HTMLPlot(Pᴳ) # hide
+Main.HTMLPlot(Pᴿ) # hide
 ```
 and its associated Brillouin zone:
 ```@example wignerseitz-2d

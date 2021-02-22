@@ -97,11 +97,10 @@ end
     # test that everything works the same if we use ordinary vectors instead of SVectors
     @test wignerseitz(Gs) ≈ wignerseitz(collect.(Gs))
 
-    # test error on non-valid output type & out-of-bounds indexing error
-    @test_throws DomainError wignerseitz(Gs; output=:unsupported_output_request)
+    # test error on out-of-bounds indexing error
     @test_throws BoundsError cell[9]
 
     # test :triangles output
-    cell′ = wignerseitz(Gs; output=:triangles)
+    cell′ = wignerseitz(Gs; merge = true)
     @test all(v -> length(v) == 3, vertices(cell′))
 end
