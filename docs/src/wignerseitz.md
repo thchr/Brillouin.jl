@@ -20,7 +20,26 @@ Main.HTMLPlot(Pᴿ) # hide
 ## Brillouin zones
 To generate Brillouin zones, we simply give the corresponding reciprocal lattice `Gs`:
 ```@example wignerseitz-cF
-Gs = [[-1.0, 1.0, 1.0], [1.0, -1.0, 1.0], [1.0, 1.0, -1.0]] # reciprocal basis of `Rs`
+Gs = 2π.*[[-1.0, 1.0, 1.0], [1.0, -1.0, 1.0], [1.0, 1.0, -1.0]] # reciprocal basis of `Rs`
+cᴳ = wignerseitz(Gs)
+Pᴳ = plot(cᴳ)
+Main.HTMLPlot(Pᴳ) # hide
+```
+
+## Two dimensions
+
+`wignerseitz` and `plot(::Cell)` works in two dimensions as well. As an example, we can illustrate the Wigner–Seitz unit cell of graphene (which has a hexagonal "hp" Bravais type):
+```@example wignerseitz-2d
+using Brillouin, PlotlyJS
+
+Rs = [[1.0, 0.0], [-0.5, √3/2]]
+cᴿ = wignerseitz(Rs)
+Pᴿ = plot(cᴿ)
+Main.HTMLPlot(Pᴳ) # hide
+```
+and its associated Brillouin zone:
+```@example wignerseitz-2d
+Gs = 2π.*[[1.0, 1/√3], [0.0, 2/√3]]
 cᴳ = wignerseitz(Gs)
 Pᴳ = plot(cᴳ)
 Main.HTMLPlot(Pᴳ) # hide

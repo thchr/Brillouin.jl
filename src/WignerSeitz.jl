@@ -71,24 +71,25 @@ end
 # MAIN FUNCTION
 
 """
-    wignerseitz(Vs::AbstractVector{<:SVector{D}}; output::Symbol = :polygons, Nmax = 3)
-    wignerseitz(Vs::AbstractVector{AbstractVector}; output::Symbol = :polygons, Nmax = 3)
+    wignerseitz(Vs::AbstractVector{<:SVector{D}}; merge::Bool = true, Nmax = 3)
+    wignerseitz(Vs::AbstractVector{AbstractVector}; merge::Bool = true, Nmax = 3)
                                                                 --> Cell{D}
 
 Return a `Cell{D}` structure, containing the vertices and associated (outward oriented)
 faces, of the Wigner-Seitz cell defined by a basis `Vs` in `D` dimensions.
 
 ## Keyword arguments
-- `output` (default, `:polygons`): if set to `:polygons`, co-planar faces are merged to form
-  polygonal planar faces (triangles, quadrilaterals, and ngons generally). If set to 
-  `:triangles`, "unprocessed" triangles are returned. Only has effect in for `D=3`.
+- `merge` (default, `true`): if `:true`, co-planar faces are merged to form polygonal
+  planar faces (e.g., triangles, quadrilaterals, and ngons generally). If `false`, raw
+  "unprocessed" triangles (`D=3`) and segments (`D=2`) are returned instead. `merge` has no
+  impact for `D=1`.
 - `Nmax` (default, `3`): includes `-Nmax:Nmax` points in the initial lattice used to
   generate the underlying Voronoi tesselation. It is unwise to set this to anything lower
   than 3 without explicitly testing convergence; and probably unnecessary to increase it
   beyond 3 as well.
 """
 function wignerseitz(Vs::AVec{<:SVector{D,<:Real}};
-            output::Symbol = :polygons,
+            merge::Bool = true,
             Nmax::Integer = 3) where D
     # "supercell" lattice of G-vectors
     Ns = -Nmax:Nmax
@@ -113,13 +114,11 @@ function wignerseitz(Vs::AVec{<:SVector{D,<:Real}};
     c    = convert_to_cell(hull, Vs)
     c    = reorient_normals!(c)
 
-    # return either triangles or polygons
-    if D == 3 && output == :polygons
+    # return either raw simplices or "merged" polygons
+    if merge
         return merge_coplanar!(c)
-    elseif output == :triangles || D ≠ 3
-        return c
     else
-        throw(DomainError(output, "invalid output type"))
+        return c
     end
 end
 # overload for input as ordinary vectors; type-unstable obviously, but convenient sometimes
@@ -130,6 +129,10 @@ function wignerseitz(Vs::AVec{<:AVec{<:Real}}; kwargs...)
     return wignerseitz(SVector{D,Float64}.(Vs); kwargs...)
 end
 
+function wignerseitz(Vs::AVec{<:SVector{1,<:Real}}; kwargs...)
+    a = only(only(Vs))
+    Cell{1}([(@SVector [-a/2]), (@SVector [a/2])], [1,2], Vs)
+end
 # ---------------------------------------------------------------------------------------- #
 # UTILITIES & SUBFUNCTIONS
 
@@ -164,7 +167,7 @@ function reorient_normals!(c::Union{D}) where D
     return c
 end
 
-function merge_coplanar!(c::Cell{D}) where D
+function merge_coplanar!(c::Cell{3})
     fs = faces(c)
     ns = face_normals(c)
 
@@ -276,6 +279,24 @@ function merge_coplanar(fᵢ::Vector{Int}, fⱼ::Vector{Int})
     end
 
     return f
+end
+
+function merge_coplanar!(c::Cell{2})
+    fs′ = segments2polygon(faces(c))
+    empty!(faces(c))
+    push!(faces(c), fs′)
+    return c
+end
+function segments2polygon(fs::Vector{Vector{Int}})
+    # assumes there is a *single* well-defined polygon defined by `fs`
+    N   = size(fs,1) # number of segments
+    fs′ = Vector{Int}(undef, N)
+    fs′[1:2] .= fs[1] # starting point
+    for i in 3:N
+        j = findfirst(f -> f[1]==(fs′[i-1]), fs)
+        fs′[i] = fs[j][2]
+    end
+    return fs′
 end
 
 # ---------------------------------------------------------------------------------------- #

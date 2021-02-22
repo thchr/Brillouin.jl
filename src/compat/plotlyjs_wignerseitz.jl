@@ -72,7 +72,7 @@ function plot(c::Cell{3}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_3D)
                 x=[V₀[1],V₁[1]], y=[V₀[2],V₁[2]], z=[V₀[3],V₁[3]];
                 mode="lines", hovertext=name, hoverinfo="text",
                 line=attr(color=ifelse(j==1, BASIS_LIGHT_COL, BASIS_COL),
-                          width=ifelse(j==1, 4, 6))
+                          width=ifelse(j==1, 5, 6))
                 )
         end
         tgtips[i] = PlotlyJS.cone(
@@ -100,7 +100,7 @@ function plot(c::Cell{3}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_3D)
                 x=[V₀[1],V₁[1]], y=[V₀[2],V₁[2]], z=[V₀[3],V₁[3]];
                 mode="lines", hovertext=name, hoverinfo="text",
                 line=attr(color=ifelse(j==1, AXIS_LIGHT_COL, AXIS_COL),
-                          width=ifelse(j==1, 4, 6))
+                          width=ifelse(j==1, 5, 6))
                 )
             if j == 2
                 taxtips[i] = PlotlyJS.cone(
@@ -138,6 +138,7 @@ D_PLOTLY_LAYOUT_2D  = Layout(
             scaleanchor="x", scaleratio=1
             ),
     aspectmode = "data",
+    hovermode="closest",
     margin=attr(l=0, r=0, b=0, t=0),
     autosize=false,
     plot_bgcolor="rgba(0, 0, 0, 0)", paper_bgcolor="rgba(0, 0, 0, 0)",
@@ -158,7 +159,7 @@ function plot(c::Cell{2}, layout::Layout=D_PLOTLY_LAYOUT_2D)
         tbz[i] = PlotlyJS.scatter(
             x=push!(getindex.(poly, 1), poly[1][1]),
             y=push!(getindex.(poly, 2), poly[1][2]);
-            mode="lines", hovertext="Cell", hoverinfo="text",
+            mode="lines", hovertext="Cell", hoverinfo="text+x+y",
             line=attr(color=BZ_COL, width=3)
             )
     end
@@ -177,16 +178,16 @@ function plot(c::Cell{2}, layout::Layout=D_PLOTLY_LAYOUT_2D)
             V₁ = stop*V  .- (j == 1 ? 0.025 : 0.0)  *scale*V′
             tgs[i+(j-1)*2] = PlotlyJS.scatter(
                 x=[V₀[1],V₁[1]], y=[V₀[2],V₁[2]];
-                mode="lines", hovertext=name, hoverinfo=ifelse(j==1,"none","text"),
+                mode="lines", hovertext=name, hoverinfo=ifelse(j==1,"text","text+x+y"),
                 line=attr(color=ifelse(j==1, BASIS_LIGHT_COL, BASIS_COL),
-                          width=ifelse(j==1, 4, 6))
+                          width=ifelse(j==1, 5, 6))
                 )
         end
         # arrow heads have to be added as annotations to layout in 2D :/
         haskey(layout, :annotations) || (layout[:annotations] = PlotlyBase.PlotlyAttribute[])
         push!(layout[:annotations], 
-            attr(x=V[1]+.05V′[1], y=V[2]+.05V′[2],   # awful fidgeting; plotly's
-                    ax=V[1]-.05V′[1], ay=V[2]-.05V′[2], # arrows are stupid
+            attr(x=V[1]+.05V′[1]*scale, y=V[2]+.05V′[2]*scale,   # awful fidgeting; plotly's
+                    ax=V[1]-.05V′[1]*scale, ay=V[2]-.05V′[2]*scale, # arrows are stupid
                     xref="ax", yref="ay", axref="x", ayref="y",
                     showarrow=true, arrowhead=2, arrowwidth=6, arrowsize=.5,
                     arrowcolor=BASIS_COL))
@@ -209,16 +210,16 @@ function plot(c::Cell{2}, layout::Layout=D_PLOTLY_LAYOUT_2D)
 
             taxs[i+2(j-1)] = PlotlyJS.scatter(
                 x=[V₀[1],V₁[1]], y=[V₀[2],V₁[2]];
-                mode="lines", hovertext=name, hoverinfo=ifelse(j==1,"none","text"),
+                mode="lines", hovertext=name, hoverinfo="text",
                 line=attr(color=ifelse(j==1, AXIS_LIGHT_COL, AXIS_COL),
-                            width=ifelse(j==1, 4, 6))
+                            width=ifelse(j==1, 5, 6))
                 )
             if j == 2
                 # arrow heads have to be added as annotations to layout in 2D :/
                 haskey(layout, :annotations) || (layout[:annotations] = PlotlyBase.PlotlyAttribute[])
                 push!(layout[:annotations], 
-                    attr(x=V₁[1]+.05V′[1], y=V₁[2]+.05V′[2],   # awful fidgeting; plotly's
-                         ax=V₁[1]-.05V′[1], ay=V₁[2]-.05V′[2], # arrows are stupid
+                    attr(x=V₁[1]+.05V′[1]*scale, y=V₁[2]+.05V′[2]*scale,   # awful fidgeting; plotly's
+                         ax=V₁[1]-.05V′[1]*scale, ay=V₁[2]-.05V′[2]*scale, # arrows are stupid
                          xref="ax", yref="ay", axref="x", ayref="y",
                          showarrow=true, arrowhead=2, arrowwidth=6, arrowsize=.5,
                          arrowcolor=AXIS_COL))
@@ -267,9 +268,16 @@ function axis_intersections(c::Cell{2},
     # intersection between line rₐ(t) a + nₐt and line rᵦ(t) = β + nᵦt can be gotten by 
     # linear algebra: [-nₐ|nᵦ][tₐ,tᵦ] = a-β. Here we, pick rᵦ for the axes `Vs` (β=0) and
     # let rₐ refer to cell segments. We're then only interested in tᵦ:
-    for (i,poly) in enumerate(c)
-        a = first(poly)
-        nₐ = poly[2] - a
+    fs = faces(c)
+    vs = vertices(c)
+    for i in eachindex(vs) # number of vertices and segments are equal in 2D
+        if length(fs) == 1 # `merge = true`
+            idxs = i ≠ length(vs) ? (i,i+1) : (i,1)
+        else
+            idxs = (fs[i][1], fs[i][2])
+        end
+        a  = vs[idxs[1]]
+        nₐ = vs[idxs[2]] - a
         for (j,V) in enumerate(Vs)
             nᵦ = V
             tᵦ = (nₐ[2]*a[1]-nₐ[1]*a[2])/(-nₐ[1]*nᵦ[2] + nₐ[2]*nᵦ[1]) # ~ inv([-nₐ|nᵦ])
