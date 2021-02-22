@@ -185,7 +185,7 @@ function merge_coplanar!(c::Cell{3})
                 fⱼ = fs[j]
                 # can be co-planar faces if they share two or more vertices; we only 
                 # support merging with two vertices currently, so just check for that
-                if sum(∈(fᵢ), fⱼ) == D-1 && is_coplanar(ns[i], ns[j])
+                if sum(∈(fᵢ), fⱼ) == 2 && is_coplanar(ns[i], ns[j])
                     fs[i] = fᵢ = merge_coplanar(fᵢ, fⱼ)
                     deleteat!(fs, j), deleteat!(ns, j)
                     was_merged = true
