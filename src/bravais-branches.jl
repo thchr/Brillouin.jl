@@ -9,6 +9,9 @@ end
           with the HPKOT paper
           """
 end
+@noinline function _throw_basis_required(Rs)
+    throw(DomainError(Rs, "`Rs` must be supplied for the considered Bravais type "))
+end
 
 # this is a translation and simplification (omitting several warnings / edge case handling)
 # of SeeK's `get_path` extended bravais type branch table. It should be pretty much the
@@ -17,10 +20,7 @@ end
 # be a conventional cell in ITA settings.
 function extended_bravais(sgnum::Integer,
                           bt::String,
-                          Rs::AbstractVector{<:SVector{3,<:Real}})
-    a = norm(Rs[1])
-    b = norm(Rs[2]) 
-    c = norm(Rs[3])
+                          Rs::Union{Nothing, AbstractVector{<:SVector{3,<:Real}}})
 
     if bt == "cP"
         if 195 ≤ sgnum ≤ 206
@@ -47,6 +47,7 @@ function extended_bravais(sgnum::Integer,
         return :tP1
 
     elseif bt == "tI"
+        a, _, c = basisnorms(Rs)
         if c ≤ a
             return :tI1
         else
@@ -57,6 +58,7 @@ function extended_bravais(sgnum::Integer,
         return :oP1
 
     elseif bt == "oF"
+        a, b, c = basisnorms(Rs)
         if inv(a^2) > inv(b^2) + inv(c^2)
             return :oF1
         elseif inv(c^2) > inv(a^2) + inv(b^2)
@@ -66,6 +68,7 @@ function extended_bravais(sgnum::Integer,
         end
 
     elseif bt == "oI"
+        a, b, c = basisnorms(Rs)
         if c>a && c>b     # (c largest)
             return :oI1
         elseif a>b && a>c # (a largest)
@@ -75,6 +78,7 @@ function extended_bravais(sgnum::Integer,
         end
 
     elseif bt == "oC"
+        a, b, _ = basisnorms(Rs)
         if a ≤ b
             return :oC1
         else
@@ -96,6 +100,7 @@ function extended_bravais(sgnum::Integer,
         end
 
     elseif bt == "hR"
+        a, _, c = basisnorms(Rs)
         if sqrt(3)a ≤ sqrt(2)c
             return :hR1
         else
@@ -110,6 +115,7 @@ function extended_bravais(sgnum::Integer,
     elseif bt == "mC"
         # TODO
         _warn_monoclinic()
+        a, b, c = basisnorms(Rs)
         cosβ = dot(Rs[3], Rs[1])/(c*a)
         if b < a * sqrt(1 - cosβ^2)
             return :mC1
@@ -123,6 +129,7 @@ function extended_bravais(sgnum::Integer,
 
     elseif bt == "aP"
         # TODO
+        a, b, c = basisnorms(Rs)
         error(DomainError("aP", "bravais type is not presently supported; try SeeK-path"))
 
     else
@@ -130,3 +137,11 @@ function extended_bravais(sgnum::Integer,
 
     end
 end # function
+
+function basisnorms(Rs::AbstractVector{<:SVector{3,<:Real}})
+    a = norm(Rs[1])
+    b = norm(Rs[2])
+    c = norm(Rs[3])
+    return a, b, c
+end
+basisnorms(Rs::Nothing) = _throw_basis_required(Rs)

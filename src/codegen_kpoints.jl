@@ -77,7 +77,13 @@ for (bt, points) in pointsd
         end
 
         # --- make function of the featured subset of :a, :b, :c, and :β, in that order ---
-        @eval function $fn(Rs::AbstractVector{<:SVector{3, <:Real}})
+        if length(setup_ex.args) ≤ 1 # meaning, no dependence on :a, :b, :c, or :β
+            # ok with `nothing` input if there is no dependence on `Rs` anyway
+            T = Union{Nothing, AbstractVector{<:SVector{3, <:Real}}}
+        else
+            T = AbstractVector{<:SVector{3, <:Real}}
+        end
+        @eval function $fn(Rs::$T)
             $setup_ex
             $params_ex
             return $ex
@@ -91,4 +97,38 @@ for (bt, points) in pointsd
     println("\n", mth)    
     display(fn′([rand(SVector{3,Float64}) for _ in 1:3])) 
     =#
+end
+
+# ---------------------------------------------------------------------------------------- #
+# CODEGEN FOR BRANCHTABLE TO ABOVE FUNCTIONS
+
+# generate a branch-table function (just a lot of if-statements, that simply dispatch to
+# `($ext_bt)_points(Rs)`, depending on the value of `ext_bt`:
+branchtable = Expr(:if)
+let current = branchtable
+    for (i,ext_bt) in enumerate(keys(pointsd))
+        if i ≠ 1
+            push!(current.args, Expr(:elseif))
+            current = current.args[end]
+        end
+        push!(current.args, :(ext_bt == $(QuoteNode(ext_bt))))
+        fn = Symbol(string(ext_bt)*"_points")
+        push!(current.args, :($fn(Rs)))
+    end
+    # the final entry in the :if call block is implicitly an `else` block:
+    push!(current.args, :(throw(DomainError(ext_bt, "invalid extended Bravais type"))))
+end
+
+@eval begin
+    @doc """
+        get_points(ext_bt, Rs)
+
+    Return the labels and points in the **k**-path associated with an extended Bravais type
+    `ext_bt` and a (conventional) direct basis `Rs` (can be `nothing` if there is no
+    dependence on the basis) as a `Dict{Symbol, Vector{Float64}}`.
+    """
+    function get_points(ext_bt::Symbol, 
+                          Rs::Union{Nothing,AbstractVector{<:SVector{3, <:Real}}})
+        $branchtable
+    end
 end

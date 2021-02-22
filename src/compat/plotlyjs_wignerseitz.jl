@@ -185,12 +185,12 @@ function plot(c::Cell{2}, layout::Layout=D_PLOTLY_LAYOUT_2D)
         end
         # arrow heads have to be added as annotations to layout in 2D :/
         haskey(layout, :annotations) || (layout[:annotations] = PlotlyBase.PlotlyAttribute[])
-        push!(layout[:annotations], 
+        push!(layout[:annotations],
             attr(x=V[1]+.05V′[1]*scale, y=V[2]+.05V′[2]*scale,   # awful fidgeting; plotly's
-                    ax=V[1]-.05V′[1]*scale, ay=V[2]-.05V′[2]*scale, # arrows are stupid
-                    xref="ax", yref="ay", axref="x", ayref="y",
-                    showarrow=true, arrowhead=2, arrowwidth=6, arrowsize=.5,
-                    arrowcolor=BASIS_COL))
+                 ax=V[1]-.05V′[1]*scale, ay=V[2]-.05V′[2]*scale, # arrows are stupid
+                 xref="ax", yref="ay", axref="x", ayref="y",
+                 showarrow=true, arrowhead=2, arrowwidth=6, arrowsize=.5,
+                 arrowcolor=BASIS_COL))
     end
 
     # Cartesian axes
@@ -217,7 +217,7 @@ function plot(c::Cell{2}, layout::Layout=D_PLOTLY_LAYOUT_2D)
             if j == 2
                 # arrow heads have to be added as annotations to layout in 2D :/
                 haskey(layout, :annotations) || (layout[:annotations] = PlotlyBase.PlotlyAttribute[])
-                push!(layout[:annotations], 
+                push!(layout[:annotations],
                     attr(x=V₁[1]+.05V′[1]*scale, y=V₁[2]+.05V′[2]*scale,   # awful fidgeting; plotly's
                          ax=V₁[1]-.05V′[1]*scale, ay=V₁[2]-.05V′[2]*scale, # arrows are stupid
                          xref="ax", yref="ay", axref="x", ayref="y",

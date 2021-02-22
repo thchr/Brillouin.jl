@@ -26,16 +26,14 @@ const splice_kpath      = splice_path
 
 # ---------------------------------------------------------------------------------------- #
 
-include("codegen_kpoints.jl")
-include("bravais-branches.jl")
+include("codegen_kpoints.jl")  # defines `get_points` and `pathsd` (& other subfunctions)
+include("bravais-branches.jl") # defines `extended_bravais`
 
 # ---------------------------------------------------------------------------------------- #
 
 """
     irrfbz_path(sgnum::Integer, Nk::Integer, Rs::Union{Nothing, $(BasisLike)}=nothing; 
-        pathtype::String="SeeK", has_inversion_or_tr::Bool=true,
-        splice::Bool=false, legacy::Bool=false)
-                                                --> paths_kvs, paths_labs, lab2kv
+        splice::Bool=false)                          --> paths_kvs, paths_labs, lab2kv
 
 Returns a **k**-path in the (primitive) irreducible Brillouin zone that includes all 
 distinct high-symmetry lines and points as well as parts of the Brillouin zone boundary.
@@ -46,41 +44,43 @@ lengths of the lattice vectors (because the Brillouin zone may depend on these l
 If the requested space group is known to not fall under this case, `Rs` can be supplied
 as `nothing` (default).
 
+## Keyword arguments
+- `splice`: if `true`, `Nk` is the number of points between each **k**-path segment; if
+  `false` (default), approximately `Nk` points is distributed across all path segments.
+  (controls the behavior of [`interp_paths_from_labs`](@ref)).
+
 ## Data and referencing
-All data is sourced from the SeeK publication[^1]: please cite the original work.
+All data is sourced from the SeeK HPKOT publication[^1]: please cite the original work.
 
 All paths currently assume time-reversal symmetry (or, equivalently, inversion symmetry), 
 corresponding to the SeeK's `[with inversion]` setting. If neither inversion nor
-time-reversal symmetry is present, additional paths may be required (SeeK's `[no inversion]`
-setting).
+time-reversal, include the "inverted" -**k* paths as well manually.
 
 [1] Hinuma, Pizzi, Kumagai, Oba, & Tanaka, *Band structure diagram paths based on
     crystallography*, Comp. Mat. Sci. **128**, 140 (2017)](http://dx.doi.org/10.1016/j.commatsci.2016.10.015)
-    (see also online interface at https://www.materialscloud.org/work/tools/seekpath).
 """
 function irrfbz_path(sgnum::Integer, Nk::Integer, 
                 Rs::Union{Nothing, BasisLike{D}}=nothing;
-                pathtype::String="SeeK", has_inversion_or_tr::Bool=true,
+                #has_inversion_or_tr::Bool=true, pathtype::String="SeeK", 
                 splice::Bool=false, legacy::Bool=false) where D
 
     if Rs isa AbstractVector
         D ≠ 3 && throw(DomainError(D, "Currently only implemented for 3D space groups"))
     end
     bt = bravaistype(sgnum, 3)
+    ext_bt = extended_bravais(sgnum, bt, Rs)
 
-    # get high-symmetry points and labels and associated paths
-    if has_inversion_or_tr
-        lab2kv, paths_labs = _irrfbz_path(bt, Rs, sgnum, pathtype)
-    else
-        lab2kv, paths_labs = _irrfbz_path_without_inversion_or_tr(bt, Rs, sgnum, pathtype)
-    end
+    # get data about path
+    lab2kv = get_points(ext_bt, Rs)
+    paths_labs = pathsd[ext_bt]
 
     # interpolate k-paths
-    paths_kvs = interp_paths_from_labs(lab2kv, paths_labs, Nk, splice, legacy) 
+    paths_kvs = interp_paths_from_labs(lab2kv, paths_labs, Nk; splice=splice, legacy=legacy) 
 
     return paths_kvs, paths_labs, lab2kv
 end
 
+#=
 # always returns `lab2kv, paths_labs`
 function _irrfbz_path(bt::String, Rs::Union{Nothing, BasisLike{D}}, sgnum::Integer,
                       pathtype::String) where D
@@ -308,6 +308,7 @@ function irrfbz_data_tI1_without_inversion_or_tr(a::Real, c::Real; pathtype::Str
     return lab2kv, paths_labs
 end
 
+=#
 # ---------------------------------------------------------------------------------------- #
 _throw_pathtype(pathtype::String) = throw(DomainError(pathtype, "undefined pathtype"))
 _throw_requires_direct_basis()    = throw(DomainError(nothing, "the k-path of the requested space group requires information about the direct basis; `Rs` must be of type `$(BasisLike{3})` here"))

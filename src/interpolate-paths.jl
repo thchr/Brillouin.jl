@@ -18,7 +18,7 @@ function interpolate_path(kvs::AVec{<:AVec{<:Real}}, N::Integer)
     Nkpairs = length(kvs)-1
     elT     = typeof(first(first(kvs))/1)
     dists   = Vector{elT}(undef, Nkpairs)
-    @inbounds for i in OneTo(Nkpairs)
+    @inbounds for i in 1:Nkpairs
         dists[i] = norm(kvs[i] .- kvs[i+1])
     end
     totaldist  = sum(dists)
@@ -26,9 +26,10 @@ function interpolate_path(kvs::AVec{<:AVec{<:Real}}, N::Integer)
 
     # TODO: preallocate
     kvpath = [float.(kvs[1])]
-    @inbounds for i in OneTo(Nkpairs)
+    @inbounds for i in 1:Nkpairs
         # try to maintain an even distribution of k-points along path
         Nᵢ = round(Int64, dists[i]*N_per_dist, RoundUp) # points in current segment
+        Nᵢ = max(Nᵢ, 2) # must be at least two points
         new_kvs = range(kvs[i],kvs[i+1],length=Nᵢ)
         append!(kvpath, (@view new_kvs[2:end]))         # append `new_kvs` to `kvpath`
     end
@@ -50,10 +51,10 @@ function splice_path(kvs::AVec{<:AVec{<:Real}}, N::Integer)
     N⁺²     = N+2
 
     elT    = typeof(first(first(kvs))/1)
-    kvpath = [Vector{elT}(undef, D) for _ in OneTo(Nkpairs+1 + Nkpairs*N)]
+    kvpath = [Vector{elT}(undef, D) for _ in Base.OneTo(Nkpairs+1 + Nkpairs*N)]
     kvpath[1] = kvs[1]
     start, stop = 2, N⁺²
-    @inbounds for i in OneTo(Nkpairs)
+    @inbounds for i in 1:Nkpairs
         new_kvs = range(kvs[i],kvs[i+1],length=N⁺²)
         @views kvpath[start:stop] .= new_kvs[2:end] # insert `new_kvs` in `kvpath`
         start  = stop+1
