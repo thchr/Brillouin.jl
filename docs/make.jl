@@ -33,6 +33,7 @@ makedocs(;
     pages=[
         "Home" => "index.md",
         "Wigner–Seitz" => "wignerseitz.md",
+        "<b>k</b>-paths" => "kpaths.md",
         "API" => "api.md",
     ],
 )

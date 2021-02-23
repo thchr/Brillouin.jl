@@ -1,28 +1,28 @@
 # Paths in the representation domain of the BZ, obtained from the [SeeK] publication. 
-# Methods return *k*-vector coordinates in a primitive reciprocal basis ("reciprocal 
+# Methods return **k**-vector coordinates in a primitive reciprocal basis ("reciprocal 
 # crystallographic primitive cell" in the [SeeK]'s nomenclature).
 #
 # ^[Seek] http://dx.doi.org/10.1016/j.commatsci.2016.10.015; see also online interface at 
 #         https://www.materialscloud.org/work/tools/seekpath
 
-module KPath
+module KPaths
 
 # ---------------------------------------------------------------------------------------- #
-export irrfbz_path
+export irrfbz_path, KPath, points, paths, cartesianize!
 # ---------------------------------------------------------------------------------------- #
 using ..CrystallineBravaisVendor: bravaistype
 using ..Brillouin: AVec, BasisLike
 using LinearAlgebra: norm
 using StaticArrays
+import Base: show, summary, getindex, IndexStyle, size
+
 # ---------------------------------------------------------------------------------------- #
 
 include("interpolate-paths.jl")
-export splice_path, interpolate_path, cumdists
+export splice, interpolate, cumdists
 
-const interpolate_kpath = interpolate_path
-const splice_kpath      = splice_path
-@deprecate interpolate_kpath interpolate_path true
-@deprecate splice_kpath splice_path true
+@deprecate interpolate_kpath interpolate true
+@deprecate splice_kpath      splice      true
 
 # ---------------------------------------------------------------------------------------- #
 
@@ -31,53 +31,154 @@ include("bravais-branches.jl") # defines `extended_bravais`
 
 # ---------------------------------------------------------------------------------------- #
 
+abstract type AbstractPath{T} <: AbstractVector{T} end
+
+struct KPath{D} <: AbstractPath{Pair{Symbol, SVector{D, Float64}}}
+    points :: Dict{Symbol, SVector{D,Float64}}
+    paths  :: Vector{Vector{Symbol}}
+end
 """
-    irrfbz_path(sgnum::Integer, Nk::Integer, Rs::Union{Nothing, $(BasisLike)}=nothing; 
-        splice::Bool=false)                          --> paths_kvs, paths_labs, lab2kv
+    points(kp::KPath) -> Dict{Symbol, SVector{D,Float64}}
 
-Returns a **k**-path in the (primitive) irreducible Brillouin zone that includes all 
-distinct high-symmetry lines and points as well as parts of the Brillouin zone boundary.
+Return a dictionary of the **k**-points (values) and associated **k**-labels (keys)
+referenced in `kp`.
+"""
+points(kp::KPath) = kp.points
+"""
+    paths(kp::KPath) -> Dict{Symbol, SVector{D,Float64}}
 
-`Rs` refers to the direct basis of the conventional unitcell. For some space groups, it
+Return a vector of vectors, with each vector describing a connected path between between
+**k**-points referenced in `kp` (see also [`points(::KPath)`](@ref)).
+"""
+paths(kp::KPath)  = kp.paths
+
+Base.@propagate_inbounds function getindex(kp::KPath, i::Int)
+    # index into the `i`th point in the "flattened" `paths(kp)`
+    @boundscheck i < 0 && throw(BoundsError(kp, i))
+    j = 1
+    i′ = i′′ = i
+    while (i′′ -= length(paths(kp)[j])) > 0
+        i′ = i′′
+        j += 1
+        @boundscheck j > length(paths(kp)) && throw(BoundsError(kp, i))
+    end
+    @boundscheck i′ > length(paths(kp)[j]) && throw(BoundsError(kp, i))
+
+    lab = @inbounds paths(kp)[j][i′]
+    return lab => points(kp)[lab]
+end
+IndexStyle(::Type{<:KPath}) = IndexLinear()
+size(kp::KPath) = (sum(length, paths(kp)),)
+
+function summary(io::IO, kp::KPath{D}) where D
+    print(io, "KPath{", D, "} (", length(points(kp)), " points, ", 
+              length(paths(kp)), " paths, ", length(kp), " points in paths)")
+end
+function show(io::IO, ::MIME"text/plain", kp::KPath)
+    summary(io, kp)
+    println(io, ":")
+    # points
+    first_lab, first_kv = first(points(kp))
+    print(io, " points: ")
+    foreach(enumerate(points(kp))) do (i,(lab,kv))
+        i ≠ 1 && print(io, "         ")
+        println(io, ":", lab, " => ", kv)
+    end
+    # paths
+    print(io, "  paths: ")
+    foreach(enumerate(paths(kp))) do (i,path)
+        i ≠ 1 && print(io, "         ")
+        if i ≠ length(paths(kp))
+            println(io, path)
+        else
+            print(io, path)
+        end
+    end
+end
+# ---------------------------------------------------------------------------------------- #
+
+"""
+    irrfbz_path(sgnum::Integer, Rs::Union{Nothing, $(BasisLike)}=nothing)   -->  ::KPath
+
+Returns a **k**-path (`::KPath`) in the (primitive) irreducible Brillouin zone that includes
+all distinct high-symmetry lines and points as well as parts of the Brillouin zone boundary.
+
+`Rs` refers to the direct basis of the conventional unit cell. For some space groups, it
 is needed to disambiguate the "extended" Bravais types that may differ depending on the
 lengths of the lattice vectors (because the Brillouin zone may depend on these lengths).
 If the requested space group is known to not fall under this case, `Rs` can be supplied
 as `nothing` (default).
 
-## Keyword arguments
-- `splice`: if `true`, `Nk` is the number of points between each **k**-path segment; if
-  `false` (default), approximately `Nk` points is distributed across all path segments.
-  (controls the behavior of [`interp_paths_from_labs`](@ref)).
+Note that the returned **k**-points are given in the basis of the **primitive** reciprocal
+basis (see [`cartesianize!`](@ref)).
+
+To interpolate the resulting `KPath`, see [`interpolate(::KPath, ::Integer)`](@ref)
+and [`splice(::KPath, ::Integer)`](@ref).
 
 ## Data and referencing
 All data is sourced from the SeeK HPKOT publication[^1]: please cite the original work.
 
 All paths currently assume time-reversal symmetry (or, equivalently, inversion symmetry), 
 corresponding to the SeeK's `[with inversion]` setting. If neither inversion nor
-time-reversal, include the "inverted" -**k* paths as well manually.
+time-reversal, include the "inverted" **-k* paths as well manually.
 
 [1] Hinuma, Pizzi, Kumagai, Oba, & Tanaka, *Band structure diagram paths based on
-    crystallography*, Comp. Mat. Sci. **128**, 140 (2017)](http://dx.doi.org/10.1016/j.commatsci.2016.10.015)
+    crystallography*, 
+    [Comp. Mat. Sci. **128**, 140 (2017)](http://dx.doi.org/10.1016/j.commatsci.2016.10.015)
 """
-function irrfbz_path(sgnum::Integer, Nk::Integer, 
-                Rs::Union{Nothing, BasisLike{D}}=nothing;
-                #has_inversion_or_tr::Bool=true, pathtype::String="SeeK", 
-                splice::Bool=false, legacy::Bool=false) where D
-
-    if Rs isa AbstractVector
-        D ≠ 3 && throw(DomainError(D, "Currently only implemented for 3D space groups"))
+function irrfbz_path(sgnum::Integer, Rs::Union{Nothing, AVec{<:AVec{<:Real}}}=nothing)
+    if Rs isa AVec
+        all(R->length(R)==3, Rs) || throw(DomainError(Rs, "Currently only implemented for 3D space groups"))
+        Rs = convert.(SVector{3,Float64}, Rs)
     end
     bt = bravaistype(sgnum, 3)
     ext_bt = extended_bravais(sgnum, bt, Rs)
 
     # get data about path
-    lab2kv = get_points(ext_bt, Rs)
-    paths_labs = pathsd[ext_bt]
+    lab2kvs = get_points(ext_bt, Rs)
+    paths = pathsd[ext_bt]
 
-    # interpolate k-paths
-    paths_kvs = interp_paths_from_labs(lab2kv, paths_labs, Nk; splice=splice, legacy=legacy) 
+    return KPath(lab2kvs, paths)
+end
 
-    return paths_kvs, paths_labs, lab2kv
+"""
+    cartesianize(kp::KPath, Gs::BasisLike)
+
+Transform a **k**-path `kp` to a Cartesian coordinate system using a primitive basis `Gs`.
+Modifies the underlying dictionary in `kp` in-place.
+"""
+function cartesianize!(kp::KPath{D}, Gs::Union{BasisLike{D}, AVec{<:AVec{<:Real}}}) where D
+    for (lab, kv) in points(kp)
+        points(kp)[lab] = kv'Gs
+    end
+    return kp
+end
+#cartesianize(kp::KPath{D}, Gs::BasisLike{D}) where D = cartesianize!(deepcopy(kp), Gs)
+
+# ---------------------------------------------------------------------------------------- #
+# INTERPOLATIONS OF ::KPATH
+
+# TODO: Return lazy iterators instead (e.g., define `InterpolatedKPath` & `SplicedKPath`)
+#       The main benefit of doing that is that we would be able to dispatch on them.
+
+"""
+    interpolate(kp::KPath, N::Integer; legacy::Bool=false)
+
+Return an interpolation of `kp` with approximately `N` points distributed across all path
+segments. See also [`interpolate(::AbstractVector, ::Integer)`](@ref)].
+"""
+function interpolate(kp::KPath, N::Integer; legacy::Bool=false)
+    return interpolate_from_labs(points(kp), paths(kp), N; splice=false, legacy=legacy)
+end
+
+"""
+    splice(kp::KPath, N::Integer)
+
+Return an interpolation of `kp` with `N` points inserted into each segment of paths in 
+`kp`. See also [`splice(::AbstractVector, ::Integer)`](@ref).
+"""
+function splice(kp::KPath, N::Integer)
+    interpolate_from_labs(points(kp), paths(kp), N; splice=true, legacy=false)
 end
 
 #=

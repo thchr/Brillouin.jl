@@ -48,3 +48,25 @@ julia> using PlotlyJS
 julia> plot(cell)
 ```
 Examples of interactive visualizations are [included in the documentation](https://thchr.github.io/Brillouin.jl/dev/wignerseitz/).
+
+Irreducible **k**-paths are returned by `irrfbz_path`, and can similarly be visualized (see [examples in documentation](https://thchr.github.io/Brillouin.jl/dev/kpaths/)):
+```jl
+julia> kp = irrfbz_path(147, Rs)
+KPath{3} (7 points, 3 paths, 13 points in paths):
+ points: :M => [0.5, 0.0, 0.0]
+         :A => [0.0, 0.0, 0.5]
+         :H => [0.3333333333333333, 0.3333333333333333, 0.5]
+         :K => [0.3333333333333333, 0.3333333333333333, 0.0]
+         :Γ => [0.0, 0.0, 0.0]
+         :L => [0.5, 0.0, 0.5]
+         :H₂ => [0.3333333333333333, 0.3333333333333333, -0.5]
+  paths: [:Γ, :M, :K, :Γ, :A, :L, :H, :A]
+         [:L, :M]
+         [:H, :K, :H₂]
+```
+The resulting object can be interpolated, using either `interpolate` or `splice`:
+```jl
+interpolate(kp, 100) # ::Vector{Vector{SVector{3,Float64}}}
+splice(kp, 100)      # ::Vector{Vector{SVector{3,Float64}}}
+```
+which produces a vector of interpolated connected paths.

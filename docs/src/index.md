@@ -8,5 +8,6 @@ Documentation for [Brillouin.jl](https://github.com/thchr/Brillouin.jl)
 
 ```@contents
 Pages = ["wignerseitz.md",
+         "kpaths.md",
          "api.md"]
 ```

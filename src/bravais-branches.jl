@@ -20,7 +20,7 @@ end
 # be a conventional cell in ITA settings.
 function extended_bravais(sgnum::Integer,
                           bt::String,
-                          Rs::Union{Nothing, AbstractVector{<:SVector{3,<:Real}}})
+                          Rs::Union{Nothing, AVec{<:SVector{3,<:Real}}})
 
     if bt == "cP"
         if 195 ≤ sgnum ≤ 206

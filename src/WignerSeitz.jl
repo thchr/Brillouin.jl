@@ -20,16 +20,6 @@ const PySpatial = PyNULL()
 function __init__()
     # bringing in SciPy's Spatial module (for `Voronoi` and `ConvexHull`)
     copy!(PySpatial, pyimport_conda("scipy.spatial", "scipy"))
-
-    # plotting extensions on GLMakie load
-    @require AbstractPlotting="537997a7-5e4e-5d89-9595-2241ea00577e" begin
-        include("compat/abstractplotting_wignerseitz.jl")
-    end
-
-    # plotting extensions on PlotlyJS load
-    @require PlotlyJS="f0f68f2c-4968-5e81-91da-67840de0976a" begin
-        include("compat/plotlyjs_wignerseitz.jl")
-    end
 end
 
 # ---------------------------------------------------------------------------------------- #

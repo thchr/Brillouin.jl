@@ -35,15 +35,13 @@ for (bt, points) in pointsd
     # --- build up an expression for the dictionary of k-point labels and vectors ---
     ex = :(Dict())
     for (klab, point_expr) in points
-        # due to Julia issue #39240, it is more efficient if we explicitly put `Float64`
-        # into the Expr, due to its heterogeneous elements
-        point_expr′ = Expr(:ref, :Float64, point_expr.args...) # [x,y,...] to Float64[x,y,...]
+        point_expr′ = Expr(:call, SVector{3,Float64}, point_expr.args...) # convert to SVector
         push!(ex.args, Expr(:call, :(=>), QuoteNode(klab), point_expr′))
     end
 
     if params === nothing
         # --- only constant points; define "constant" function of `Rs` ---
-        @eval $fn(Rs::AbstractVector{<:SVector{3, <:Real}}) = $ex
+        @eval $fn(Rs::Union{Nothing, AbstractVector{<:SVector{3, <:Real}}}) = $ex
 
     else
         # --- free arguments; define constant dependent on `Rs` ---
@@ -77,13 +75,7 @@ for (bt, points) in pointsd
         end
 
         # --- make function of the featured subset of :a, :b, :c, and :β, in that order ---
-        if length(setup_ex.args) ≤ 1 # meaning, no dependence on :a, :b, :c, or :β
-            # ok with `nothing` input if there is no dependence on `Rs` anyway
-            T = Union{Nothing, AbstractVector{<:SVector{3, <:Real}}}
-        else
-            T = AbstractVector{<:SVector{3, <:Real}}
-        end
-        @eval function $fn(Rs::$T)
+        @eval function $fn(Rs::AbstractVector{<:SVector{3, <:Real}})
             $setup_ex
             $params_ex
             return $ex
@@ -128,7 +120,7 @@ end
     dependence on the basis) as a `Dict{Symbol, Vector{Float64}}`.
     """
     function get_points(ext_bt::Symbol, 
-                          Rs::Union{Nothing,AbstractVector{<:SVector{3, <:Real}}})
+                        Rs::Union{Nothing, AVec{<:SVector{3, <:Real}}})
         $branchtable
     end
 end

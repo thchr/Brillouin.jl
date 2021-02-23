@@ -1,7 +1,9 @@
 using .PlotlyJS
 import .PlotlyJS: plot
-using LinearAlgebra: norm
+using LinearAlgebra: norm, dot
 using StaticArrays
+
+using .WignerSeitz: face_normal
 # ---------------------------------------------------------------------------------------- #
 # CONSTANTS
 
@@ -116,17 +118,14 @@ function plot(c::Cell{3}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_3D)
 
     # combine traces and plot
     ts = vcat(tbz, tgs, tgtips, taxs, taxtips)
-    p = PlotlyJS.Plot(ts, layout)
-    P = PlotlyJS.plot(p)
-
-    return P
+    return PlotlyJS.plot(ts, layout)
 end
 
 # ---------------------------------------------------------------------------------------- #
 # 2D
 
 # default layout
-D_PLOTLY_LAYOUT_2D  = Layout(
+const DEFAULT_PLOTLY_LAYOUT_2D  = Layout(
     showlegend=false,
     xaxis=attr(tickvals=[], zeroline=false,
             showgrid=false, showbackground=false,
@@ -145,7 +144,7 @@ D_PLOTLY_LAYOUT_2D  = Layout(
     annotations=PlotlyBase.PlotlyAttribute[]
     )
 
-function plot(c::Cell{2}, layout::Layout=D_PLOTLY_LAYOUT_2D)
+function plot(c::Cell{2}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_2D)
     layout = deepcopy(layout) # because we have to mutate to get arrows...
 
     scale = maximum(norm, basis(c))
@@ -226,13 +225,10 @@ function plot(c::Cell{2}, layout::Layout=D_PLOTLY_LAYOUT_2D)
             end
         end
     end
-    #return layout[:annotations]
+
     # combine traces and plot
     ts = vcat(tbz, tgs, taxs)
-    p = PlotlyJS.Plot(ts, layout)
-    P = PlotlyJS.plot(p)
-
-    return P
+    return PlotlyJS.plot(ts, layout)
 end
 
 # ---------------------------------------------------------------------------------------- #
