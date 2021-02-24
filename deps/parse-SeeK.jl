@@ -104,8 +104,8 @@ mktemp(mktempdir()) do path, io
 
     # ------------------------------------------------------------------------------------ #
     # WRITE DICTIONARIES TO A .JL FILE; USE JULIA'S PARSER AS FILE FORMAT
-
-    open(joinpath(@__DIR__, "..", "assets", "data", "data-SeeK.jl"), "w") do io
+    data_dir = mkdir(joinpath(@__DIR__, "..", "assets", "data"))
+    open(joinpath(data_dir, "data-SeeK.jl"), "w") do io
         println(io,
         "# ", "-"^76, "\n",
         """
