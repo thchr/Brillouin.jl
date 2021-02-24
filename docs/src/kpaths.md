@@ -1,4 +1,4 @@
-# **k**-paths
+# **k**-space paths
 
 To generate a **k**-path for, say, space group 202 (a cubic face-centered Bravais lattice), we can call [`irrfbz_path`](@ref), which will return a minimal path in the irreducible Brillouin zone:
 ```@example kpath

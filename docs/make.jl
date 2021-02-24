@@ -32,8 +32,8 @@ makedocs(;
     ),
     pages=[
         "Home" => "index.md",
-        "Wigner–Seitz" => "wignerseitz.md",
-        "<b>k</b>-paths" => "kpaths.md",
+        "Wigner–Seitz cells" => "wignerseitz.md",
+        "k-space paths" => "kpaths.md",
         "API" => "api.md",
     ],
 )
