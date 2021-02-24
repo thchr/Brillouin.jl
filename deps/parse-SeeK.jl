@@ -1,5 +1,7 @@
 using DelimitedFiles
 using Downloads
+using Tar
+using CodecZlib
 
 # ---------------------------------------------------------------------------------------- #
 # MISC CONVERSION UTILITIES
@@ -37,9 +39,13 @@ url  = "https://github.com/$(user)/$(repo)/tarball/master" # tarball url
 
 # create a temporary file path to download in and then manipulate the data
 mktemp(mktempdir()) do path, io
-    tmpdir = dirname(path)
-    Downloads.download(url, io) # download a (shallow) tarball version of SeeK source code
-    s=run(`tar xzf $(path) -C $(tmpdir)`) # extract it to tmpdir/
+    # download a (shallow) tarball version of SeeK's source code
+    Downloads.download(url, io)
+    # extract compressed tarball to to tmpdir/ using Tar.jl and CodecZlib.jl
+    tmpdir = open(path) do targz_io
+        tar = GzipDecompressorStream(targz_io)
+        Tar.extract(tar)
+    end
 
     # find the extracted content, which is always of the form $user-$repo-$hash
     contents = readdir(tmpdir)
@@ -104,7 +110,8 @@ mktemp(mktempdir()) do path, io
 
     # ------------------------------------------------------------------------------------ #
     # WRITE DICTIONARIES TO A .JL FILE; USE JULIA'S PARSER AS FILE FORMAT
-    data_dir = mkdir(joinpath(@__DIR__, "..", "assets", "data"))
+    data_dir = joinpath(@__DIR__, "..", "assets", "data")
+    isdir(data_dir) || mkpath(data_dir)
     open(joinpath(data_dir, "data-SeeK.jl"), "w") do io
         println(io,
         "# ", "-"^76, "\n",
