@@ -1,0 +1,30 @@
+<html>
+<head>
+     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+     <script>
+    gd = (function() {
+  var WIDTH_IN_PERCENT_OF_PARENT = 100;
+  var HEIGHT_IN_PERCENT_OF_PARENT = 100;
+  var gd = Plotly.d3.select('body')
+    .append('div').attr("id", "adaa7b16-b446-4137-b24a-947ef7d0650c")
+    .style({
+      width: WIDTH_IN_PERCENT_OF_PARENT + '%',
+      'margin-left': (100 - WIDTH_IN_PERCENT_OF_PARENT) / 2 + '%',
+      height: HEIGHT_IN_PERCENT_OF_PARENT + 'vh',
+      'margin-top': (100 - HEIGHT_IN_PERCENT_OF_PARENT) / 2 + 'vh'
+    })
+    .node();
+  var plot_json = {"layout":{"showlegend":false,"paper_bgcolor":"rgba(0, 0, 0, 0)","scene":{"camera":{"up":{"y":0,"z":1,"x":0},"center":{"y":0,"z":0,"x":0}},"xaxis":{"showgrid":false,"zeroline":false,"tickvals":[],"title":{"text":""},"showbackground":false},"yaxis":{"showgrid":false,"zeroline":false,"tickvals":[],"title":{"text":""},"showbackground":false},"zaxis":{"showgrid":false,"zeroline":false,"tickvals":[],"title":{"text":""},"showbackground":false},"aspectmode":"data","dragmode":"turntable"},"margin":{"l":0,"b":0,"r":0,"t":0},"plot_bgcolor":"rgba(0, 0, 0, 0)","autosize":false},"frames":[],"data":[{"marker":{"color":"rgb(95,39,205)","line":{"color":"white","width":1},"size":6},"mode":"marker","hovertext":"U = 2π[0.25, 1.0, 0.25]","y":[6.283185307179586],"type":"scatter3d","hoverinfo":"text","z":[1.5707963267948966],"x":[1.5707963267948966]},{"marker":{"color":"rgb(95,39,205)","line":{"color":"white","width":1},"size":6},"mode":"marker","hovertext":"W = 2π[0.5, 1.0, 0.0]","y":[6.283185307179586],"type":"scatter3d","hoverinfo":"text","z":[0.0],"x":[3.141592653589793]},{"marker":{"color":"rgb(95,39,205)","line":{"color":"white","width":1},"size":6},"mode":"marker","hovertext":"K = 2π[0.75, 0.75, 0.0]","y":[4.71238898038469],"type":"scatter3d","hoverinfo":"text","z":[0.0],"x":[4.71238898038469]},{"marker":{"color":"rgb(95,39,205)","line":{"color":"white","width":1},"size":6},"mode":"marker","hovertext":"Γ = 2π[0.0, 0.0, 0.0]","y":[0.0],"type":"scatter3d","hoverinfo":"text","z":[0.0],"x":[0.0]},{"marker":{"color":"rgb(95,39,205)","line":{"color":"white","width":1},"size":6},"mode":"marker","hovertext":"L = 2π[0.5, 0.5, 0.5]","y":[3.141592653589793],"type":"scatter3d","hoverinfo":"text","z":[3.141592653589793],"x":[3.141592653589793]},{"marker":{"color":"rgb(95,39,205)","line":{"color":"white","width":1},"size":6},"mode":"marker","hovertext":"X = 2π[0.0, 1.0, 0.0]","y":[6.283185307179586],"type":"scatter3d","hoverinfo":"text","z":[0.0],"x":[0.0]},{"marker":{"color":"rgb(95,39,205)","line":{"color":"white","width":1},"size":6},"mode":"marker","hovertext":"W₂ = 2π[0.0, 1.0, 0.5]","y":[6.283185307179586],"type":"scatter3d","hoverinfo":"text","z":[3.141592653589793],"x":[0.0]},{"mode":"lines","line":{"color":"rgb(95,39,205)","width":8},"y":[0.0,6.283185307179586,6.283185307179586],"type":"scatter3d","hoverinfo":"none","z":[0.0,0.0,1.5707963267948966],"x":[0.0,0.0,1.5707963267948966]},{"mode":"lines","line":{"color":"rgb(95,39,205)","width":8},"y":[4.71238898038469,0.0,3.141592653589793,6.283185307179586,6.283185307179586,6.283185307179586],"type":"scatter3d","hoverinfo":"none","z":[0.0,0.0,3.141592653589793,0.0,0.0,3.141592653589793],"x":[4.71238898038469,0.0,3.141592653589793,3.141592653589793,0.0,0.0]}]};
+  Plotly.newPlot(gd, plot_json);
+  window.onresize = function() {
+    Plotly.Plots.resize(gd);
+  };
+  return gd;
+})();
+
+ </script>
+
+</body>
+</html>
