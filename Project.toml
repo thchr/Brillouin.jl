@@ -1,16 +1,22 @@
 name = "Brillouin"
 uuid = "23470ee3-d0df-4052-8b1a-8cbd6363e7f0"
 authors = ["Thomas Christensen <tchr@mit.edu> and contributors"]
-version = "0.1.0"
+version = "0.2.0"
 
 [deps]
-AbstractPlotting = "537997a7-5e4e-5d89-9595-2241ea00577e"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
-PlotlyJS = "f0f68f2c-4968-5e81-91da-67840de0976a"
 PyCall = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
+PyCall = "1.92"
+Reexport = "1"
+Requires = "1.1"
+StaticArrays = "1"
 julia = "1.5"
+
+[extras]
+AbstractPlotting = "537997a7-5e4e-5d89-9595-2241ea00577e"
+PlotlyJS = "f0f68f2c-4968-5e81-91da-67840de0976a"
