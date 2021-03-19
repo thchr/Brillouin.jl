@@ -12,7 +12,7 @@ export irrfbz_path, KPath, points, paths, cartesianize!
 # ---------------------------------------------------------------------------------------- #
 using ..CrystallineBravaisVendor: bravaistype
 using ..Brillouin: AVec, BasisLike
-using LinearAlgebra: norm
+using LinearAlgebra: norm, dot, ×
 using StaticArrays
 import Base: show, summary, getindex, IndexStyle, size
 

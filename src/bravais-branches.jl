@@ -2,16 +2,16 @@
     throw(DomainError((bt, sgnum), 
             "provided bravais type and space group number are mutually inconsistent"))
 end
-@noinline function _warn_monoclinic()
-    @warn """
-          SeeK has extra conditions on the parameters of monoclinic systems, beyond
-          those of ITA; please check that you fulfil these conditions by comparing
-          with the HPKOT paper
-          """
+@noinline function _throw_triclinic_angles()
+    error("""
+          Triclinic Bravais lattice must be specificied with a reciprocal lattice that is
+          either all-acute or all-obtuse; provided lattice system is neither
+          """)
 end
 @noinline function _throw_basis_required(Rs)
     throw(DomainError(Rs, "`Rs` must be supplied for the considered Bravais type "))
 end
+
 
 # this is a translation and simplification (omitting several warnings / edge case handling)
 # of SeeK's `get_path` extended bravais type branch table. It should be pretty much the
@@ -108,13 +108,9 @@ function extended_bravais(sgnum::Integer,
         end
 
     elseif bt == "mP"
-        # TODO
-        _warn_monoclinic()
         return :mP1
 
     elseif bt == "mC"
-        # TODO
-        _warn_monoclinic()
         a, b, c = basisnorms(Rs)
         cosβ = dot(Rs[3], Rs[1])/(c*a)
         if b < a * sqrt(1 - cosβ^2)
@@ -127,10 +123,25 @@ function extended_bravais(sgnum::Integer,
             end
         end
 
-    elseif bt == "aP"
-        # TODO
-        a, b, c = basisnorms(Rs)
-        error(DomainError("aP", "bravais type is not presently supported; try SeeK-path"))
+    elseif bt == "aP"      
+        # SeeK-path only provides paths for all-acute or all-obtuse reciprocal aP cells
+        # (more precisely, SeeK-path will transform to this setting automatically) so check:
+
+        # get reciprocal basis inter-angles angles
+        Gs = (Rs[2]×Rs[3], Rs[3]×Rs[1], Rs[1]×Rs[2]) # NB: "scale" prefactor omitted here
+        aᴳ, bᴳ, cᴳ = basisnorms(Gs)
+        cosαᴳ = dot(Gs[2], Gs[3]) / (bᴳ * cᴳ)
+        cosβᴳ = dot(Gs[1], Gs[3]) / (aᴳ * cᴳ)
+        cosγᴳ = dot(Gs[1], Gs[2]) / (aᴳ * bᴳ)
+
+        # detect whether all-obtuse or all-acute reciprocal basis
+        if cosαᴳ ≤ 0 && cosβᴳ ≤ 0 && cosγᴳ ≤ 0     # all-obtuse
+            return :aP2
+        elseif cosαᴳ ≥ 0 && cosβᴳ ≥ 0 && cosγᴳ ≥ 0 # all-acute
+            return :aP1
+        else
+            _throw_triclinic_angles()
+        end
 
     else
         throw(DomainError(bt, "undefined bravais type"))
