@@ -15,12 +15,6 @@ using ..Brillouin: AVec, BasisLike
 using LinearAlgebra: norm, dot, ×
 using StaticArrays
 import Base: show, summary, getindex, IndexStyle, size
-
-# ---------------------------------------------------------------------------------------- #
-
-include("interpolate-paths.jl")
-export splice, interpolate, cumdists
-
 # ---------------------------------------------------------------------------------------- #
 
 include("codegen_kpoints.jl")  # defines `get_points` and `pathsd` (& other subfunctions)
@@ -154,6 +148,10 @@ function cartesianize!(kp::KPath{D}, Gs::Union{BasisLike{D}, AVec{<:AVec{<:Real}
 end
 cartesianize(kp::KPath{D}, Gs::BasisLike{D}) where D = cartesianize!(deepcopy(kp), Gs)
 
+# ---------------------------------------------------------------------------------------- #
+
+include("interpolate-paths.jl")
+export interpolate, splice, cumdists
 
 # ---------------------------------------------------------------------------------------- #
 end # module
