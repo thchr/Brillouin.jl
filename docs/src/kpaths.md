@@ -29,4 +29,4 @@ Main.HTMLPlot(Pᶜ⁺ᵏ) # hide
 ```
 
 ## Interpolation
-Interpolation of a `KPath` structure can be achieved using either [`interpolate(::KPath, ::Integer)`](@ref) or [`splice(::KPath, ::Integer)`](@ref).
+Interpolation of a `KPath` structure can be achieved using either [`interpolate(::KPath, ::Integer)`](@ref) or [`splice(::KPath, ::Integer)`](@ref), returning a `KPathInterpolant`.

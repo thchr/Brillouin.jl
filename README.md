@@ -66,7 +66,7 @@ KPath{3} (7 points, 3 paths, 13 points in paths):
 ```
 The resulting object can be interpolated, using either `interpolate` or `splice`:
 ```jl
-interpolate(kp, 100) # ::Vector{Vector{SVector{3,Float64}}}
-splice(kp, 100)      # ::Vector{Vector{SVector{3,Float64}}}
+interpolate(kp, 100) # ::KPathInterpolant{3}
+splice(kp, 100)      # ::KPathInterpolant{3}
 ```
-which produces a vector of interpolated connected paths.
+which produces an iterable whose elements interpolate the connected paths, and which can be dispatched on for easy plotting of dispersion diagrams via PlotlyJS.

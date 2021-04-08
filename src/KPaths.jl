@@ -8,7 +8,7 @@
 module KPaths
 
 # ---------------------------------------------------------------------------------------- #
-export irrfbz_path, KPath, points, paths, cartesianize!
+export irrfbz_path, KPath, points, paths, cartesianize!, KPathInterpolant
 # ---------------------------------------------------------------------------------------- #
 using ..CrystallineBravaisVendor: bravaistype
 using ..Brillouin: AVec, BasisLike
@@ -20,9 +20,6 @@ import Base: show, summary, getindex, IndexStyle, size
 
 include("interpolate-paths.jl")
 export splice, interpolate, cumdists
-
-@deprecate interpolate_kpath interpolate true
-@deprecate splice_kpath      splice      true
 
 # ---------------------------------------------------------------------------------------- #
 
@@ -37,6 +34,7 @@ struct KPath{D} <: AbstractPath{Pair{Symbol, SVector{D, Float64}}}
     points :: Dict{Symbol, SVector{D,Float64}}
     paths  :: Vector{Vector{Symbol}}
 end
+
 """
     points(kp::KPath) -> Dict{Symbol, SVector{D,Float64}}
 
@@ -44,13 +42,14 @@ Return a dictionary of the **k**-points (values) and associated **k**-labels (ke
 referenced in `kp`.
 """
 points(kp::KPath) = kp.points
+
 """
     paths(kp::KPath) -> Dict{Symbol, SVector{D,Float64}}
 
 Return a vector of vectors, with each vector describing a connected path between between
 **k**-points referenced in `kp` (see also [`points(::KPath)`](@ref)).
 """
-paths(kp::KPath)  = kp.paths
+paths(kp::KPath) = kp.paths
 
 Base.@propagate_inbounds function getindex(kp::KPath, i::Int)
     # index into the `i`th point in the "flattened" `paths(kp)`
@@ -142,7 +141,7 @@ function irrfbz_path(sgnum::Integer, Rs::Union{Nothing, AVec{<:AVec{<:Real}}}=no
 end
 
 """
-    cartesianize(kp::KPath, Gs::BasisLike)
+    cartesianize!(kp::KPath, Gs::BasisLike)
 
 Transform a **k**-path `kp` to a Cartesian coordinate system using a primitive basis `Gs`.
 Modifies the underlying dictionary in `kp` in-place.
@@ -153,33 +152,8 @@ function cartesianize!(kp::KPath{D}, Gs::Union{BasisLike{D}, AVec{<:AVec{<:Real}
     end
     return kp
 end
-#cartesianize(kp::KPath{D}, Gs::BasisLike{D}) where D = cartesianize!(deepcopy(kp), Gs)
+cartesianize(kp::KPath{D}, Gs::BasisLike{D}) where D = cartesianize!(deepcopy(kp), Gs)
 
-# ---------------------------------------------------------------------------------------- #
-# INTERPOLATIONS OF ::KPATH
-
-# TODO: Return lazy iterators instead (e.g., define `InterpolatedKPath` & `SplicedKPath`)
-#       The main benefit of doing that is that we would be able to dispatch on them.
-
-"""
-    interpolate(kp::KPath, N::Integer; legacy::Bool=false)
-
-Return an interpolation of `kp` with approximately `N` points distributed across all path
-segments. See also [`interpolate(::AbstractVector, ::Integer)`](@ref)].
-"""
-function interpolate(kp::KPath, N::Integer; legacy::Bool=false)
-    return interpolate_from_labs(points(kp), paths(kp), N; splice=false, legacy=legacy)
-end
-
-"""
-    splice(kp::KPath, N::Integer)
-
-Return an interpolation of `kp` with `N` points inserted into each segment of paths in 
-`kp`. See also [`splice(::AbstractVector, ::Integer)`](@ref).
-"""
-function splice(kp::KPath, N::Integer)
-    interpolate_from_labs(points(kp), paths(kp), N; splice=true, legacy=false)
-end
 
 # ---------------------------------------------------------------------------------------- #
 end # module

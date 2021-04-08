@@ -34,11 +34,11 @@ const DEFAULT_PLOTLY_LAYOUT_3D  = Layout(
     )
 
 # colors from the "british" flatcolors color palette: https://flatuicolors.com/palette/gb
-const BZ_COL          = "rgb(47,54,64)"    # "electromagnetic"
-const BASIS_COL       = "rgb(39,60,117)"   # "pico void"
-const BASIS_LIGHT_COL = "rgb(212,216,227)" # 20% BASIS_COL, 80% white
-const AXIS_COL        = "rgb(194,54,22)"   # "harley davidson orange"
-const AXIS_LIGHT_COL  = "rgb(242,215,208)" # 20% AXIS_COL, 80% white
+const BZ_COL          = Ref("rgb(47,54,64)")    # "electromagnetic"
+const BASIS_COL       = Ref("rgb(39,60,117)")   # "pico void"
+const BASIS_LIGHT_COL = Ref("rgb(212,216,227)") # 20% BASIS_COL, 80% white
+const AXIS_COL        = Ref("rgb(194,54,22)")   # "harley davidson orange"
+const AXIS_LIGHT_COL  = Ref("rgb(242,215,208)") # 20% AXIS_COL, 80% white
 
 # ---------------------------------------------------------------------------------------- #
 # 3D
@@ -54,7 +54,7 @@ function plot(c::Cell{3}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_3D)
             y=push!(getindex.(poly, 2), poly[1][2]),
             z=push!(getindex.(poly, 3), poly[1][3]); 
             mode="lines", hovertext="Cell", hoverinfo="text+x+y+z",
-            line=attr(color=BZ_COL, width=3)
+            line=attr(color=BZ_COL[], width=3)
             )
     end
 
@@ -73,14 +73,14 @@ function plot(c::Cell{3}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_3D)
             tgs[i+(j-1)*3] = PlotlyJS.scatter3d(
                 x=[V₀[1],V₁[1]], y=[V₀[2],V₁[2]], z=[V₀[3],V₁[3]];
                 mode="lines", hovertext=name, hoverinfo="text",
-                line=attr(color=ifelse(j==1, BASIS_LIGHT_COL, BASIS_COL),
+                line=attr(color=ifelse(j==1, BASIS_LIGHT_COL[], BASIS_COL[]),
                           width=ifelse(j==1, 5, 6))
                 )
         end
         tgtips[i] = PlotlyJS.cone(
             x=[V[1]], u=[V′[1]], y=[V[2]], v=[V′[2]], z=[V[3]], w=[V′[3]],
             sizeref=.1*scale, showscale=false, anchor="tail",
-            colorscale=[[0, BASIS_COL], [1, BASIS_COL]],
+            colorscale=[[0, BASIS_COL[]], [1, BASIS_COL[]]],
             hovertext=name, hoverinfo="text+x+y+z")
     end
 
@@ -101,7 +101,7 @@ function plot(c::Cell{3}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_3D)
             taxs[i+(j-1)*3] = PlotlyJS.scatter3d(
                 x=[V₀[1],V₁[1]], y=[V₀[2],V₁[2]], z=[V₀[3],V₁[3]];
                 mode="lines", hovertext=name, hoverinfo="text",
-                line=attr(color=ifelse(j==1, AXIS_LIGHT_COL, AXIS_COL),
+                line=attr(color=ifelse(j==1, AXIS_LIGHT_COL[], AXIS_COL[]),
                           width=ifelse(j==1, 5, 6))
                 )
             if j == 2
@@ -110,7 +110,7 @@ function plot(c::Cell{3}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_3D)
                     y=[V₁[2]], v=[V[2]],
                     z=[V₁[3]], w=[V[3]],
                     sizeref=.1*scale, showscale=false, anchor="tail",
-                    colorscale=[[0, AXIS_COL], [1, AXIS_COL]],
+                    colorscale=[[0, AXIS_COL[]], [1, AXIS_COL[]]],
                     hovertext=name, hoverinfo="text")
             end
         end
@@ -159,7 +159,7 @@ function plot(c::Cell{2}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_2D)
             x=push!(getindex.(poly, 1), poly[1][1]),
             y=push!(getindex.(poly, 2), poly[1][2]);
             mode="lines", hovertext="Cell", hoverinfo="text+x+y",
-            line=attr(color=BZ_COL, width=3)
+            line=attr(color=BZ_COL[], width=3)
             )
     end
 
@@ -178,7 +178,7 @@ function plot(c::Cell{2}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_2D)
             tgs[i+(j-1)*2] = PlotlyJS.scatter(
                 x=[V₀[1],V₁[1]], y=[V₀[2],V₁[2]];
                 mode="lines", hovertext=name, hoverinfo=ifelse(j==1,"text","text+x+y"),
-                line=attr(color=ifelse(j==1, BASIS_LIGHT_COL, BASIS_COL),
+                line=attr(color=ifelse(j==1, BASIS_LIGHT_COL[], BASIS_COL[]),
                           width=ifelse(j==1, 5, 6))
                 )
         end
@@ -189,7 +189,7 @@ function plot(c::Cell{2}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_2D)
                  ax=V[1]-.05V′[1]*scale, ay=V[2]-.05V′[2]*scale, # arrows are stupid
                  xref="ax", yref="ay", axref="x", ayref="y",
                  showarrow=true, arrowhead=2, arrowwidth=6, arrowsize=.5,
-                 arrowcolor=BASIS_COL))
+                 arrowcolor=BASIS_COL[]))
     end
 
     # Cartesian axes
@@ -210,7 +210,7 @@ function plot(c::Cell{2}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_2D)
             taxs[i+2(j-1)] = PlotlyJS.scatter(
                 x=[V₀[1],V₁[1]], y=[V₀[2],V₁[2]];
                 mode="lines", hovertext=name, hoverinfo="text",
-                line=attr(color=ifelse(j==1, AXIS_LIGHT_COL, AXIS_COL),
+                line=attr(color=ifelse(j==1, AXIS_LIGHT_COL[], AXIS_COL[]),
                             width=ifelse(j==1, 5, 6))
                 )
             if j == 2
@@ -221,7 +221,7 @@ function plot(c::Cell{2}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_2D)
                          ax=V₁[1]-.05V′[1]*scale, ay=V₁[2]-.05V′[2]*scale, # arrows are stupid
                          xref="ax", yref="ay", axref="x", ayref="y",
                          showarrow=true, arrowhead=2, arrowwidth=6, arrowsize=.5,
-                         arrowcolor=AXIS_COL))
+                         arrowcolor=AXIS_COL[]))
             end
         end
     end

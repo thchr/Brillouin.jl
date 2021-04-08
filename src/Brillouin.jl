@@ -31,6 +31,7 @@ function __init__()
     @require PlotlyJS="f0f68f2c-4968-5e81-91da-67840de0976a" begin
         include("compat/plotlyjs_wignerseitz.jl")
         include("compat/plotlyjs_kpaths.jl")
+        include("compat/plotlyjs_dispersion.jl")
     end
 end
 
