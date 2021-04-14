@@ -6,11 +6,11 @@
 CurrentModule = Brillouin
 ```
 
-## Exported types
-```@autodocs
-Modules = [Brillouin.WignerSeitz, Brillouin.KPaths]
-Private = false
-Order   = [:type]
+## Types
+```docs
+Brillouin.WignerSeitz.Cell
+Brillouin.KPaths.KPath
+Brillouin.KPaths.KPathInterpolant
 ```
 
 ## Exported methods
@@ -18,11 +18,4 @@ Order   = [:type]
 Modules = [Brillouin.WignerSeitz, Brillouin.KPaths]
 Private = false
 Order   = [:function]
-```
-
-## Exported constants
-```@autodocs
-Modules = [Brillouin.WignerSeitz, Brillouin.KPaths]
-Private = false
-Order   = [:constant]
 ```
