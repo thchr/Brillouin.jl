@@ -47,9 +47,9 @@ The resulting Brillouin zone can be plotted using e.g. [PlotlyJS.jl](https://git
 julia> using PlotlyJS
 julia> plot(cell)
 ```
-Examples of interactive visualizations are [included in the documentation](https://thchr.github.io/Brillouin.jl/dev/wignerseitz/).
+Examples of interactive visualizations are [included in the documentation](https://thchr.github.io/Brillouin.jl/stable/wignerseitz/).
 
-Irreducible **k**-paths are returned by `irrfbz_path`, and can similarly be visualized (see [examples in documentation](https://thchr.github.io/Brillouin.jl/dev/kpaths/)):
+Irreducible **k**-paths are returned by `irrfbz_path`, and can similarly be visualized (see [examples in documentation](https://thchr.github.io/Brillouin.jl/stable/kpaths/)):
 ```jl
 julia> kp = irrfbz_path(147, Rs)
 KPath{3} (7 points, 3 paths, 13 points in paths):
@@ -64,9 +64,4 @@ KPath{3} (7 points, 3 paths, 13 points in paths):
          [:L, :M]
          [:H, :K, :H₂]
 ```
-The resulting object can be interpolated, using either `interpolate` or `splice`:
-```jl
-interpolate(kp, 100) # ::KPathInterpolant{3}
-splice(kp, 100)      # ::KPathInterpolant{3}
-```
-which produces an iterable whose elements interpolate the connected paths, and which can be dispatched on for easy plotting of dispersion diagrams via PlotlyJS.
+The resulting object can be interpolated, using either `interpolate(kp, N)` or `splice(kp, N)`, which produces an `KPathInterpolant` iterable whose elements interpolate the connected paths (and enable convenient plotting of [band structure diagrams](https://thchr.github.io/Brillouin.jl/stable/kpaths/#Band-structure)).

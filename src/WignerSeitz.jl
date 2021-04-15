@@ -3,10 +3,10 @@ module WignerSeitz
 # ---------------------------------------------------------------------------------------- #
 
 using ..Brillouin: AVec
-using Requires
 using StaticArrays
 using LinearAlgebra: dot, cross, norm
 using PyCall
+using DocStringExtensions
 
 import Base: getindex, size, IndexStyle, show, summary
 
@@ -25,6 +25,10 @@ end
 # ---------------------------------------------------------------------------------------- #
 # STRUCTURES
 
+"""
+$(TYPEDEF)
+$(TYPEDFIELDS)
+"""
 struct Cell{D} <: AVec{Vector{SVector{D, Float64}}} # over of polygons
     verts :: Vector{SVector{D, Float64}}
     faces :: Vector{Vector{Int}}

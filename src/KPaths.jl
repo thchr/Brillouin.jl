@@ -14,6 +14,8 @@ using ..CrystallineBravaisVendor: bravaistype
 using ..Brillouin: AVec, BasisLike
 using LinearAlgebra: norm, dot, ×
 using StaticArrays
+using DocStringExtensions
+
 import Base: show, summary, getindex, IndexStyle, size
 # ---------------------------------------------------------------------------------------- #
 
@@ -24,6 +26,10 @@ include("bravais-branches.jl") # defines `extended_bravais`
 
 abstract type AbstractPath{T} <: AbstractVector{T} end
 
+"""
+$(TYPEDEF)
+$(TYPEDFIELDS)
+"""
 struct KPath{D} <: AbstractPath{Pair{Symbol, SVector{D, Float64}}}
     points :: Dict{Symbol, SVector{D,Float64}}
     paths  :: Vector{Vector{Symbol}}
@@ -109,15 +115,15 @@ To interpolate the resulting `KPath`, see [`interpolate(::KPath, ::Integer)`](@r
 and [`splice(::KPath, ::Integer)`](@ref).
 
 ## Data and referencing
-All data is sourced from the SeeK HPKOT publication[^1]: please cite the original work.
+All data is sourced from the SeeK HPKOT publication: please cite the original work [^1].
 
 All paths currently assume time-reversal symmetry (or, equivalently, inversion symmetry), 
 corresponding to the SeeK's `[with inversion]` setting. If neither inversion nor
-time-reversal, include the "inverted" **-k* paths as well manually.
+time-reversal, include the "inverted" -**k** paths as well manually.
 
-[1] Hinuma, Pizzi, Kumagai, Oba, & Tanaka, *Band structure diagram paths based on
-    crystallography*, 
-    [Comp. Mat. Sci. **128**, 140 (2017)](http://dx.doi.org/10.1016/j.commatsci.2016.10.015)
+[^1] Hinuma, Pizzi, Kumagai, Oba, & Tanaka, *Band structure diagram paths based on
+     crystallography*, 
+     [Comp. Mat. Sci. **128**, 140 (2017)](http://dx.doi.org/10.1016/j.commatsci.2016.10.015)
 """
 function irrfbz_path(sgnum::Integer, Rs::Union{Nothing, AVec{<:AVec{<:Real}}}=nothing)
     if Rs isa AVec

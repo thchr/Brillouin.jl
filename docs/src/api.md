@@ -7,7 +7,7 @@ CurrentModule = Brillouin
 ```
 
 ## Types
-```docs
+```@docs
 Brillouin.WignerSeitz.Cell
 Brillouin.KPaths.KPath
 Brillouin.KPaths.KPathInterpolant

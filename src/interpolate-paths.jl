@@ -18,6 +18,10 @@ end
 # ---------------------------------------------------------------------------------------- #
 # INTERPOLATIONS OF ::KPath
 
+"""
+$(TYPEDEF)
+$(TYPEDFIELDS)
+"""
 struct KPathInterpolant{D} <: AbstractPath{SVector{D, Float64}}
     kpaths::Vector{Vector{SVector{D, Float64}}}
     labels::Vector{Dict{Int, Symbol}}

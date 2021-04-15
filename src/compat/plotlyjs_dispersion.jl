@@ -106,7 +106,7 @@ function plot(kpi::KPathInterpolant, bands,#::AVec{<:AVec{<:Real}},
     layout[:xaxis][:range]  = [0.0, offset_x - spacing]
     layout[:xaxis][:tickvals] = xticks
     layout[:xaxis][:ticktext] = xlabs
-    display(layout[:xaxis])
+
     return plot(vcat(tbands,tboxs), layout)
 end
 # `bands` can also be supplied as a matrix (w/ distinct bands in distinct columns)
