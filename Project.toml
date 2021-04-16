@@ -12,6 +12,7 @@ Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
+DocStringExtensions = "0.8"
 PyCall = "1.92"
 Reexport = "0.2, 1.0"
 Requires = "1.1"
