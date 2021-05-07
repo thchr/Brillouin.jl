@@ -111,7 +111,7 @@ function plot(kpi::KPathInterpolant, bands,#::AVec{<:AVec{<:Real}},
 end
 # `bands` can also be supplied as a matrix (w/ distinct bands in distinct columns)
 function plot(kpi::KPathInterpolant, bands::AbstractMatrix{<:Real},
-     layout::Layout = DEFAULT_PLOTLY_LAYOUT_DISP; kwargs...)
+     layout::Layout = DEFAULT_PLOTLY_LAYOUT_DISPERSION; kwargs...)
      plot(kpi, eachcol(bands), layout; kwargs...)
 end
 
