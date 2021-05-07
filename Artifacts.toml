@@ -1,0 +1,7 @@
+[data-SeeK]
+git-tree-sha1 = "1242bbce16f79869dbf5475562228041afdf7ac6"
+lazy = true
+
+    [[data-SeeK.download]]
+    sha256 = "a065e7100ab795c93fdda2cfcbd8f7072ce557e01c3ffa5d72aa578be57890b1"
+    url = "https://github.com/thchr/Brillouin/releases/download/data_v0.1.0/data-SeeK.tar.gz"
