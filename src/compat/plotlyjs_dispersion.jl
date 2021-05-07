@@ -28,14 +28,14 @@ const DEFAULT_PLOTLY_LAYOUT_DISPERSION = Layout(
 Plot a dispersion diagram for provided `bands` and **k**-path interpolant `kpi`.
 
 `bands` must be an iterable of iterables of `<:Real`s (e.g., a `Vector{Vector{Float64}}`),
-with the first iteration being running over distinct energy bands, and the second running
+with the first iteration running over distinct energy bands, and the second running
 over distinct **k**-points in `kpi`.
 Note that the length of each iterant of `bands` must equal `length(kpi)`.
 
-Alternatively, `bands` can be a `AbstractMatrix{<:Real}`, with columns interpreted as
+Alternatively, `bands` can be an `AbstractMatrix{<:Real}`, with columns interpreted as
 distinct energy bands and rows as distinct **k**-points.
 
-## Keyword arguments
+## Keyword arguments `kwargs`
 - `ylims`: y-axis limits (default: quasi-tight around `bands`'s range)
 - `ylabel`: y-axis label (default: "Energy")
 """
