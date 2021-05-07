@@ -4,5 +4,3 @@
 **Manifest.toml
 /docs/build/
 /.vscode/*
-/assets/data/data-SeeK.jl
-/deps/build.log
