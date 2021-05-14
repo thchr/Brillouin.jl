@@ -30,7 +30,7 @@ const DEFAULT_PLOTLY_LAYOUT_3D  = Layout(
     margin=attr(l=0, r=0, b=0, t=0),
     autosize=false,
     #width=200, height=200,
-    plot_bgcolor="rgba(0, 0, 0, 0)", paper_bgcolor="rgba(0, 0, 0, 0)",
+    plot_bgcolor="rgba(255, 255, 255, 1)", paper_bgcolor="rgba(255, 255, 255, 1)",
     )
 
 # colors from the "british" flatcolors color palette: https://flatuicolors.com/palette/gb
@@ -140,7 +140,7 @@ const DEFAULT_PLOTLY_LAYOUT_2D  = Layout(
     hovermode="closest",
     margin=attr(l=0, r=0, b=0, t=0),
     autosize=false,
-    plot_bgcolor="rgba(0, 0, 0, 0)", paper_bgcolor="rgba(0, 0, 0, 0)",
+    plot_bgcolor="rgba(255, 255, 255, 1)", paper_bgcolor="rgba(255, 255, 255, 1)",
     annotations=PlotlyBase.PlotlyAttribute[]
     )
 

@@ -19,7 +19,7 @@ const DEFAULT_PLOTLY_LAYOUT_DISPERSION = Layout(
     width = 480, height = 480,
     #margin=attr(l=50, r=5, b=15, t=10),
 
-    plot_bgcolor="rgba(0, 0, 0, 0)", paper_bgcolor="rgba(0, 0, 0, 0)",
+    plot_bgcolor="rgba(255, 255, 255, 1)", paper_bgcolor="rgba(255, 255, 255, 1)",
     )
 
 """
