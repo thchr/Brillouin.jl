@@ -152,7 +152,9 @@ function cartesianize!(kp::KPath{D}, Gs::Union{BasisLike{D}, AVec{<:AVec{<:Real}
     end
     return kp
 end
-cartesianize(kp::KPath{D}, Gs::BasisLike{D}) where D = cartesianize!(deepcopy(kp), Gs)
+function cartesianize(kp::KPath{D}, Gs::Union{BasisLike{D}, AVec{<:AVec{<:Real}}}) where D
+    return cartesianize!(deepcopy(kp), Gs)
+end
 
 # ---------------------------------------------------------------------------------------- #
 
