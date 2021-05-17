@@ -51,7 +51,7 @@ import Crystalline
 
     # vendored `bravaistype` vs upstream Crystalline; check that they are in sync
     for D in 1:3, sgnum in 1:Crystalline.MAX_SGNUM[D]
-        @test Crystalline.bravaistype(sgnum, D) == Brillouin.CrystallineBravaisVendor.bravaistype(sgnum, D)
+        @test Crystalline.bravaistype(sgnum, D, normalize=false) == Brillouin.CrystallineBravaisVendor.bravaistype(sgnum, D)
     end
     
     # `extended_bravais`
@@ -67,13 +67,14 @@ import Crystalline
                 Crystalline.directbasis(sgnum, 3)
             end
         end
-        bt = Crystalline.bravaistype(sgnum, 3)
+        bt = Crystalline.bravaistype(sgnum, 3, normalize=false)
         # extended Bravais types
         ebt = Brillouin.KPaths.extended_bravais(sgnum, bt, Rs)
         @test contains(string(ebt), bt)
     end
     @test_throws DomainError Brillouin.KPaths.extended_bravais(110, "Q", nothing)  # "undefined bravais type"
     @test_throws DomainError Brillouin.KPaths.extended_bravais(194, "cP", nothing) # `_throw_conflicting_sgnum_and_bravais`
+    @test_throws DomainError Brillouin.KPaths.extended_bravais(194, "cF", nothing) # `_throw_conflicting_sgnum_and_bravais`
     @test_throws DomainError Brillouin.KPaths.extended_bravais(38, "tI", nothing)  # `_throw_basis_required`
     Rs′ = Crystalline.DirectBasis([1, 0, 0], [0.3, 0.8, 0], [-1.6, 0.8, 0.9]) # neither all-obtuse nor all-acute
     @test_throws DomainError Brillouin.KPaths.extended_bravais(1, "aP", Rs′)       # `_throw_basis_required`

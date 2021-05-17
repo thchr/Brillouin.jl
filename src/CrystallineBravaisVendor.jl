@@ -1,6 +1,7 @@
 module CrystallineBravaisVendor
 # this is just a raw output of `bravaistype` from Crystalline, to avoid depending on all
-# of Crystalline just for `bravaistype`; basically just hardcoded "memoization"
+# of Crystalline just for `bravaistype`; basically just hardcoded "memoization"; note that
+# we do not normalize "oA" to "oC" (i.e., this is `bravaistype(_, _, normalize=false)`)
 
 const BRAVAISTYPE_2D = (
     "mp", "mp", "op", "op", "oc", "op", "op", "op", "oc", "tp", "tp", "tp", "hp", "hp",
@@ -9,7 +10,7 @@ const BRAVAISTYPE_2D = (
 const BRAVAISTYPE_3D = (
     "aP", "aP", "mP", "mP", "mC", "mP", "mP", "mC", "mC", "mP", "mP", "mC", "mP", "mP",
     "mC", "oP", "oP", "oP", "oP", "oC", "oC", "oF", "oI", "oI", "oP", "oP", "oP", "oP",
-    "oP", "oP", "oP", "oP", "oP", "oP", "oC", "oC", "oC", "oC", "oC", "oC", "oC", "oF",
+    "oP", "oP", "oP", "oP", "oP", "oP", "oC", "oC", "oC", "oA", "oA", "oA", "oA", "oF",
     "oF", "oI", "oI", "oI", "oP", "oP", "oP", "oP", "oP", "oP", "oP", "oP", "oP", "oP",
     "oP", "oP", "oP", "oP", "oP", "oP", "oC", "oC", "oC", "oC", "oC", "oC", "oF", "oF",
     "oI", "oI", "oI", "oI", "tP", "tP", "tP", "tP", "tI", "tI", "tP", "tI", "tP", "tP",
