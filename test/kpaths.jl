@@ -54,7 +54,7 @@ import Crystalline
         @test Crystalline.bravaistype(sgnum, D, normalize=false) == Brillouin.CrystallineBravaisVendor.bravaistype(sgnum, D)
     end
     
-    # `extended_bravais`
+    # `extended_bravais` and `irrfbz_path`
     for sgnum in 1:230
         Rs = begin
             # the triclinic case (space group 1 & 2) needs a bit of care, since we Brillouin
@@ -71,6 +71,13 @@ import Crystalline
         # extended Bravais types
         ebt = Brillouin.KPaths.extended_bravais(sgnum, bt, Rs)
         @test contains(string(ebt), bt)
+
+        # hard to test output of `irrfbz_path` systematically; just test that it returns a
+        # `KPath`, and matches `get_points` and `pathsd`
+        kp = irrfbz_path(sgnum, Rs)
+        @test kp isa KPath
+        @test points(kp) == Brillouin.KPaths.get_points(ebt, Rs)
+        @test paths(kp)  == Brillouin.KPaths.pathsd[ebt]
     end
     @test_throws DomainError Brillouin.KPaths.extended_bravais(110, "Q", nothing)  # "undefined bravais type"
     @test_throws DomainError Brillouin.KPaths.extended_bravais(194, "cP", nothing) # `_throw_conflicting_sgnum_and_bravais`
@@ -78,8 +85,6 @@ import Crystalline
     @test_throws DomainError Brillouin.KPaths.extended_bravais(38, "tI", nothing)  # `_throw_basis_required`
     Rs′ = Crystalline.DirectBasis([1, 0, 0], [0.3, 0.8, 0], [-1.6, 0.8, 0.9]) # neither all-obtuse nor all-acute
     @test_throws DomainError Brillouin.KPaths.extended_bravais(1, "aP", Rs′)       # `_throw_basis_required`
-
-    
 
     # --- `KPathInterpolant` ---
     # `interpolate`

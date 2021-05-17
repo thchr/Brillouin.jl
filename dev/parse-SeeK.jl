@@ -147,7 +147,7 @@ mktemp(mktempdir()) do path, io
             # is a local scope)
             d = Base.@locals()[name]
 
-            print(io, name, " = Dict(")
+            print(io, "const ", name, " = Dict(")
             for (key, val) in d
                 println(io)
                 print(io, "   :", key, " => ")

@@ -138,7 +138,7 @@ function extended_bravais(sgnum::Integer,
         if cosαᴳ ≤ 0 && cosβᴳ ≤ 0 && cosγᴳ ≤ 0     # all-obtuse
             return :aP2
         elseif cosαᴳ ≥ 0 && cosβᴳ ≥ 0 && cosγᴳ ≥ 0 # all-acute
-            return :aP1
+            return :aP3
         else
             _throw_triclinic_angles(Rs)
         end

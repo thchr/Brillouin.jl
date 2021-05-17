@@ -18,7 +18,7 @@ end
 get_expr_symbols(ex::Expr) = get_expr_symbols!(Symbol[], ex)
 
 # ---------------------------------------------------------------------------------------- #
-# LOAD `pathsd`, `pointsd`, & `paramsd` DICTIONARIES
+# LOAD CONSTANT GLOBAL `pathsd`, `pointsd`, & `paramsd` DICTIONARIES
 include(joinpath(@__DIR__, "..", "assets", "data", "data-SeeK.jl"))
 
 # ---------------------------------------------------------------------------------------- #
