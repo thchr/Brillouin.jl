@@ -2,11 +2,10 @@
     throw(DomainError((bt, sgnum), 
             "provided bravais type and space group number are mutually inconsistent"))
 end
-@noinline function _throw_triclinic_angles()
-    error("""
-          Triclinic Bravais lattice must be specificied with a reciprocal lattice that is
-          either all-acute or all-obtuse; provided lattice system is neither
-          """)
+@noinline function _throw_triclinic_angles(Rs)
+    throw(DomainError(Rs, "Triclinic Bravais lattice must be specificied with a "*
+                          "lattice that is either all-acute or all-obtuse; provided "*
+                          "lattice system is neither"))
 end
 @noinline function _throw_basis_required(Rs)
     throw(DomainError(Rs, "`Rs` must be supplied for the considered Bravais type "))
@@ -86,6 +85,7 @@ function extended_bravais(sgnum::Integer,
         end
 
     elseif bt == "oA"
+        _, b, c = basisnorms(Rs)
         if b <= c
             return :oA1
         else
@@ -140,7 +140,7 @@ function extended_bravais(sgnum::Integer,
         elseif cosαᴳ ≥ 0 && cosβᴳ ≥ 0 && cosγᴳ ≥ 0 # all-acute
             return :aP1
         else
-            _throw_triclinic_angles()
+            _throw_triclinic_angles(Rs)
         end
 
     else
@@ -149,7 +149,7 @@ function extended_bravais(sgnum::Integer,
     end
 end # function
 
-function basisnorms(Rs::AbstractVector{<:SVector{3,<:Real}})
+function basisnorms(Rs::Union{AbstractVector{V}, NTuple{3, V}}) where V <: SVector{3,<:Real}
     a = norm(Rs[1])
     b = norm(Rs[2])
     c = norm(Rs[3])
