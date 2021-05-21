@@ -19,7 +19,7 @@ using DocStringExtensions
 import Base: show, summary, getindex, IndexStyle, size
 # ---------------------------------------------------------------------------------------- #
 
-include("codegen_kpoints.jl")  # defines `get_points_3d`, `pathsd_3d` (& other subfunctions)
+include("codegen-kpoints.jl")  # defines `get_points_3d`, `pathsd_3d` (& other subfunctions)
 include("bravais-branches.jl") # defines `extended_bravais`
 
 # ---------------------------------------------------------------------------------------- #

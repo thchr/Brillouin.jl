@@ -125,7 +125,7 @@ for (D, pointsd) in zip((2,3), (pointsd_2d, pointsd_3d))
         there is no dependence on the basis) as a `Dict{Symbol, SVector{$($D), Float64}}`.
         """
         function $f(ext_bt::Symbol, 
-                            Rs::Union{Nothing, AVec{<:SVector{3, <:Real}}})
+                            Rs::Union{Nothing, AVec{<:SVector{$D, <:Real}}})
             $branchtable
         end
     end
