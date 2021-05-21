@@ -11,7 +11,7 @@ module KPaths
 export irrfbz_path, KPath, points, paths, cartesianize!, KPathInterpolant
 # ---------------------------------------------------------------------------------------- #
 using ..CrystallineBravaisVendor: bravaistype
-using ..Brillouin: AVec, BasisLike
+using ..Brillouin: AVec, BasisLike, SHOWDIGITS
 using LinearAlgebra: norm, dot, ×
 using StaticArrays
 using DocStringExtensions
@@ -77,11 +77,10 @@ function show(io::IO, ::MIME"text/plain", kp::KPath)
     summary(io, kp)
     println(io, ":")
     # points
-    first_lab, first_kv = first(points(kp))
     print(io, " points: ")
     foreach(enumerate(points(kp))) do (i,(lab,kv))
         i ≠ 1 && print(io, "         ")
-        println(io, ":", lab, " => ", kv)
+        println(io, ":", lab, " => ", round.(kv, digits=SHOWDIGITS))
     end
     # paths
     print(io, "  paths: ")

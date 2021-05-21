@@ -29,8 +29,7 @@ import Crystalline
     @test paths(kp) == [[:Γ, :X, :U], [:K, :Γ, :L, :W, :X]]
 
     # `show(::IO, ::MIME"text/plain", ::KPath)`
-    str = sprint((io,v) -> show(io, MIME"text/plain"(), v), kp)
-    str_reference = """
+    kp_show_reference = """
     KPath{3} (6 points, 2 paths, 8 points in paths):
      points: :U => [0.625, 0.25, 0.625]
              :W => [0.5, 0.25, 0.75]
@@ -40,7 +39,7 @@ import Crystalline
              :X => [0.5, 0.0, 0.5]
       paths: [:Γ, :X, :U]
              [:K, :Γ, :L, :W, :X]"""
-    @test str == str_reference
+    test_show(kp, kp_show_reference)
 
     # `cartesianize`
     pGs = 2π.*[[-1,1,1], [1,-1,1], [1,1,-1]] # primitive reciprocal basis

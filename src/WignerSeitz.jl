@@ -2,7 +2,7 @@ module WignerSeitz
 
 # ---------------------------------------------------------------------------------------- #
 
-using ..Brillouin: AVec
+using ..Brillouin: AVec, SHOWDIGITS
 using StaticArrays
 using LinearAlgebra: dot, cross, norm
 using PyCall
@@ -52,14 +52,14 @@ function show(io::IO, ::MIME"text/plain", c::Cell{D}) where D
     summary(io, c)
     println(io, ":")
 
-    println(io, " verts: ", round.(first(vertices(c)), digits=3))
-    foreach(v -> println(io, "        ", round.(v, digits=3)), @view vertices(c)[2:end])
+    println(io, " verts: ", round.(first(vertices(c)), digits=SHOWDIGITS))
+    foreach(v -> println(io, "        ", round.(v, digits=SHOWDIGITS)), @view vertices(c)[2:end])
      
     println(io, " faces: ", first(faces(c)))
     foreach(f -> println(io, "        ", f), @view faces(c)[2:end])
 
-    println(io, " basis: ", round.(first(basis(c)), digits=3))
-    foreach(v -> println(io, "        ", round.(v, digits=3)), @view basis(c)[2:D])
+    println(io, " basis: ", round.(first(basis(c)), digits=SHOWDIGITS))
+    foreach(v -> println(io, "        ", round.(v, digits=SHOWDIGITS)), @view basis(c)[2:D])
 end
 # ---------------------------------------------------------------------------------------- #
 # MAIN FUNCTION
@@ -73,7 +73,7 @@ Return a `Cell{D}` structure, containing the vertices and associated (outward or
 faces, of the Wigner-Seitz cell defined by a basis `Vs` in `D` dimensions.
 
 ## Keyword arguments
-- `merge` (default, `true`): if `:true`, co-planar faces are merged to form polygonal
+- `merge` (default, `true`): if `true`, co-planar faces are merged to form polygonal
   planar faces (e.g., triangles, quadrilaterals, and ngons generally). If `false`, raw
   "unprocessed" triangles (`D=3`) and segments (`D=2`) are returned instead. `merge` has no
   impact for `D=1`.

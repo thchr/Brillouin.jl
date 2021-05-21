@@ -6,6 +6,7 @@ using StaticArrays
 # ---------------------------------------------------------------------------------------- #
 const AVec = AbstractVector
 const BasisLike{D} = AVec{<:SVector{D,<:Real}}
+const SHOWDIGITS = 6
 # ---------------------------------------------------------------------------------------- #
 # defines a a module `CrystallineBravaisVendor` with a single function `bravaistype`, which
 # is just a hardcopy of output from Crystalline's equivalent function

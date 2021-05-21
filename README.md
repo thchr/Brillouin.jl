@@ -11,36 +11,36 @@ The functionalities are inspired by the Python [SeeK-path package](https://githu
 
 ## Examples
 
-Generate the Brillouin zone of a crystal in space group 147 (Bravais type hP; using [Crystalline.jl](https://github.com/thchr/Crystalline.jl) to easily generate a standard basis):
+Generate the Brillouin zone of a crystal in space group 147 (Bravais type hP; using [Crystalline.jl](https://github.com/thchr/Crystalline.jl) to easily obtain an associated reciprocal basis):
 ```jl
 julia> using Brillouin, Crystalline
-julia> Rs   = directbasis(147)
+julia> Rs   = ([1.0, 0.0, 0.0], [-0.5, sqrt(3)/2, 0.0],   [0, 0, 1.25]) # or `Crystalline.directbasis(147, 3)`
 julia> Gs   = reciprocalbasis(Rs)
 julia> cell = wignerseitz(Gs)
 Cell{3} (8 faces, 12 vertices):
- verts: [-0.0, -0.577, -0.866]
-        [0.0, 0.577, -0.866]
-        [0.5, 0.289, -0.866]
-        [0.5, -0.289, -0.866]
-        [-0.0, -0.577, 0.866]
-        [0.0, 0.577, 0.866]
-        [-0.5, 0.289, 0.866]
-        [-0.5, -0.289, 0.866]
-        [-0.5, -0.289, -0.866]
-        [-0.5, 0.289, -0.866]
-        [0.5, -0.289, 0.866]
-        [0.5, 0.289, 0.866]
- faces: [4, 3, 12, 11]
-        [2, 6, 12, 3]
-        [11, 12, 6, 7, 8, 5]
-        [10, 9, 8, 7]
-        [7, 6, 2, 10]
-        [2, 3, 4, 1, 9, 10]
-        [5, 8, 9, 1]
-        [4, 11, 5, 1]
- basis: [6.283, 3.628, 0.0]
-        [0.0, 7.255, 0.0]
-        [0.0, 0.0, 5.027]
+ verts: [4.18879, 0.0, -2.513274]
+        [2.094395, -3.627599, -2.513274]
+        [4.18879, 0.0, 2.513274]
+        [2.094395, 3.627599, 2.513274]
+        [2.094395, 3.627599, -2.513274]
+        [2.094395, -3.627599, 2.513274]
+        [-2.094395, 3.627599, -2.513274]
+        [-4.18879, 0.0, -2.513274]
+        [-2.094395, -3.627599, -2.513274]
+        [-2.094395, -3.627599, 2.513274]
+        [-4.18879, 0.0, 2.513274]
+        [-2.094395, 3.627599, 2.513274]
+ faces: [5, 4, 3, 1]
+        [8, 9, 10, 11]
+        [2, 1, 3, 6]
+        [2, 6, 10, 9]
+        [7, 5, 1, 2, 9, 8]
+        [4, 12, 11, 10, 6, 3]
+        [4, 5, 7, 12]
+        [11, 12, 7, 8]
+ basis: [6.283185, 3.627599, -0.0]
+        [0.0, 7.255197, 0.0]
+        [0.0, -0.0, 5.026548]
 ```
 The resulting Brillouin zone can be plotted using e.g. [PlotlyJS.jl](https://github.com/JuliaPlots/PlotlyJS.jl) (or 3D-capable backends of [AbstractPlotting.jl](https://github.com/JuliaPlots/AbstractPlotting.jl) such as [GLMakie.jl](https://github.com/JuliaPlots/GLMakie.jl)):
 ```jl
@@ -55,11 +55,11 @@ julia> kp = irrfbz_path(147, Rs)
 KPath{3} (7 points, 3 paths, 13 points in paths):
  points: :M => [0.5, 0.0, 0.0]
          :A => [0.0, 0.0, 0.5]
-         :H => [0.3333333333333333, 0.3333333333333333, 0.5]
-         :K => [0.3333333333333333, 0.3333333333333333, 0.0]
+         :H => [0.333333, 0.333333, 0.5]
+         :K => [0.333333, 0.333333, 0.0]
          :Γ => [0.0, 0.0, 0.0]
          :L => [0.5, 0.0, 0.5]
-         :H₂ => [0.3333333333333333, 0.3333333333333333, -0.5]
+         :H₂ => [0.333333, 0.333333, -0.5]
   paths: [:Γ, :M, :K, :Γ, :A, :L, :H, :A]
          [:L, :M]
          [:H, :K, :H₂]
