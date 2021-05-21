@@ -128,7 +128,7 @@ mktemp(mktempdir()) do path, io
 
     # ------------------------------------------------------------------------------------ #
     # WRITE DICTIONARIES TO A .JL FILE; USE JULIA'S PARSER AS FILE FORMAT
-    data_dir = joinpath(@__DIR__, "..", "assets", "data")
+    data_dir = joinpath(@__DIR__, "..", "assets")
     isdir(data_dir) || mkpath(data_dir)
     open(joinpath(data_dir, "data-SeeK.jl"), "w") do io
         println(io,
@@ -147,7 +147,7 @@ mktemp(mktempdir()) do path, io
             # is a local scope)
             d = Base.@locals()[name]
 
-            print(io, "const ", name, " = Dict(")
+            print(io, "const ", name, "_3d = Dict(")
             for (key, val) in d
                 println(io)
                 print(io, "   :", key, " => ")

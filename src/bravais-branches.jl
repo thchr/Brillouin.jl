@@ -11,7 +11,7 @@ end
     throw(DomainError(Rs, "`Rs` must be supplied for the considered Bravais type "))
 end
 
-
+# --- 3D ---
 # this is a translation and simplification (omitting several warnings / edge case handling)
 # of SeeK's `get_path` extended bravais type branch table. It should be pretty much the
 # same as Table 94 of the HPKOT paper (i.e. paper "behind" SeeK). It simply returns the
@@ -19,7 +19,10 @@ end
 # be a conventional cell in ITA settings.
 function extended_bravais(sgnum::Integer,
                           bt::String,
-                          Rs::Union{Nothing, AVec{<:SVector{3,<:Real}}})
+                          Rs::Union{Nothing, AVec{<:SVector{3,<:Real}}},
+                          Dᵛ::Val{3})
+
+    @boundscheck boundscheck_sgnum(sgnum, 3)
 
     if bt == "cP"
         if 195 ≤ sgnum ≤ 206
@@ -86,7 +89,7 @@ function extended_bravais(sgnum::Integer,
 
     elseif bt == "oA"
         _, b, c = basisnorms(Rs)
-        if b <= c
+        if b ≤ c
             return :oA1
         else
             return :oA2
@@ -149,10 +152,64 @@ function extended_bravais(sgnum::Integer,
     end
 end # function
 
+# --- 2D ---
+function extended_bravais(sgnum::Integer,
+                          bt::String,
+                          Rs::Union{Nothing, AVec{<:SVector{2,<:Real}}},
+                          Dᵛ::Val{2})
+    @boundscheck boundscheck_sgnum(sgnum, 2)
+
+    if bt == "hp"
+        return :hp1
+    elseif bt == "tp"
+        return :tp1
+    elseif bt == "op"
+        if sgnum ∈ (3,4)
+            return :op1
+        elseif sgnum ∈ (6,7,8)
+            return :op2
+        else
+            _throw_conflicting_sgnum_and_bravais(bt, sgnum)
+        end
+    elseif bt == "oc"
+        a, b = basisnorms(Rs)
+        if a ≤ b
+            return :oc1
+        else # a>b
+            return oc2
+        end
+    elseif bt == "mp"
+        a, b = basisnorms(Rs)
+        cosα = dot(Rs[1], Rs[2]) / (a * b)
+        if cosα ≥ 0 # ∠(R₁, R₂) ≤ 90
+            return :mp1
+        else        # ∠(R₁, R₂) > 90
+            return :mp2
+        end
+    else
+        throw(MethodError("dimension 2 not currently implemented"))
+    end
+end
+
+# --- 1D ---
+function extended_bravais(sgnum::Integer,
+                          bt::String,
+                          Rs::Union{Nothing, AVec{<:SVector{1,<:Real}}},
+                          Dᵛ::Val{1})
+
+    @boundscheck boundscheck_sgnum(sgnum, 1)
+    return :lp # trivial case; no "extended" bravais types
+end
+
 function basisnorms(Rs::Union{AbstractVector{V}, NTuple{3, V}}) where V <: SVector{3,<:Real}
     a = norm(Rs[1])
     b = norm(Rs[2])
     c = norm(Rs[3])
     return a, b, c
+end
+function basisnorms(Rs::Union{AbstractVector{V}, NTuple{2, V}}) where V <: SVector{2,<:Real}
+    a = norm(Rs[1])
+    b = norm(Rs[2])
+    return a, b
 end
 basisnorms(Rs::Nothing) = _throw_basis_required(Rs)

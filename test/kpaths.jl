@@ -68,22 +68,22 @@ import Crystalline
         end
         bt = Crystalline.bravaistype(sgnum, 3, normalize=false)
         # extended Bravais types
-        ebt = Brillouin.KPaths.extended_bravais(sgnum, bt, Rs)
+        ebt = Brillouin.KPaths.extended_bravais(sgnum, bt, Rs, Val(3))
         @test contains(string(ebt), bt)
 
         # hard to test output of `irrfbz_path` systematically; just test that it returns a
-        # `KPath`, and matches `get_points` and `pathsd`
+        # `KPath`, and matches `get_points` and `get_paths`
         kp = irrfbz_path(sgnum, Rs)
         @test kp isa KPath
-        @test points(kp) == Brillouin.KPaths.get_points(ebt, Rs)
-        @test paths(kp)  == Brillouin.KPaths.pathsd[ebt]
+        @test points(kp) == Brillouin.KPaths.get_points(ebt, Rs, Val(3))
+        @test paths(kp)  == Brillouin.KPaths.get_paths(ebt, Val(3))
     end
-    @test_throws DomainError Brillouin.KPaths.extended_bravais(110, "Q", nothing)  # "undefined bravais type"
-    @test_throws DomainError Brillouin.KPaths.extended_bravais(194, "cP", nothing) # `_throw_conflicting_sgnum_and_bravais`
-    @test_throws DomainError Brillouin.KPaths.extended_bravais(194, "cF", nothing) # `_throw_conflicting_sgnum_and_bravais`
-    @test_throws DomainError Brillouin.KPaths.extended_bravais(38, "tI", nothing)  # `_throw_basis_required`
+    @test_throws DomainError Brillouin.KPaths.extended_bravais(110, "Q", nothing, Val(3))  # "undefined bravais type"
+    @test_throws DomainError Brillouin.KPaths.extended_bravais(194, "cP", nothing, Val(3)) # `_throw_conflicting_sgnum_and_bravais`
+    @test_throws DomainError Brillouin.KPaths.extended_bravais(194, "cF", nothing, Val(3)) # `_throw_conflicting_sgnum_and_bravais`
+    @test_throws DomainError Brillouin.KPaths.extended_bravais(38, "tI", nothing, Val(3))  # `_throw_basis_required`
     Rs′ = Crystalline.DirectBasis([1, 0, 0], [0.3, 0.8, 0], [-1.6, 0.8, 0.9]) # neither all-obtuse nor all-acute
-    @test_throws DomainError Brillouin.KPaths.extended_bravais(1, "aP", Rs′)       # `_throw_basis_required`
+    @test_throws DomainError Brillouin.KPaths.extended_bravais(1, "aP", Rs′, Val(3))       # `_throw_basis_required`
 
     # --- `KPathInterpolant` ---
     # `interpolate`

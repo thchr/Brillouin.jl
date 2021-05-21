@@ -1,5 +1,4 @@
 [deps]
-Brillouin = "23470ee3-d0df-4052-8b1a-8cbd6363e7f0"
 Crystalline = "ae5e2be0-a263-11e9-351e-f94dad1eb351"
 DeepDiffs = "ab62b9b5-e342-54a8-a765-a90f495de1a6"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"

@@ -10,7 +10,7 @@ module KPaths
 # ---------------------------------------------------------------------------------------- #
 export irrfbz_path, KPath, points, paths, cartesianize!, KPathInterpolant
 # ---------------------------------------------------------------------------------------- #
-using ..CrystallineBravaisVendor: bravaistype
+using ..CrystallineBravaisVendor: bravaistype, boundscheck_sgnum
 using ..Brillouin: AVec, BasisLike, SHOWDIGITS
 using LinearAlgebra: norm, dot, ×
 using StaticArrays
@@ -19,7 +19,7 @@ using DocStringExtensions
 import Base: show, summary, getindex, IndexStyle, size
 # ---------------------------------------------------------------------------------------- #
 
-include("codegen_kpoints.jl")  # defines `get_points` and `pathsd` (& other subfunctions)
+include("codegen_kpoints.jl")  # defines `get_points_3d`, `pathsd_3d` (& other subfunctions)
 include("bravais-branches.jl") # defines `extended_bravais`
 
 # ---------------------------------------------------------------------------------------- #
@@ -96,10 +96,16 @@ end
 # ---------------------------------------------------------------------------------------- #
 
 """
-    irrfbz_path(sgnum::Integer, Rs::Union{Nothing, $(BasisLike)}=nothing)   -->  ::KPath
+    irrfbz_path(sgnum::Integer, [::Val(D),] Rs::Union{Nothing, AVec{<:AVec{<:Real}}}=nothing)
+    irrfbz_path(sgnum::Integer, [D::Integer,] Rs::Union{Nothing, AVec{<:AVec{<:Real}}}=nothing)
+                                                                        -->  ::KPath{D}
 
 Returns a **k**-path (`::KPath`) in the (primitive) irreducible Brillouin zone that includes
-all distinct high-symmetry lines and points as well as parts of the Brillouin zone boundary.
+all distinct high-symmetry lines and points as well as relevant parts of the Brillouin zone
+boundary.
+
+The dimension `D` (1, 2, or 3) can be optionally specified as the second input argument,
+preferably as a static `Val{D}` type parameter. If unspecified, the default dimension is 3.
 
 `Rs` refers to the direct basis of the conventional unit cell. For some space groups, it
 is needed to disambiguate the "extended" Bravais types that may differ depending on the
@@ -124,19 +130,61 @@ time-reversal, include the "inverted" -**k** paths as well manually.
      crystallography*, 
      [Comp. Mat. Sci. **128**, 140 (2017)](http://dx.doi.org/10.1016/j.commatsci.2016.10.015)
 """
-function irrfbz_path(sgnum::Integer, Rs::Union{Nothing, AVec{<:AVec{<:Real}}}=nothing)
-    if Rs isa AVec
-        all(R->length(R)==3, Rs) || throw(DomainError(Rs, "Currently only implemented for 3D space groups"))
-        Rs = convert.(SVector{3,Float64}, Rs)
+function irrfbz_path(sgnum::Integer, Dᵛ::Val{D},
+            Rs::Union{Nothing, AVec{<:AVec{<:Real}}}=nothing) where D
+                     
+    if !isnothing(Rs)
+        D′ = length(Rs)
+        if D′ ≠ D || any(R -> length(R) ≠ D, Rs)
+            throw(DimensionMismatch(Rs, "inconsistent input dimensions"))
+        end
+        Rs = convert(SVector{D, SVector{D, Float64}}, Rs)
     end
-    bt = bravaistype(sgnum, 3)
-    ext_bt = extended_bravais(sgnum, bt, Rs)
+    bt = bravaistype(sgnum, D)
+    ext_bt = extended_bravais(sgnum, bt, Rs, Dᵛ)
 
     # get data about path
-    lab2kvs = get_points(ext_bt, Rs)
-    paths = pathsd[ext_bt]
+    lab2kvs = get_points(ext_bt, Rs, Dᵛ)
+    paths = get_paths(ext_bt, Dᵛ)
 
     return KPath(lab2kvs, paths)
+end
+function irrfbz_path(sgnum::Integer, Rs::Union{Nothing, AVec{<:AVec{<:Real}}}=nothing)
+    return irrfbz_path(sgnum, Val(3), Rs)
+end
+function irrfbz_path(sgnum::Integer, D::Integer,
+            Rs::Union{Nothing, AVec{<:AVec{<:Real}}}=nothing)
+    return irrfbz_path(sgnum, Val(D), Rs)
+end
+
+function get_points(ext_bt::Symbol,
+                    Rs::Union{Nothing, AVec{<:AVec{<:Real}}},
+                    Dᵛ::Val{D}) where D
+    if Dᵛ === Val(3)
+        return get_points_3d(ext_bt, Rs)
+    elseif Dᵛ === Val(2)
+        return get_points_2d(ext_bt, Rs)
+    elseif Dᵛ == Val(1)
+        ext_bt === :lp || throw(DomainError(ext_bt, "invalid extended Bravais type"))
+        return Dict(:Γ => SVector(0.0), :X => SVector(0.5))
+    else
+        throw(DomainError(D, "unsupported input dimension"))
+    end
+end
+
+function get_paths(ext_bt::Symbol, Dᵛ::Val{D}) where D
+    if Dᵛ === Val(3)
+        paths = get(pathsd_3d, ext_bt, nothing)
+    elseif Dᵛ === Val(2)
+        paths = get(pathsd_2d, ext_bt, nothing)
+    elseif Dᵛ === Val(1)
+        paths = ext_bt == :lp ? [[:Γ, :X]] : nothing
+    else
+        throw(DomainError(D, "unsupported input dimension"))
+    end
+
+    paths === nothing && throw(DomainError(ext_bt, "invalid extended Bravais type"))
+    return paths
 end
 
 """
