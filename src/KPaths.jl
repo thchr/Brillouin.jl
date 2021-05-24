@@ -33,6 +33,7 @@ $(TYPEDFIELDS)
 struct KPath{D} <: AbstractPath{Pair{Symbol, SVector{D, Float64}}}
     points :: Dict{Symbol, SVector{D,Float64}}
     paths  :: Vector{Vector{Symbol}}
+    # TODO: basis :: SVector{D, SVector{D, Float64}}
 end
 
 """
@@ -96,47 +97,48 @@ end
 # ---------------------------------------------------------------------------------------- #
 
 """
-    irrfbz_path(sgnum::Integer, [::Val(D),] Rs::Union{Nothing, AVec{<:AVec{<:Real}}}=nothing)
-    irrfbz_path(sgnum::Integer, [D::Integer,] Rs::Union{Nothing, AVec{<:AVec{<:Real}}}=nothing)
-                                                                        -->  ::KPath{D}
+    irrfbz_path(sgnum::Integer,
+                Rs::Union{Nothing, AVec{<:AVec{<:Real}}}=nothing,
+                [::Union{Val(D), Integer},]=Val(3))                     -->  ::KPath{D}
 
 Returns a **k**-path (`::KPath`) in the (primitive) irreducible Brillouin zone that includes
 all distinct high-symmetry lines and points as well as relevant parts of the Brillouin zone
 boundary.
 
-The dimension `D` (1, 2, or 3) can be optionally specified as the second input argument,
-preferably as a static `Val{D}` type parameter. If unspecified, the default dimension is 3.
+The dimension `D` (1, 2, or 3) is specified as the third input argument, preferably as a
+static `Val{D}` type parameter (or, type-unstably, as an `<:Integer`). Defaults to `Val(3)`.
 
 `Rs` refers to the direct basis of the conventional unit cell. For some space groups, it
 is needed to disambiguate the "extended" Bravais types that may differ depending on the
 lengths of the lattice vectors (because the Brillouin zone may depend on these lengths).
 If the requested space group is known to not fall under this case, `Rs` can be supplied
 as `nothing` (default).
+If `Rs` is a subtype of a [`StaticVector`](@ref), the dimension can be inferred from its
+(static) size; no explicit input of dimension is needed in this case.
 
-Note that the returned **k**-points are given in the basis of the **primitive** reciprocal
-basis (see [`cartesianize!`](@ref)).
-
-To interpolate the resulting `KPath`, see [`interpolate(::KPath, ::Integer)`](@ref)
-and [`splice(::KPath, ::Integer)`](@ref).
+## Notes
+- The returned **k**-points are given in the basis of the **primitive** reciprocal basis
+  (see [`cartesianize!`](@ref)).
+- To interpolate a `KPath`, see [`interpolate(::KPath, ::Integer)`](@ref) and
+  [`splice(::KPath, ::Integer)`](@ref).
+- All paths currently assume time-reversal symmetry (or, equivalently, inversion symmetry).
+  If neither are present, include the "inverted" -**k** paths manually.
 
 ## Data and referencing
-All data is sourced from the SeeK HPKOT publication: please cite the original work [^1].
-
-All paths currently assume time-reversal symmetry (or, equivalently, inversion symmetry), 
-corresponding to the SeeK's `[with inversion]` setting. If neither inversion nor
-time-reversal, include the "inverted" -**k** paths as well manually.
+3D paths are sourced from the SeeK HPKOT publication: please cite the original work [^1].
 
 [^1] Hinuma, Pizzi, Kumagai, Oba, & Tanaka, *Band structure diagram paths based on
      crystallography*, 
      [Comp. Mat. Sci. **128**, 140 (2017)](http://dx.doi.org/10.1016/j.commatsci.2016.10.015)
 """
-function irrfbz_path(sgnum::Integer, Dᵛ::Val{D},
-            Rs::Union{Nothing, AVec{<:AVec{<:Real}}}=nothing) where D
+function irrfbz_path(sgnum::Integer,
+                     Rs::Union{Nothing, AVec{<:AVec{<:Real}}}=nothing,
+                     Dᵛ::Val{D}=Val(3)) where D
                      
     if !isnothing(Rs)
         D′ = length(Rs)
         if D′ ≠ D || any(R -> length(R) ≠ D, Rs)
-            throw(DimensionMismatch(Rs, "inconsistent input dimensions"))
+            throw(DimensionMismatch("inconsistent input dimensions in `Rs` or `D`"))
         end
         Rs = convert(SVector{D, SVector{D, Float64}}, Rs)
     end
@@ -149,13 +151,8 @@ function irrfbz_path(sgnum::Integer, Dᵛ::Val{D},
 
     return KPath(lab2kvs, paths)
 end
-function irrfbz_path(sgnum::Integer, Rs::Union{Nothing, AVec{<:AVec{<:Real}}}=nothing)
-    return irrfbz_path(sgnum, Val(3), Rs)
-end
-function irrfbz_path(sgnum::Integer, D::Integer,
-            Rs::Union{Nothing, AVec{<:AVec{<:Real}}}=nothing)
-    return irrfbz_path(sgnum, Val(D), Rs)
-end
+irrfbz_path(sgnum::Integer, Rs::StaticVector{D, <:AVec{<:Real}}) where D          = irrfbz_path(sgnum, Rs, Val(D))
+irrfbz_path(sgnum::Integer, Rs::Union{Nothing, AVec{<:AVec{<:Real}}}, D::Integer) = irrfbz_path(sgnum, Rs, Val(D))
 
 function get_points(ext_bt::Symbol,
                     Rs::Union{Nothing, AVec{<:AVec{<:Real}}},
@@ -164,7 +161,7 @@ function get_points(ext_bt::Symbol,
         return get_points_3d(ext_bt, Rs)
     elseif Dᵛ === Val(2)
         return get_points_2d(ext_bt, Rs)
-    elseif Dᵛ == Val(1)
+    elseif Dᵛ === Val(1)
         ext_bt === :lp || throw(DomainError(ext_bt, "invalid extended Bravais type"))
         return Dict(:Γ => SVector(0.0), :X => SVector(0.5))
     else
@@ -178,7 +175,7 @@ function get_paths(ext_bt::Symbol, Dᵛ::Val{D}) where D
     elseif Dᵛ === Val(2)
         paths = get(pathsd_2d, ext_bt, nothing)
     elseif Dᵛ === Val(1)
-        paths = ext_bt == :lp ? [[:Γ, :X]] : nothing
+        paths = ext_bt === :lp ? [[:Γ, :X]] : nothing
     else
         throw(DomainError(D, "unsupported input dimension"))
     end

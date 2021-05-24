@@ -124,8 +124,8 @@ for (D, pointsd) in zip((2,3), (pointsd_2d, pointsd_3d))
         Bravais type `ext_bt` and a (conventional) direct basis `Rs` (can be `nothing` if
         there is no dependence on the basis) as a `Dict{Symbol, SVector{$($D), Float64}}`.
         """
-        function $f(ext_bt::Symbol, 
-                            Rs::Union{Nothing, AVec{<:SVector{$D, <:Real}}})
+        function $f(ext_bt::Symbol,
+                    Rs::Union{Nothing, AVec{<:AVec{<:Real}}})
             $branchtable
         end
     end

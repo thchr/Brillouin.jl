@@ -54,29 +54,33 @@ import Crystalline
     end
     
     # `extended_bravais` and `irrfbz_path`
-    for sgnum in 1:230
-        Rs = begin
-            # the triclinic case (space group 1 & 2) needs a bit of care, since we Brillouin
-            # only allows all-obtuse or all-acute basis systems; just hardcode two examples
-            if sgnum == 1     # check all-obtuse triclinic `Rs`
-                Crystalline.DirectBasis([1.0, 0.0, 0.0], [1.18, 1.54, 0.0], [0.95, 0.44, 1.32])
-            elseif sgnum == 2 # check all-acute triclinic `Rs`
-                Crystalline.DirectBasis([1.0, 0.0, 0.0], [-0.53, 0.49, 0.0], [0.13, -0.30, 0.74])
-            else              # just go with `directbasis` for all other space groups
-                Crystalline.directbasis(sgnum, 3)
+    sgnums = (1:2, 1:17, 1:230)
+    for D in (1, 2, 3)
+        Dᵛ = Val(D)
+        for sgnum in sgnums[D]
+            Rs = begin
+                # the 3D triclinic case (space group 1 & 2) needs more care, since Brillouin
+                # only allows all-obtuse or all-acute bases; just hardcode two examples
+                if sgnum == 1 && D == 3    # check all-obtuse triclinic `Rs`
+                    Crystalline.DirectBasis([1.0, 0.0, 0.0], [1.18, 1.54, 0.0], [0.95, 0.44, 1.32])
+                elseif sgnum == 2 && D == 3 # check all-acute triclinic `Rs`
+                    Crystalline.DirectBasis([1.0, 0.0, 0.0], [-0.53, 0.49, 0.0], [0.13, -0.30, 0.74])
+                else                        # go with `directbasis` for everything else
+                    Crystalline.directbasis(sgnum, Dᵛ)
+                end
             end
-        end
-        bt = Crystalline.bravaistype(sgnum, 3, normalize=false)
-        # extended Bravais types
-        ebt = Brillouin.KPaths.extended_bravais(sgnum, bt, Rs, Val(3))
-        @test contains(string(ebt), bt)
+            bt = Crystalline.bravaistype(sgnum, D, normalize=false)
+            # extended Bravais types
+            ebt = Brillouin.KPaths.extended_bravais(sgnum, bt, Rs, Dᵛ)
+            @test contains(string(ebt), bt)
 
-        # hard to test output of `irrfbz_path` systematically; just test that it returns a
-        # `KPath`, and matches `get_points` and `get_paths`
-        kp = irrfbz_path(sgnum, Rs)
-        @test kp isa KPath
-        @test points(kp) == Brillouin.KPaths.get_points(ebt, Rs, Val(3))
-        @test paths(kp)  == Brillouin.KPaths.get_paths(ebt, Val(3))
+            # hard to test output of `irrfbz_path` systematically; just test that it returns
+            # a `KPath`, and matches `get_points` and `get_paths`
+            kp = irrfbz_path(sgnum, Rs)
+            @test kp isa KPath{D}
+            @test points(kp) == Brillouin.KPaths.get_points(ebt, Rs, Dᵛ)
+            @test paths(kp)  == Brillouin.KPaths.get_paths(ebt, Dᵛ)
+        end
     end
     @test_throws DomainError Brillouin.KPaths.extended_bravais(110, "Q", nothing, Val(3))  # "undefined bravais type"
     @test_throws DomainError Brillouin.KPaths.extended_bravais(194, "cP", nothing, Val(3)) # `_throw_conflicting_sgnum_and_bravais`

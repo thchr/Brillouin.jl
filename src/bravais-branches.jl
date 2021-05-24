@@ -19,7 +19,7 @@ end
 # be a conventional cell in ITA settings.
 function extended_bravais(sgnum::Integer,
                           bt::String,
-                          Rs::Union{Nothing, AVec{<:SVector{3,<:Real}}},
+                          Rs::Union{Nothing, StaticVector{3, <:StaticVector{3, <:Real}}},
                           Dᵛ::Val{3})
 
     @boundscheck boundscheck_sgnum(sgnum, 3)
@@ -155,7 +155,7 @@ end # function
 # --- 2D ---
 function extended_bravais(sgnum::Integer,
                           bt::String,
-                          Rs::Union{Nothing, AVec{<:SVector{2,<:Real}}},
+                          Rs::Union{Nothing, StaticVector{2, <:StaticVector{2, <:Real}}},
                           Dᵛ::Val{2})
     @boundscheck boundscheck_sgnum(sgnum, 2)
 
@@ -176,7 +176,7 @@ function extended_bravais(sgnum::Integer,
         if a ≤ b
             return :oc1
         else # a>b
-            return oc2
+            return :oc2
         end
     elseif bt == "mp"
         a, b = basisnorms(Rs)
@@ -194,20 +194,20 @@ end
 # --- 1D ---
 function extended_bravais(sgnum::Integer,
                           bt::String,
-                          Rs::Union{Nothing, AVec{<:SVector{1,<:Real}}},
+                          Rs::Union{Nothing, StaticVector{1, <:StaticVector{1, <:Real}}},
                           Dᵛ::Val{1})
 
     @boundscheck boundscheck_sgnum(sgnum, 1)
     return :lp # trivial case; no "extended" bravais types
 end
 
-function basisnorms(Rs::Union{AbstractVector{V}, NTuple{3, V}}) where V <: SVector{3,<:Real}
+function basisnorms(Rs::Union{AVec{V}, NTuple{3, V}}) where V <: StaticVector{3, <:Real}
     a = norm(Rs[1])
     b = norm(Rs[2])
     c = norm(Rs[3])
     return a, b, c
 end
-function basisnorms(Rs::Union{AbstractVector{V}, NTuple{2, V}}) where V <: SVector{2,<:Real}
+function basisnorms(Rs::Union{AVec{V}, NTuple{2, V}}) where V <: StaticVector{2, <:Real}
     a = norm(Rs[1])
     b = norm(Rs[2])
     return a, b

@@ -18,7 +18,7 @@ function test_text(expected::AbstractString, observed::AbstractString)
         @test true
     else
         print_diff(expected, observed)
-        @test :expected == :observed
+        @test expected == observed
     end
 end
 
