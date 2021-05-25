@@ -8,7 +8,7 @@
 module KPaths
 
 # ---------------------------------------------------------------------------------------- #
-export irrfbz_path, KPath, points, paths, cartesianize!, KPathInterpolant
+export irrfbz_path, KPath, points, paths, cartesianize!, latticize!, KPathInterpolant
 # ---------------------------------------------------------------------------------------- #
 using ..CrystallineBravaisVendor: bravaistype, boundscheck_sgnum
 using ..Brillouin: AVec, BasisLike, SHOWDIGITS
@@ -16,7 +16,7 @@ using LinearAlgebra: norm, dot, ×
 using StaticArrays
 using DocStringExtensions
 
-import Base: show, summary, getindex, IndexStyle, size
+import Base: show, summary, getindex, setindex!, IndexStyle, size
 # ---------------------------------------------------------------------------------------- #
 
 include("codegen-kpoints.jl")  # defines `get_points_3d`, `pathsd_3d` (& other subfunctions)
@@ -37,7 +37,7 @@ struct KPath{D} <: AbstractPath{Pair{Symbol, SVector{D, Float64}}}
 end
 
 """
-    points(kp::KPath) -> Dict{Symbol, SVector{D,Float64}}
+    points(kp::KPath{D}) -> Dict{Symbol, SVector{D,Float64}}
 
 Return a dictionary of the **k**-points (values) and associated **k**-labels (keys)
 referenced in `kp`.
@@ -45,7 +45,7 @@ referenced in `kp`.
 points(kp::KPath) = kp.points
 
 """
-    paths(kp::KPath) -> Dict{Symbol, SVector{D,Float64}}
+    paths(kp::KPath) -> Vector{Vector{Symbol}}
 
 Return a vector of vectors, with each vector describing a connected path between between
 **k**-points referenced in `kp` (see also [`points(::KPath)`](@ref)).
@@ -184,11 +184,19 @@ function get_paths(ext_bt::Symbol, Dᵛ::Val{D}) where D
     return paths
 end
 
-"""
-    cartesianize!(kp::KPath, Gs::BasisLike)
+# ---------------------------------------------------------------------------------------- #
 
-Transform a **k**-path `kp` to a Cartesian coordinate system using a primitive basis `Gs`.
-Modifies the underlying dictionary in `kp` in-place.
+include("interpolate-paths.jl")
+export interpolate, splice, cumdists
+
+# ---------------------------------------------------------------------------------------- #
+
+"""
+    cartesianize!(kp::KPath{D}, Gs::BasisLike{D})
+
+Transform a **k**-path `kp` in a lattice basis to a Cartesian basis with (primitive)
+basis vectors `Gs`.
+Modifies `kp` in-place.
 """
 function cartesianize!(kp::KPath{D}, Gs::Union{BasisLike{D}, AVec{<:AVec{<:Real}}}) where D
     for (lab, kv) in points(kp)
@@ -196,14 +204,25 @@ function cartesianize!(kp::KPath{D}, Gs::Union{BasisLike{D}, AVec{<:AVec{<:Real}
     end
     return kp
 end
-function cartesianize(kp::KPath{D}, Gs::Union{BasisLike{D}, AVec{<:AVec{<:Real}}}) where D
-    return cartesianize!(deepcopy(kp), Gs)
+cartesianize(kp::Union{KPath{D}, KPathInterpolant{D}},
+             Gs::Union{BasisLike{D}, AVec{<:AVec{<:Real}}}) where D = cartesianize!(deepcopy(kp), Gs)
+
+"""
+    latticize!(kp::KPath{D}, Gs::BasisLike{D})
+
+Transform a **k**-path `kpi` in a Cartesian basis to a lattice basis with (primitive)
+reciprocal lattice vectors `Gs`.
+Modifies `kp` in-place.
+"""
+function latticize!(kp::KPath{D}, Gs::Union{BasisLike{D}, AVec{<:AVec{<:Real}}}) where D
+    Gm = hcat(Gs...)
+    for (lab, kv) in points(kp)
+        points(kp)[lab] = Gm\kv
+    end
+    return kp
 end
-
-# ---------------------------------------------------------------------------------------- #
-
-include("interpolate-paths.jl")
-export interpolate, splice, cumdists
+latticize(kp::Union{KPath{D}, KPathInterpolant{D}},
+          Gs::Union{BasisLike{D}, AVec{<:AVec{<:Real}}}) where D = latticize!(deepcopy(kp), Gs)
 
 # ---------------------------------------------------------------------------------------- #
 end # module

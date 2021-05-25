@@ -28,7 +28,7 @@ struct KPathInterpolant{D} <: AbstractPath{SVector{D, Float64}}
 end
 
 size(kpi::KPathInterpolant) = (sum(length, kpi.kpaths),)
-Base.@propagate_inbounds function getindex(kpi::KPathInterpolant, i::Int)
+Base.@propagate_inbounds function composite_index(kpi::KPathInterpolant, i::Int)
     # index into the `i`th point in the "flattened" `kpi.kpaths`
     @boundscheck i < 0 && throw(BoundsError(kpi, i))
     j = 1
@@ -39,10 +39,61 @@ Base.@propagate_inbounds function getindex(kpi::KPathInterpolant, i::Int)
         @boundscheck j > length(kpi.kpaths) && throw(BoundsError(kpi, i))
     end
     @boundscheck i′ > length(kpi.kpaths[j]) && throw(BoundsError(kpi, i))
-
+    return j, i′
+end
+Base.@propagate_inbounds function getindex(kpi::KPathInterpolant, i::Int)
+    j, i′ = composite_index(kpi, i)
     return @inbounds kpi.kpaths[j][i′]
 end
 IndexStyle(::Type{<:KPathInterpolant}) = IndexLinear()
+Base.@propagate_inbounds function setindex!(kpi::KPathInterpolant{D}, 
+                                            val::SVector{D, Float64}, i::Int) where D
+    j, i′ = composite_index(kpi, i)
+    @inbounds kpi.kpaths[j][i′] = val
+    return kpi
+end
+
+"""
+    cartesianize!(kpi::KPathInterpolant{D}, Gs::BasisLike)
+
+Transform an interpolated **k**-path `kpi` in a lattice basis to a Cartesian basis with
+(primitive) reciprocal lattice vectors `Gs`.
+Modifies `kpi` in-place.
+
+!!! warning
+If `kpi` was originally created from a `KPath` in a non-cartesian basis, its points will
+not be equidistantly spaced when converted to a Cartesian basis. In particular, for a
+`kp::KPath` in the lattice basis, it is generally true that
+`interpolate(cartesianize(kp, pGs), N) ≠ cartesianize(interpolate(kp, N), pGs))`, unless
+the reciprocal basis `pGs` is square. Only `interpolate(cartesianize(kp, pGs)` is guaranteed
+to produce paths that are approximately equidistantly spaced.
+
+It is therefore strongly recommended *not* to use `cartesianize!(::KPathInterpolant)`
+except in combination with [`latticize!(::KPathInterpolant)`](@ref).
+"""
+function cartesianize!(kpi::KPathInterpolant{D},
+            Gs::Union{BasisLike{D}, AVec{<:AVec{<:Real}}}) where D
+    for i in eachindex(kpi)
+        @inbounds kpi[i] = kpi[i]'Gs
+    end
+    return kpi
+end
+
+"""
+    latticize!(kpi::KPathInterpolant{D}, Gs::BasisLike)
+
+Transform an interpolated **k**-path `kpi` in a Cartesian basis to a lattice basis with
+(primitive) reciprocal lattice vectors `Gs`.
+Modifies `kpi` in-place.
+"""
+function latticize!(kpi::KPathInterpolant{D},
+            Gs::Union{BasisLike{D}, AVec{<:AVec{<:Real}}}) where D
+    Gm = hcat(Gs...)
+    for i in eachindex(kpi)
+        @inbounds kpi[i] = Gm\kpi[i]
+    end
+    return kpi
+end
 
 """
     interpolate(kp::KPath, N::Integer) --> KPathInterpolant

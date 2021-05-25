@@ -187,7 +187,7 @@ function extended_bravais(sgnum::Integer,
             return :mp2
         end
     else
-        throw(MethodError("dimension 2 not currently implemented"))
+        throw(DomainError(bt, "undefined bravais type"))
     end
 end
 
