@@ -25,14 +25,14 @@ include("WignerSeitz.jl")
 function __init__()
     # plotting extensions on GLMakie load
     @require AbstractPlotting="537997a7-5e4e-5d89-9595-2241ea00577e" begin
-        include("compat/abstractplotting_wignerseitz.jl")
+        include("requires/abstractplotting_wignerseitz.jl")
     end
 
     # plotting extensions on PlotlyJS load
     @require PlotlyJS="f0f68f2c-4968-5e81-91da-67840de0976a" begin
-        include("compat/plotlyjs_wignerseitz.jl")
-        include("compat/plotlyjs_kpaths.jl")
-        include("compat/plotlyjs_dispersion.jl")
+        include("requires/plotlyjs_wignerseitz.jl")
+        include("requires/plotlyjs_kpaths.jl")
+        include("requires/plotlyjs_dispersion.jl")
     end
 end
 

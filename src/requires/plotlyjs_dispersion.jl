@@ -41,6 +41,9 @@ distinct energy bands and rows as distinct **k**-points.
 
 - `ylabel`: y-axis label (default: "Energy")
 
+- `title`: plot title (default: `nothing`); can be a `String` or an `attr` dictionary of
+  PlotlyJS properties
+
 - `band_highlights`: dictionary of non-default styling for specified band ranges (default:
   `nothing`, indicating all-default styling).
 
@@ -55,11 +58,10 @@ distinct energy bands and rows as distinct **k**-points.
   `annotations = Dict(:X => [1:2 => "touching!], :Γ => [1 => "isolated", 2 => "isolated"])`.
   If a band-range is provided, a single annotation is placed at the mean of the energies
   at these band-ranges.
-
 """
 function plot(kpi::KPathInterpolant, bands,
               layout::Layout = DEFAULT_PLOTLY_LAYOUT_DISPERSION;
-              ylims = nothing, ylabel = "Energy",
+              ylims = nothing, ylabel = "Energy", title = nothing,
               band_highlights::Union{Dict, Nothing} = nothing,
               annotations::Union{Dict, Nothing} = nothing)
     # check input
@@ -84,6 +86,15 @@ function plot(kpi::KPathInterpolant, bands,
         layout[:yaxis][:range] = ylims
     end
     layout[:yaxis][:title] = ylabel
+
+    # add title, if requested
+    if !isnothing(title)
+        if title isa String
+            layout[:title] = attr(text=title)
+        else
+            layout[:title] = title
+        end
+    end
 
     # prepare to plot band diagram
     local_xs = cumdists.(kpi.kpaths)
