@@ -13,7 +13,7 @@ The **k**-path functionalities are inspired by the Python [SeeK-path package](ht
 
 ### Wigner-Seitz cells & Brillouin zones
 
-To generate the Brillouin zone of a crystal in space group 147 (Herman-Mauguin symbol, P-3; Bravais type, hP), we first define its reciprocal basis `Gs` (e.g., using [Crystalline.jl](https://github.com/thchr/Crystalline.jl) and then call Brillouin's `wignerseitz`:
+To generate the Brillouin zone of a crystal in space group 147 (Hermann-Mauguin symbol, P-3; Bravais type, hP), we first define its reciprocal basis `Gs` (e.g., using [Crystalline.jl](https://github.com/thchr/Crystalline.jl)) and then call Brillouin's `wignerseitz`:
 ```jl
 julia> using Brillouin, Crystalline
 julia> Rs = ([1.0, 0.0, 0.0], [-0.5, sqrt(3)/2, 0.0],   [0, 0, 1.25]) # direct basis for space group 147
@@ -46,7 +46,7 @@ Cell{3} (8 faces, 12 vertices):
 ```
 The returned vertices are in the coordinates of the reciprocal basis (to convert, see `cartesianize(!)`); this is the default behavior in Brillouin. The basis is accessible with `basis(cell)`.
 
-The Brillouin zone can be plotted using e.g. [PlotlyJS.jl](https://github.com/JuliaPlots/PlotlyJS.jl) (or 3D-capable backends of [AbstractPlotting.jl](https://github.com/JuliaPlots/AbstractPlotting.jl) such as [GLMakie.jl](https://github.com/JuliaPlots/GLMakie.jl)):
+The Brillouin zone can be plotted using e.g. [PlotlyJS.jl](https://github.com/JuliaPlots/PlotlyJS.jl) (or 3D-capable backends of [Makie.jl](https://github.com/JuliaPlots/Makie.jl) such as [GLMakie.jl](https://github.com/JuliaPlots/GLMakie.jl)):
 ```jl
 julia> using PlotlyJS
 julia> plot(cell)
@@ -74,5 +74,5 @@ KPath{3} (7 points, 3 paths, 13 points in paths):
          [0.0, 7.255197, 0.0]
          [0.0, -0.0, 5.026548]
 ```
-The resulting object can be interpolated, using either `interpolate(kp, N)` or `splice(kp, N)`, which produces an `KPathInterpolant` iterable whose values interpolate the connected paths (and enable convenient plotting of [band structure diagrams](https://thchr.github.io/Brillouin.jl/stable/kpaths/#Band-structure)). 
+The resulting object can be interpolated, using either `interpolate(kp, N)` or `splice(kp, N)`, which produces a `KPathInterpolant` iterable whose values interpolate the connected paths (and enable convenient plotting of [band structure diagrams](https://thchr.github.io/Brillouin.jl/stable/kpaths/#Band-structure)). 
 See also visualization [examples in documentation](https://thchr.github.io/Brillouin.jl/stable/kpaths/)).

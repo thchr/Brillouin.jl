@@ -56,7 +56,7 @@ To illustrate this, suppose we are considering a tight-binding problem for an *s
 ```
 with $k_{x,y,z}$ denoting coordinates in a Cartesian basis (which are related to the coordinates $k_{1,2,3}$ in a primitive reciprocal basis by $k_x = 2π(-k_1+k_2+k_3)$, $k_x = 2π(k_1-k_2+k_3)$, and $k_z = 2π(k_1+k_2-k_3)$).
 
-We can calculating the associated energy band along the **k**-path using the interpolation object `kpi`. To do so, we define a function that implements the band dispersion from above:
+We can calculate the energy band along our **k**-path using the interpolation object `kpi`. To do so, we define a function that implements $\epsilon(\mathbf{k})$ and broadcast it over the elements of `kpi`:
 ```@example kpath
 function ϵ(k; γ::Real=1.0)
     kx = 2π*(-k[1]+k[2]+k[3])
@@ -64,9 +64,6 @@ function ϵ(k; γ::Real=1.0)
     kz = 2π*(+k[1]+k[2]-k[3])
     return 4γ * (cos(kx/2)*cos(ky/2) + cos(ky/2)*cos(kz/2) + cos(kz/2)*cos(kx/2))
 end
-```
-and evaluate it at the points in `kpi` using broadcasting:
-```@example kpath
 band = ϵ.(kpi)
 ```
 
