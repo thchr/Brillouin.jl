@@ -52,17 +52,9 @@ To illustrate this, suppose we are considering a tight-binding problem for an *s
     \cos \tfrac{1}{2}k_x \cos \tfrac{1}{2}k_y +
     \cos \tfrac{1}{2}k_y \cos \tfrac{1}{2}k_z +
     \cos \tfrac{1}{2}k_z \cos \tfrac{1}{2}k_x
-    \Bigr)\\
-=
-4\gamma\bigl\{
-    \cos[\pi(-k_1+k_2+k_3)] \cos[\pi(+k_1-k_2+k_3)] +
-    \\ \phantom{=4\gamma\bigl\{}
-    \cos[\pi(+k_1-k_2+k_3)] \cos[\pi(+k_1+k_2-k_3)] +
-    \\ \phantom{=4\gamma\bigl\{}
-    \cos[\pi(+k_1+k_2-k_3)] \cos[\pi(-k_1+k_2+k_3)]
-    \bigr\}\\
+    \Bigr)
 ```
-with $k_{x,y,z}$ denoting coordinates in a Cartesian basis and $k_{1,2,3}$ denoting coordinates in the primitive reciprocal basis.
+with $k_{x,y,z}$ denoting coordinates in a Cartesian basis (which are related to the coordinates $k_{1,2,3}$ in a primitive reciprocal basis by $k_x = 2π(-k_1+k_2+k_3)$, $k_x = 2π(k_1-k_2+k_3)$, and $k_z = 2π(k_1+k_2-k_3)$).
 
 We can calculating the associated energy band along the **k**-path using the interpolation object `kpi`. To do so, we define a function that implements the band dispersion from above:
 ```@example kpath
@@ -70,7 +62,7 @@ function ϵ(k; γ::Real=1.0)
     kx = 2π*(-k[1]+k[2]+k[3])
     ky = 2π*(+k[1]-k[2]+k[3])
     kz = 2π*(+k[1]+k[2]-k[3])
-    return 4γ * (cos(kx/2)*cos(ky/2) + cos(kx/2)*cos(kz/2) + cos(kz/2)*cos(kx/2))
+    return 4γ * (cos(kx/2)*cos(ky/2) + cos(ky/2)*cos(kz/2) + cos(kz/2)*cos(kx/2))
 end
 ```
 and evaluate it at the points in `kpi` using broadcasting:
