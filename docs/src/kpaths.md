@@ -24,7 +24,8 @@ Main.HTMLPlot(Pᵏ) # hide
 
 Usually, it'll be more helpful to understand the path's geometry in the context of the associated Brillouin zone. To visualize this, we can plot the combination of a `Cell` (created via [`wignerseitz`](@ref)) and a `KPath`:
 ```@example kpath
-c = wignerseitz(pGs)
+pGs = basis(kp)      # primitive reciprocal basis associated with k-path
+c = wignerseitz(pGs) # associated Brillouin zone
 Pᶜ⁺ᵏ = plot(c, kp)
 Main.HTMLPlot(Pᶜ⁺ᵏ) # hide
 ```
@@ -45,23 +46,39 @@ The additional structure of `KPathInterpolation` enables convenient and clear vi
 
 To illustrate this, suppose we are considering a tight-binding problem for an *s*-orbital situated at the 1a Wyckoff position. Such a problem has a single band with dispersion [^1] (assuming a cubic side length ``a = 1``):
 ```math
-\epsilon(\mathbf{k}) =
+\epsilon(\mathbf{k})
+=
 4\gamma\Bigl(
     \cos \tfrac{1}{2}k_x \cos \tfrac{1}{2}k_y +
     \cos \tfrac{1}{2}k_y \cos \tfrac{1}{2}k_z +
     \cos \tfrac{1}{2}k_z \cos \tfrac{1}{2}k_x
-    \Bigr)
+    \Bigr)\\
+=
+4\gamma\bigl\{
+    \cos[\pi(-k_1+k_2+k_3)] \cos[\pi(+k_1-k_2+k_3)] +
+    \\ \phantom{=4\gamma\bigl\{}
+    \cos[\pi(+k_1-k_2+k_3)] \cos[\pi(+k_1+k_2-k_3)] +
+    \\ \phantom{=4\gamma\bigl\{}
+    \cos[\pi(+k_1+k_2-k_3)] \cos[\pi(-k_1+k_2+k_3)]
+    \bigr\}\\
 ```
+with $k_{x,y,z}$ denoting coordinates in a Cartesian basis and $k_{1,2,3}$ denoting coordinates in the primitive reciprocal basis.
 
-We can calculate the associated energy band along our earlier **k**-path interpolation `kpi` easily:
+We can calculating the associated energy band along the **k**-path using the interpolation object `kpi`. To do so, we define a function that implements the band dispersion from above:
 ```@example kpath
 function ϵ(k; γ::Real=1.0)
-    4γ * (cos(k[1]/2)*cos(k[2]/2) + cos(k[2]/2)*cos(k[3]/2) + cos(k[3]/2)*cos(k[1]/2))
+    kx = 2π*(-k[1]+k[2]+k[3])
+    ky = 2π*(+k[1]-k[2]+k[3])
+    kz = 2π*(+k[1]+k[2]-k[3])
+    return 4γ * (cos(kx/2)*cos(ky/2) + cos(kx/2)*cos(kz/2) + cos(kz/2)*cos(kx/2))
 end
+```
+and evaluate it at the points in `kpi` using broadcasting:
+```@example kpath
 band = ϵ.(kpi)
 ```
 
-And we can then visualize the associated band via an overloaded PlotlyJS `plot` call:
+Finally, we can visualize the associated band using a Brillouin-overloaded PlotlyJS `plot`-call:
 ```@example kpath
 P = plot(kpi, [band])
 Main.HTMLPlot(P, 525) # hide
