@@ -8,6 +8,8 @@ const KPATH_COL = Ref("rgb(95,39,205)") # "nasu purple" (https://flatuicolors.co
 # ---------------------------------------------------------------------------------------- #
 
 function plot(kp::KPath{3}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_3D)
+    kp.basisenum[] !== CARTESIAN && (kp = cartesianize(kp))
+
     tpaths = Vector{GenericTrace{Dict{Symbol,Any}}}(undef, length(paths(kp)))
     for (i,path) in enumerate(paths(kp))
         kvs = [points(kp)[lab] for lab in path]
@@ -29,6 +31,8 @@ end
 
 # ---------------------------------------------------------------------------------------- #
 function plot(kp::KPath{2}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_2D)
+    kp.basisenum[] !== CARTESIAN && (kp = cartesianize(kp))
+
     tpaths = Vector{GenericTrace{Dict{Symbol,Any}}}(undef, length(paths(kp)))
     for (i,path) in enumerate(paths(kp))
         kvs = [points(kp)[lab] for lab in path]

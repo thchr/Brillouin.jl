@@ -23,8 +23,10 @@ $(TYPEDEF)
 $(TYPEDFIELDS)
 """
 struct KPathInterpolant{D} <: AbstractPath{SVector{D, Float64}}
-    kpaths::Vector{Vector{SVector{D, Float64}}}
-    labels::Vector{Dict{Int, Symbol}}
+    kpaths :: Vector{Vector{SVector{D, Float64}}}
+    labels :: Vector{Dict{Int, Symbol}}
+    basis  :: SVector{D, SVector{D, Float64}}
+    basisenum :: Ref{BasisEnum}
 end
 
 size(kpi::KPathInterpolant) = (sum(length, kpi.kpaths),)
@@ -54,44 +56,46 @@ Base.@propagate_inbounds function setindex!(kpi::KPathInterpolant{D},
 end
 
 """
-    cartesianize!(kpi::KPathInterpolant{D}, Gs::BasisLike)
+    cartesianize!(kpi::KPathInterpolant)
 
 Transform an interpolated **k**-path `kpi` in a lattice basis to a Cartesian basis with
-(primitive) reciprocal lattice vectors `Gs`.
+(primitive) reciprocal lattice vectors `basis(kpi)`.
 Modifies `kpi` in-place.
 
 !!! warning
 If `kpi` was originally created from a `KPath` in a non-cartesian basis, its points will
 not be equidistantly spaced when converted to a Cartesian basis. In particular, for a
 `kp::KPath` in the lattice basis, it is generally true that
-`interpolate(cartesianize(kp, pGs), N) ≠ cartesianize(interpolate(kp, N), pGs))`, unless
-the reciprocal basis `pGs` is square. Only `interpolate(cartesianize(kp, pGs)` is guaranteed
+`interpolate(cartesianize(kp), N) ≠ cartesianize(interpolate(kp, N)))`, unless
+the reciprocal basis `pGs` is square. Only `interpolate(cartesianize(kp)` is guaranteed
 to produce paths that are approximately equidistantly spaced.
 
 It is therefore strongly recommended *not* to use `cartesianize!(::KPathInterpolant)`
 except in combination with [`latticize!(::KPathInterpolant)`](@ref).
 """
-function cartesianize!(kpi::KPathInterpolant{D},
-            Gs::Union{BasisLike{D}, AVec{<:AVec{<:Real}}}) where D
+function cartesianize!(kpi::KPathInterpolant)
+    kpi.basisenum[] === CARTESIAN && return kp
     for i in eachindex(kpi)
-        @inbounds kpi[i] = kpi[i]'Gs
+        @inbounds kpi[i] = cartesianize(kpi[i], kpi.basis)
     end
+    kpi.basisenum[] = CARTESIAN
     return kpi
 end
 
 """
-    latticize!(kpi::KPathInterpolant{D}, Gs::BasisLike)
+    latticize!(kpi::KPathInterpolant{D})
 
 Transform an interpolated **k**-path `kpi` in a Cartesian basis to a lattice basis with
-(primitive) reciprocal lattice vectors `Gs`.
+(primitive) reciprocal lattice vectors `basis(kpi)`.
 Modifies `kpi` in-place.
 """
-function latticize!(kpi::KPathInterpolant{D},
-            Gs::Union{BasisLike{D}, AVec{<:AVec{<:Real}}}) where D
-    Gm = hcat(Gs...)
+function latticize!(kpi::KPathInterpolant)
+    kpi.basisenum[] === LATTICE && return kp
+    basismatrix = hcat(kpi.basis...)
     for i in eachindex(kpi)
-        @inbounds kpi[i] = Gm\kpi[i]
+        @inbounds kpi[i] = latticize(kpi[i], basismatrix)
     end
+    kpi.basisenum[] = LATTICE
     return kpi
 end
 
@@ -99,16 +103,17 @@ end
     interpolate(kp::KPath, N::Integer) --> KPathInterpolant
 
 Return an interpolant of `kp` with approximately `N` points distributed approximately
-equidistantly across the full **k**-path.
+equidistantly across the full **k**-path (equidistance is measured in a Cartesian metric).
 
 Note that the interpolant may contain fewer or more points than `N` (typically fewer). 
 
 See also [`interpolate(::AbstractVector{::AbstractVector{<:Real}}, ::Integer)`](@ref).
 """
 function interpolate(kp::KPath{D}, N::Integer) where D
-    distss = map(paths(kp)) do path
+    kpᶜ = kp.basisenum[] === CARTESIAN ? kp : cartesianize(kp)
+    distss = map(paths(kpᶜ)) do path
         map(1:length(path)-1) do i
-            norm(points(kp)[path[i]] - points(kp)[path[i+1]])
+            norm(points(kpᶜ)[path[i]] - points(kpᶜ)[path[i+1]])
         end
     end
     totaldist = sum(dists->sum(dists), distss)
@@ -127,7 +132,7 @@ function interpolate(kp::KPath{D}, N::Integer) where D
         push!(kipaths[j], points(kp)[path[end]])
     end
 
-    return KPathInterpolant(kipaths, labels)
+    return KPathInterpolant(kipaths, labels, basis(kp), kp.basisenum)
 end
 
 
@@ -152,7 +157,7 @@ function splice(kp::KPath{D}, N::Integer) where D
         push!(kipaths[j], points(kp)[path[end]])
     end
 
-    return KPathInterpolant(kipaths, labels)
+    return KPathInterpolant(kipaths, labels, kp.basis, kp.basisenum)
 end
 
 # ---------------------------------------------------------------------------------------- #

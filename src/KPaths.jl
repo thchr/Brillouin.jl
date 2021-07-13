@@ -8,10 +8,22 @@
 module KPaths
 
 # ---------------------------------------------------------------------------------------- #
-export irrfbz_path, KPath, points, paths, cartesianize!, latticize!, KPathInterpolant
+export irrfbz_path, KPath, points, paths, KPathInterpolant
 # ---------------------------------------------------------------------------------------- #
-using ..CrystallineBravaisVendor: bravaistype, boundscheck_sgnum
-using ..Brillouin: AVec, BasisLike, SHOWDIGITS
+using ..CrystallineBravaisVendor: 
+    bravaistype,
+    boundscheck_sgnum,
+    reciprocalbasis,
+    primitivize_reciprocal
+using ..Brillouin: 
+    AVec,
+    BasisLike,
+    SHOWDIGITS,
+    BasisEnum, CARTESIAN, LATTICE,
+    cartesianize, latticize
+import ..Brillouin:
+    latticize!, cartesianize!,
+    basis
 using LinearAlgebra: norm, dot, ×
 using StaticArrays
 using DocStringExtensions
@@ -33,7 +45,8 @@ $(TYPEDFIELDS)
 struct KPath{D} <: AbstractPath{Pair{Symbol, SVector{D, Float64}}}
     points :: Dict{Symbol, SVector{D,Float64}}
     paths  :: Vector{Vector{Symbol}}
-    # TODO: basis :: SVector{D, SVector{D, Float64}}
+    basis  :: SVector{D, SVector{D, Float64}}
+    basisenum :: Ref{BasisEnum}
 end
 
 """
@@ -87,34 +100,38 @@ function show(io::IO, ::MIME"text/plain", kp::KPath)
     print(io, "  paths: ")
     foreach(enumerate(paths(kp))) do (i,path)
         i ≠ 1 && print(io, "         ")
-        if i ≠ length(paths(kp))
-            println(io, path)
+        println(io, path)
+    end
+    # basis
+    print(io, "  basis: ")
+    foreach(enumerate(basis(kp))) do (i,v)
+        i ≠ 1 && print(io, "         ")
+        if i ≠ length(basis(kp))
+            println(io, round.(v, digits=SHOWDIGITS))
         else
-            print(io, path)
+            print(io, round.(v, digits=SHOWDIGITS))
         end
     end
 end
 # ---------------------------------------------------------------------------------------- #
 
 """
-    irrfbz_path(sgnum::Integer,
-                Rs::Union{Nothing, AVec{<:AVec{<:Real}}}=nothing,
-                [::Union{Val(D), Integer},]=Val(3))                     -->  ::KPath{D}
+    irrfbz_path(sgnum::Integer, Rs, [::Union{Val(D), Integer},]=Val(3))  -->  ::KPath{D}
 
-Returns a **k**-path (`::KPath`) in the (primitive) irreducible Brillouin zone that includes
-all distinct high-symmetry lines and points as well as relevant parts of the Brillouin zone
-boundary.
+Returns a **k**-path (`::KPath`) in the (primitive) irreducible Brillouin zone for a space
+group with number `sgnum`, (conventional) direct lattice vectors `Rs`, and dimension `D`.
+The path includes all distinct high-symmetry lines and points as well as relevant parts of
+the Brillouin zone boundary.
 
 The dimension `D` (1, 2, or 3) is specified as the third input argument, preferably as a
 static `Val{D}` type parameter (or, type-unstably, as an `<:Integer`). Defaults to `Val(3)`.
 
-`Rs` refers to the direct basis of the conventional unit cell. For some space groups, it
-is needed to disambiguate the "extended" Bravais types that may differ depending on the
-lengths of the lattice vectors (because the Brillouin zone may depend on these lengths).
-If the requested space group is known to not fall under this case, `Rs` can be supplied
-as `nothing` (default).
-If `Rs` is a subtype of a [`StaticVector`](@ref), the dimension can be inferred from its
-(static) size; no explicit input of dimension is needed in this case.
+`Rs` refers to the direct basis of the conventional unit cell, i.e., not the primitive 
+direct basis vectors. The setting of `Rs` must agree with the conventional setting choices
+in the International Tables of Crystallography.
+If `Rs` is a subtype of a `StaticVector` or `NTuple`, the dimension can be inferred from its
+(static) size; in this case, this dimension will take precedence (i.e. override, if
+different) over any dimension specified in the third input argument.
 
 ## Notes
 - The returned **k**-points are given in the basis of the **primitive** reciprocal basis
@@ -131,28 +148,31 @@ If `Rs` is a subtype of a [`StaticVector`](@ref), the dimension can be inferred 
      crystallography*, 
      [Comp. Mat. Sci. **128**, 140 (2017)](http://dx.doi.org/10.1016/j.commatsci.2016.10.015)
 """
-function irrfbz_path(sgnum::Integer,
-                     Rs::Union{Nothing, AVec{<:AVec{<:Real}}}=nothing,
-                     Dᵛ::Val{D}=Val(3)) where D
-                     
-    if !isnothing(Rs)
-        D′ = length(Rs)
-        if D′ ≠ D || any(R -> length(R) ≠ D, Rs)
-            throw(DimensionMismatch("inconsistent input dimensions in `Rs` or `D`"))
-        end
-        Rs = convert(SVector{D, SVector{D, Float64}}, Rs)
-    end
-    bt = bravaistype(sgnum, D)
+function irrfbz_path(sgnum::Integer, Rs, Dᵛ::Val{D}=Val(3)) where D
+    D′ = length(Rs)
+    D′ ≠ D && throw(DimensionMismatch("inconsistent dimensions of `Rs` and `Dᵛ`"))
+    any(R -> length(R) ≠ D, Rs) && throw(DimensionMismatch("inconsistent element dimensions in `Rs`"))
+    Rs = convert(SVector{D, SVector{D, Float64}}, Rs)
+
+    # (extended) bravais type
+    bt = bravaistype(sgnum, Dᵛ)
     ext_bt = extended_bravais(sgnum, bt, Rs, Dᵛ)
 
     # get data about path
     lab2kvs = get_points(ext_bt, Rs, Dᵛ)
     paths = get_paths(ext_bt, Dᵛ)
 
-    return KPath(lab2kvs, paths)
+    # compute (primitive) reciprocal basis
+    cntr = last(bt)
+    pGs = primitivize_reciprocal(reciprocalbasis(Rs), cntr)
+
+    return KPath(lab2kvs, paths, pGs, Ref(LATTICE))
 end
-irrfbz_path(sgnum::Integer, Rs::StaticVector{D, <:AVec{<:Real}}) where D          = irrfbz_path(sgnum, Rs, Val(D))
-irrfbz_path(sgnum::Integer, Rs::Union{Nothing, AVec{<:AVec{<:Real}}}, D::Integer) = irrfbz_path(sgnum, Rs, Val(D))
+function irrfbz_path(sgnum::Integer, 
+            Rs::Union{StaticVector{D, <:AVec{<:Real}}, NTuple{D, <:AVec{<:Real}}}) where D
+    return irrfbz_path(sgnum, Rs, Val(D))
+end
+irrfbz_path(sgnum::Integer, Rs::AVec{<:AVec{<:Real}}, D::Integer) = irrfbz_path(sgnum, Rs, Val(D))
 
 function get_points(ext_bt::Symbol,
                     Rs::Union{Nothing, AVec{<:AVec{<:Real}}},
@@ -195,34 +215,34 @@ export interpolate, splice, cumdists
     cartesianize!(kp::KPath{D}, Gs::BasisLike{D})
 
 Transform a **k**-path `kp` in a lattice basis to a Cartesian basis with (primitive)
-basis vectors `Gs`.
+reciprocal basis vectors `basis`.
 Modifies `kp` in-place.
 """
-function cartesianize!(kp::KPath{D}, Gs::Union{BasisLike{D}, AVec{<:AVec{<:Real}}}) where D
+function cartesianize!(kp::KPath{D}) where D
+    kp.basisenum[] === CARTESIAN && return kp
     for (lab, kv) in points(kp)
-        points(kp)[lab] = kv'Gs
+        @inbounds points(kp)[lab] = cartesianize(kv, kp.basis)
     end
+    kp.basisenum[] = CARTESIAN
     return kp
 end
-cartesianize(kp::Union{KPath{D}, KPathInterpolant{D}},
-             Gs::Union{BasisLike{D}, AVec{<:AVec{<:Real}}}) where D = cartesianize!(deepcopy(kp), Gs)
 
 """
     latticize!(kp::KPath{D}, Gs::BasisLike{D})
 
 Transform a **k**-path `kpi` in a Cartesian basis to a lattice basis with (primitive)
-reciprocal lattice vectors `Gs`.
+reciprocal lattice vectors `basis`.
 Modifies `kp` in-place.
 """
-function latticize!(kp::KPath{D}, Gs::Union{BasisLike{D}, AVec{<:AVec{<:Real}}}) where D
-    Gm = hcat(Gs...)
+function latticize!(kp::KPath{D}) where D
+    kp.basisenum[] === LATTICE && return kp
+    basismatrix = hcat(kp.basis...)
     for (lab, kv) in points(kp)
-        points(kp)[lab] = Gm\kv
+        @inbounds points(kp)[lab] = latticize(kv, basismatrix)
     end
+    kp.basisenum[] = LATTICE
     return kp
 end
-latticize(kp::Union{KPath{D}, KPathInterpolant{D}},
-          Gs::Union{BasisLike{D}, AVec{<:AVec{<:Real}}}) where D = latticize!(deepcopy(kp), Gs)
 
 # ---------------------------------------------------------------------------------------- #
 end # module

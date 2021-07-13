@@ -18,36 +18,38 @@ julia> Rs   = ([1.0, 0.0, 0.0], [-0.5, sqrt(3)/2, 0.0],   [0, 0, 1.25]) # or `Cr
 julia> Gs   = reciprocalbasis(Rs)
 julia> cell = wignerseitz(Gs)
 Cell{3} (8 faces, 12 vertices):
- verts: [4.18879, 0.0, -2.513274]
-        [2.094395, -3.627599, -2.513274]
-        [4.18879, 0.0, 2.513274]
-        [2.094395, 3.627599, 2.513274]
-        [2.094395, 3.627599, -2.513274]
-        [2.094395, -3.627599, 2.513274]
-        [-2.094395, 3.627599, -2.513274]
-        [-4.18879, 0.0, -2.513274]
-        [-2.094395, -3.627599, -2.513274]
-        [-2.094395, -3.627599, 2.513274]
-        [-4.18879, 0.0, 2.513274]
-        [-2.094395, 3.627599, 2.513274]
- faces: [5, 4, 3, 1]
-        [8, 9, 10, 11]
-        [2, 1, 3, 6]
-        [2, 6, 10, 9]
-        [7, 5, 1, 2, 9, 8]
-        [4, 12, 11, 10, 6, 3]
-        [4, 5, 7, 12]
-        [11, 12, 7, 8]
- basis: [6.283185, 3.627599, -0.0]
-        [0.0, 7.255197, 0.0]
-        [0.0, -0.0, 5.026548]
+  verts: [0.666667, -0.333333, -0.5]
+         [0.333333, -0.666667, -0.5]
+         [0.666667, -0.333333, 0.5]
+         [0.333333, 0.333333, 0.5]
+         [0.333333, 0.333333, -0.5]
+         [0.333333, -0.666667, 0.5]
+         [-0.333333, 0.666667, -0.5]
+         [-0.666667, 0.333333, -0.5]
+         [-0.333333, -0.333333, -0.5]
+         [-0.333333, -0.333333, 0.5]
+         [-0.666667, 0.333333, 0.5]
+         [-0.333333, 0.666667, 0.5]
+  faces: [5, 4, 3, 1]
+         [8, 9, 10, 11]
+         [2, 1, 3, 6]
+         [2, 6, 10, 9]
+         [7, 5, 1, 2, 9, 8]
+         [4, 12, 11, 10, 6, 3]
+         [4, 5, 7, 12]
+         [11, 12, 7, 8]
+  basis: [6.283185, 3.627599, -0.0]
+         [0.0, 7.255197, 0.0]
+         [0.0, -0.0, 5.026548]
 ```
-The resulting Brillouin zone can be plotted using e.g. [PlotlyJS.jl](https://github.com/JuliaPlots/PlotlyJS.jl) (or 3D-capable backends of [AbstractPlotting.jl](https://github.com/JuliaPlots/AbstractPlotting.jl) such as [GLMakie.jl](https://github.com/JuliaPlots/GLMakie.jl)):
+The returned vertices are in the coordiantes of the provided reciprocal basis (to convert, see `cartesianize(!)`); this is the default behavior in Brillouin.
+
+The Brillouin zone can be plotted using e.g. [PlotlyJS.jl](https://github.com/JuliaPlots/PlotlyJS.jl) (or 3D-capable backends of [AbstractPlotting.jl](https://github.com/JuliaPlots/AbstractPlotting.jl) such as [GLMakie.jl](https://github.com/JuliaPlots/GLMakie.jl)):
 ```jl
 julia> using PlotlyJS
 julia> plot(cell)
 ```
-Examples of interactive visualizations are [included in the documentation](https://thchr.github.io/Brillouin.jl/stable/wignerseitz/).
+Examples of interactive visualizations are [included in the documentation](https://thchr.github.io/Brillouin.jl/stable/wignerseitz/). Visualizations will automatically be displayed in Cartesian coordinates.
 
 Irreducible **k**-paths are returned by `irrfbz_path`, and can similarly be visualized (see [examples in documentation](https://thchr.github.io/Brillouin.jl/stable/kpaths/)):
 ```jl
@@ -63,5 +65,8 @@ KPath{3} (7 points, 3 paths, 13 points in paths):
   paths: [:Γ, :M, :K, :Γ, :A, :L, :H, :A]
          [:L, :M]
          [:H, :K, :H₂]
+  basis: [6.283185, 3.627599, -0.0]
+         [0.0, 7.255197, 0.0]
+         [0.0, -0.0, 5.026548]
 ```
 The resulting object can be interpolated, using either `interpolate(kp, N)` or `splice(kp, N)`, which produces an `KPathInterpolant` iterable whose elements interpolate the connected paths (and enable convenient plotting of [band structure diagrams](https://thchr.github.io/Brillouin.jl/stable/kpaths/#Band-structure)).

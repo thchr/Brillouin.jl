@@ -14,7 +14,7 @@ using Brillouin.KPaths: cartesianize, latticize
     kp = irrfbz_path(sgnum, Rs)
 
     # test that `Rs` has no impact in sgnum 227 (cubic face-centered, FCC)
-    @test kp == irrfbz_path(sgnum, nothing)
+    @test kp == irrfbz_path(sgnum, [rand(3) for _ in 1:3])
 
     # `getindex`
     @test collect(kp) == [:Γ => [0.0, 0.0, 0.0]
@@ -39,16 +39,19 @@ using Brillouin.KPaths: cartesianize, latticize
              :L => [0.5, 0.5, 0.5]
              :X => [0.5, 0.0, 0.5]
       paths: [:Γ, :X, :U]
-             [:K, :Γ, :L, :W, :X]"""
+             [:K, :Γ, :L, :W, :X]
+      basis: [-6.283185, 6.283185, 6.283185]
+             [6.283185, -6.283185, 6.283185]
+             [6.283185, 6.283185, -6.283185]"""
     test_show(kp, kp_show_reference)
 
     # `cartesianize` & `latticize`
     pGs = 2π.*[[-1,1,1], [1,-1,1], [1,1,-1]] # primitive reciprocal basis
-    kp′ = cartesianize(kp, pGs)
+    kp′ = Brillouin.cartesianize(kp)
     @test all(zip(points(kp), points(kp′))) do ((klab, kv), (klab′, kv′))
         klab == klab′ && kv'pGs ≈ kv′
     end
-    kp′′ = latticize(kp′, pGs)
+    kp′′ = Brillouin.latticize(kp′)
     @test keys(points(kp′′)) == keys(points(kp)) # point labels agree
     @test paths(kp′′)        == paths(kp)        # segments agree
     @test all(values(points(kp′′)) .≈ values(points(kp))) # point coordinates approx. agree
@@ -110,20 +113,17 @@ using Brillouin.KPaths: cartesianize, latticize
     @test length(kps) == highsym_points + segments*N
 
     # `cartesianize` 
-    # unfortunately sort of broken, in the sense that `cartesianize` does not commute
-    # with `interpolate` when applied to a `kp` vs. a `kpi` - ideally, it should do
-    # that, but that requires embedding the primitive reciprocal basis, which would mean
-    # more annoying input signatures or more heavy dependencies: mark as `@test_broken`
+    # test that `cartesianize` commutes with `interpolate` when applied to a `kp`/`kpi`
     cntr = Crystalline.centering(5, 2)         # centering type 'c' in plane group 5
     Rs   = Crystalline.directbasis(5, Val(2))
     Gs   = Crystalline.reciprocalbasis(Rs)
     pGs  = Crystalline.primitivize(Gs, cntr)
 
     kp   = irrfbz_path(5, Rs, Val(2))
-    kpi  = interpolate(cartesianize(kp, pGs), 100)  # "correct" way: nearly equidistantly sampled in cartesian space
-    kpi′ = cartesianize!(interpolate(kp, 100), pGs) # "flawed" way: not equidistantly sampled in cartesian space
+    kpi  = interpolate(Brillouin.cartesianize(kp), 100)
+    kpi′ = Brillouin.cartesianize!(interpolate(kp, 100))
 
     @test typeof(kpi) === typeof(kpi′) === KPathInterpolant{2}
-    @test_broken kpi′ ≈ kpi # points will not fall in exactly the same places
-    @test cartesianize!(latticize(kpi, pGs), pGs) ≈ kpi
+    @test kpi′ ≈ kpi # test that `interpolate` commutes with `latticize`/`cartesianize`
+    @test Brillouin.cartesianize!(latticize!(kpi)) ≈ kpi
 end

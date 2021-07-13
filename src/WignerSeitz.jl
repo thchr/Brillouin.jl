@@ -2,7 +2,14 @@ module WignerSeitz
 
 # ---------------------------------------------------------------------------------------- #
 
-using ..Brillouin: AVec, SHOWDIGITS
+using ..Brillouin: 
+    AVec,
+    SHOWDIGITS,
+    BasisEnum, CARTESIAN, LATTICE,
+    cartesianize, latticize
+import ..Brillouin:
+    latticize!, cartesianize!,
+    basis
 using StaticArrays
 using LinearAlgebra: dot, cross, norm
 using PyCall
@@ -12,7 +19,7 @@ import Base: getindex, size, IndexStyle, show, summary
 
 # ---------------------------------------------------------------------------------------- #
 
-export Cell, wignerseitz, faces, vertices, basis
+export Cell, wignerseitz, faces, vertices
 
 # ---------------------------------------------------------------------------------------- #
 
@@ -33,10 +40,11 @@ struct Cell{D} <: AVec{Vector{SVector{D, Float64}}} # over of polygons
     verts :: Vector{SVector{D, Float64}}
     faces :: Vector{Vector{Int}}
     basis :: SVector{D, SVector{D, Float64}}
+    basisenum :: Ref{BasisEnum} # internal field
 end
+
 faces(c::Cell)    = c.faces
 vertices(c::Cell) = c.verts
-basis(c::Cell)    = c.basis
 
 # abstract array interface
 Base.@propagate_inbounds getindex(c::Cell, i::Int) = vertices(c)[faces(c)[i]]
@@ -52,25 +60,33 @@ function show(io::IO, ::MIME"text/plain", c::Cell{D}) where D
     summary(io, c)
     println(io, ":")
 
-    println(io, " verts: ", round.(first(vertices(c)), digits=SHOWDIGITS))
-    foreach(v -> println(io, "        ", round.(v, digits=SHOWDIGITS)), @view vertices(c)[2:end])
+    println(io, "  verts: ", round.(first(vertices(c)), digits=SHOWDIGITS))
+    foreach(v -> println(io, "         ", round.(v, digits=SHOWDIGITS)), @view vertices(c)[2:end])
      
-    println(io, " faces: ", first(faces(c)))
-    foreach(f -> println(io, "        ", f), @view faces(c)[2:end])
+    println(io, "  faces: ", first(faces(c)))
+    foreach(f -> println(io, "         ", f), @view faces(c)[2:end])
 
-    println(io, " basis: ", round.(first(basis(c)), digits=SHOWDIGITS))
-    foreach(v -> println(io, "        ", round.(v, digits=SHOWDIGITS)), @view basis(c)[2:D])
+    print(io, "  basis: ")
+    foreach(enumerate(basis(c))) do (i,v) # dance to ensure final line isn't `\n`-terminated
+        i ≠ 1 && print(io, "         ")
+        if i ≠ length(basis(c))
+            println(io, round.(v, digits=SHOWDIGITS))
+        else
+            print(io, round.(v, digits=SHOWDIGITS))
+        end
+    end
 end
 # ---------------------------------------------------------------------------------------- #
 # MAIN FUNCTION
 
 """
-    wignerseitz(Vs::AbstractVector{<:SVector{D}}; merge::Bool = true, Nmax = 3)
-    wignerseitz(Vs::AbstractVector{AbstractVector}; merge::Bool = true, Nmax = 3)
+    wignerseitz(basis::AbstractVector{<:SVector{D}}; merge::Bool = true, Nmax = 3)
+    wignerseitz(basis::AbstractVector{AbstractVector}; merge::Bool = true, Nmax = 3)
                                                                 --> Cell{D}
 
-Return a `Cell{D}` structure, containing the vertices and associated (outward oriented)
-faces, of the Wigner-Seitz cell defined by a basis `Vs` in `D` dimensions.
+Given a provided basis, return a `Cell{D}` containing the vertices and associated (outward
+oriented) faces of the Wigner-Seitz cell defined by `basis` in `D` dimensions. The returned
+vertices are given in the the basis of `basis` (see [`cartesianize!`](@ref) for conversion).
 
 ## Keyword arguments
 - `merge` (default, `true`): if `true`, co-planar faces are merged to form polygonal
@@ -82,7 +98,7 @@ faces, of the Wigner-Seitz cell defined by a basis `Vs` in `D` dimensions.
   than 3 without explicitly testing convergence; and probably unnecessary to increase it
   beyond 3 as well.
 """
-function wignerseitz(Vs::AVec{<:SVector{D,<:Real}};
+function wignerseitz(basis::AVec{<:SVector{D,<:Real}};
             merge::Bool = true,
             Nmax::Integer = 3) where D
     # "supercell" lattice of G-vectors
@@ -90,9 +106,9 @@ function wignerseitz(Vs::AVec{<:SVector{D,<:Real}};
     lattice = Vector{SVector{D,Float64}}(undef, length(Ns)^D)
     idx_cntr = 0
     for (idx, I) in enumerate(CartesianIndices(ntuple(_->Ns, Val(D))))
-                   V =  Vs[1]*I[1]
-        D >= 2 && (V += Vs[2]*I[2])
-        D == 3 && (V += Vs[3]*I[3])
+                   V =  basis[1]*I[1]
+        D >= 2 && (V += basis[2]*I[2])
+        D == 3 && (V += basis[3]*I[3])
         lattice[idx] = V
         iszero(I) && (idx_cntr = idx)
     end
@@ -105,38 +121,38 @@ function wignerseitz(Vs::AVec{<:SVector{D,<:Real}};
 
     # get convex hull of central vertices
     hull = PySpatial.ConvexHull(verts_cntr)
-    c    = convert_to_cell(hull, Vs)
+    c    = convert_to_cell(hull, basis)
     c    = reorient_normals!(c)
 
     # return either raw simplices or "merged" polygons
     if merge
-        return merge_coplanar!(c)
+        return latticize!(merge_coplanar!(c))
     else
-        return c
+        return latticize!(c)
     end
 end
 # overload for input as ordinary vectors; type-unstable obviously, but convenient sometimes
-function wignerseitz(Vs::AVec{<:AVec{<:Real}}; kwargs...)
-    D = length(first(Vs))
-    all(V->length(V) == D, @view Vs[2:end]) || error(DomainError(Vs, "provided vectors `Vs` must have identical dimension"))
+function wignerseitz(basis::AVec{<:AVec{<:Real}}; kwargs...)
+    D = length(first(basis))
+    all(V->length(V) == D, @view basis[2:end]) || error(DomainError(basis, "provided `basis` must have identical dimensions"))
 
-    return wignerseitz(SVector{D,Float64}.(Vs); kwargs...)
+    return wignerseitz(SVector{D,Float64}.(basis); kwargs...)
 end
 
-function wignerseitz(Vs::AVec{<:SVector{1,<:Real}}; kwargs...)
-    a = only(only(Vs))
-    Cell{1}([(@SVector [-a/2]), (@SVector [a/2])], [1,2], Vs)
+function wignerseitz(basis::AVec{<:SVector{1,<:Real}}; kwargs...)
+    a = only(only(basis))
+    Cell{1}([(@SVector [-a/2]), (@SVector [a/2])], [1,2], basis)
 end
 # ---------------------------------------------------------------------------------------- #
 # UTILITIES & SUBFUNCTIONS
 
-function convert_to_cell(hull, Vs::AVec{<:SVector{D,<:Real}}) where D
+function convert_to_cell(hull, basis::AVec{<:SVector{D,<:Real}}) where D
     vs′ = hull.points         # vertices
     fs′ = hull.simplices .+ 1 # faces
 
     vs = SVector{D, Float64}.(eachrow(vs′))
     fs = Vector{Int}.(eachrow(fs′))
-    return Cell(vs, fs, SVector{D, SVector{D, Float64}}(Vs))
+    return Cell(vs, fs, SVector{D, SVector{D, Float64}}(basis), Ref(CARTESIAN))
 end
 
 
@@ -294,5 +310,20 @@ function segments2polygon(fs::Vector{Vector{Int}})
 end
 
 # ---------------------------------------------------------------------------------------- #
+
+
+function latticize!(c::Cell)
+    c.basisenum[] === LATTICE && return c
+    basismatrix = hcat(c.basis...)
+    c.verts .= latticize.(c.verts, Ref(basismatrix))
+    c.basisenum[] = LATTICE
+    return c
+end
+function cartesianize!(c::Cell)
+    c.basisenum[] === CARTESIAN && return c
+    c.verts .= cartesianize.(c.verts, Ref(c.basis))
+    c.basisenum[] = CARTESIAN
+    return c
+end
 
 end # module

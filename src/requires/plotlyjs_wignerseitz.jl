@@ -44,6 +44,7 @@ const AXIS_LIGHT_COL  = Ref("rgb(242,215,208)") # 20% AXIS_COL, 80% white
 # 3D
 
 function plot(c::Cell{3}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_3D)
+    c.basisenum[] !== CARTESIAN && (c = cartesianize(c))
     scale = maximum(norm, basis(c))
 
     # BZ
@@ -85,12 +86,12 @@ function plot(c::Cell{3}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_3D)
     end
 
     # Cartesian axes
-    cartVs = cartesian_axes(Val(3))
-    name_axs = ("x", "y", "z") 
+    cart_basis = cartesian_axes(Val(3))
+    name_axs = ("x", "y", "z")
     taxs    = Vector{GenericTrace{Dict{Symbol,Any}}}(undef, 6)
     taxtips = Vector{GenericTrace{Dict{Symbol,Any}}}(undef, 3)
-    intersects = axis_intersections(c, cartVs)
-    for (i, V) in enumerate(cartVs)
+    intersects = axis_intersections(c, cart_basis)
+    for (i, V) in enumerate(cart_basis)
         name = "<b>"*string(name_axs[i])*"</b>"
         V′ = V./norm(V)
         for j in (1,2) # in/outside BZ
@@ -146,7 +147,9 @@ const DEFAULT_PLOTLY_LAYOUT_2D  = Layout(
 
 function plot(c::Cell{2}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_2D)
     layout = deepcopy(layout) # because we have to mutate to get arrows...
-
+    
+    c.basisenum[] !== CARTESIAN && (c = cartesianize(c))
+    
     scale = maximum(norm, basis(c))
     max_x, max_y = maximum(v->abs(v[1]), basis(c)), maximum(v->abs(v[2]), basis(c))
     get!(layout[:xaxis], :range, [-max_x-scale/15, max_x+scale/15])
@@ -193,12 +196,12 @@ function plot(c::Cell{2}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_2D)
     end
 
     # Cartesian axes
-    cartVs = cartesian_axes(Val(2))
+    cart_basis = cartesian_axes(Val(2))
     name_axs = ("x", "y") 
     taxs    = Vector{GenericTrace{Dict{Symbol,Any}}}(undef, 4)
     taxtips = Vector{GenericTrace{Dict{Symbol,Any}}}(undef, 2)
-    intersects = axis_intersections(c, cartVs)
-    for (i, V) in enumerate(cartVs)
+    intersects = axis_intersections(c, cart_basis)
+    for (i, V) in enumerate(cart_basis)
         name = "<b>"*string(name_axs[i])*"</b>"
         V′ = V./norm(V)
         for j in (1,2) # in/outside BZ

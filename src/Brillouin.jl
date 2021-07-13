@@ -12,6 +12,37 @@ const SHOWDIGITS = 6
 # is just a hardcopy of output from Crystalline's equivalent function
 include("CrystallineBravaisVendor.jl")
 # ---------------------------------------------------------------------------------------- #
+@enum BasisEnum CARTESIAN LATTICE
+# ---------------------------------------------------------------------------------------- #
+function latticize! end
+latticize(v::AVec{<:Real}, basismatrix::AbstractMatrix{<:Real}) = basismatrix\v
+latticize(v::AVec{<:Real}, basis::AVec{<:AVec{<:Real}}) = latticize(v, hcat(basis...))'
+latticize(x) = (x.basisenum[] === CARTESIAN ? latticize!(deepcopy(x)) : deepcopy(x))
+
+function cartesianize! end
+cartesianize(v::AVec{<:Real}, basis::AVec{<:AVec{<:Real}}) = v'basis
+cartesianize(x) = (x.basisenum[] === LATTICE ? cartesianize!(deepcopy(x)) : deepcopy(x))
+
+"""
+    basis(x::Union{KPath, KPathInterpolant, Cell})
+
+Return the (reciprocal or direct) lattice basis associated with `x`, in Cartesian
+coordinates.
+
+Methods in Brillouin will by default return points in the lattice basis, i.e., points are
+referred to `basis(x)`. This corresponds to the setting `x.basisenum[] == LATTICE`.
+Coordinates may instead be referred to a Cartesian basis, corresponding to
+`x.basisenum[] == CARTESIAN` by using [`cartesianize`](@ref). The result of `basis(x)`,
+however, is invariant to this and always refers to the lattice basis in Cartesian
+coordinates.
+"""
+basis(x) = x.basis
+
+export latticize!, latticize,
+    cartesianize!, cartesianize,
+    basis
+# ---------------------------------------------------------------------------------------- #
+
 # MAIN FUNCTIONALITY
 
 include("KPaths.jl")

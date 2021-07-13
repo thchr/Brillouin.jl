@@ -9,14 +9,13 @@ sgnum = 227
 Rs = [[1,0,0], [0,1,0], [0,0,1]] # conventional direct basis
 kp = irrfbz_path(sgnum, Rs)
 ```
-The path data is sourced from the [HPKOT paper](http://dx.doi.org/10.1016/j.commatsci.2016.10.015) (or, equivalently, the [SeeK-path](https://github.com/giovannipizzi/seekpath) Python package).
+The path data is sourced from the [HPKOT paper](http://dx.doi.org/10.1016/j.commatsci.2016.10.015) (or, equivalently, the [SeeK-path](https://github.com/giovannipizzi/seekpath) Python package). 
 
-The resulting `KPath` structure initially gives the **k**-point coordinates in the basis of the *primitive* reciprocal basis. To convert to a Cartesian basis, we use [`cartesianize!`](@ref):
+The coordinates of the path are given with respect to the *primitive* reciprocal basis (here, `[[-2π,2π,2π], [2π,-2π,2π], [2π,2π,-2π]]`). To convert to a Cartesian basis, we can use [`cartesianize`](@ref) or [`cartesianize!`](@ref) (in-place):
 ```@example kpath
-pGs = 2π.*[[-1,1,1], [1,-1,1], [1,1,-1]] # primitive reciprocal basis
-cartesianize!(kp, pGs)
+cartesianize(kp)
 ```
-We can visualize the **k**-path using [PlotlyJS.jl](https://github.com/JuliaPlots/PlotlyJS.jl):
+We can visualize the **k**-path using [PlotlyJS.jl](https://github.com/JuliaPlots/PlotlyJS.jl) (conversion to a Cartesian basis for plotting is automatic):
 ```@example kpath
 using PlotlyJS
 Pᵏ = plot(kp)
@@ -32,17 +31,17 @@ Main.HTMLPlot(Pᶜ⁺ᵏ) # hide
 
 ## Interpolation
 Interpolation of a `KPath` structure can be achieved using either [`interpolate(::KPath, ::Integer)`](@ref) or [`splice(::KPath, ::Integer)`](@ref), returning a `KPathInterpolant`.
-As an example, `interpolate(kp, N)` returns an interpolation with a *target* of `N` interpolation points, distributed as equidistantly as possible:
+As an example, `interpolate(kp, N)` returns an interpolation with a *target* of `N` interpolation points, distributed as equidistantly as possible (with the distance metric evaluated in Cartesian space):
 ```@example kpath
 kpi = interpolate(kp, 100)
 ```
 The returned `KPathInterpolant` implements the `AbstractVector` interface, with iterants returning `SVector{D, Float64}` elements.
 To get a conventional "flat" vector, we can simply call `collect(kpi)`.
 
-Internally, `KPathInterpolant`includes additional structure and information: namely, the high-symmetry points and associated labels along the path as well as a partitioning into connected vs. disconnected path segments.
+Internally, `KPathInterpolant` includes additional structure and information: namely, the high-symmetry points and associated labels along the path as well as a partitioning into connected vs. disconnected path segments.
 
 ## Band structure
-The additional structure in `KPathInterpolation`s enable convenient and clear visualization of band structure diagrams in combination with PlotlyJS.
+The additional structure of `KPathInterpolation` enables convenient and clear visualizations of band structure diagrams in combination with PlotlyJS.
 
 To illustrate this, suppose we are considering a tight-binding problem for an *s*-orbital situated at the 1a Wyckoff position. Such a problem has a single band with dispersion [^1] (assuming a cubic side length ``a = 1``):
 ```math
