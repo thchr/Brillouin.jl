@@ -6,7 +6,7 @@
 [![Coverage](https://codecov.io/gh/thchr/Brillouin.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/thchr/Brillouin.jl)
 
 
-Brillouin.jl is a Julia package that provides tools to generate and visualize **k**-space paths and Brillouin zones (for eigenvalue problems in crystals).
+Brillouin.jl is a Julia package that provides tools to generate and visualize **k**-space paths and Brillouin zones for eigenvalue problems in crystals.
 The **k**-path functionalities are inspired by the Python [SeeK-path package](https://github.com/giovannipizzi/seekpath) (and return equivalent paths in 3D).
 
 ## Examples
@@ -75,4 +75,4 @@ KPath{3} (7 points, 3 paths, 13 points in paths):
          [0.0, -0.0, 5.026548]
 ```
 The resulting object can be interpolated, using either `interpolate(kp, N)` or `splice(kp, N)`, which produces a `KPathInterpolant` iterable whose values interpolate the connected paths (and enable convenient plotting of [band structure diagrams](https://thchr.github.io/Brillouin.jl/stable/kpaths/#Band-structure)). 
-See also visualization [examples in documentation](https://thchr.github.io/Brillouin.jl/stable/kpaths/)).
+See also visualization [examples in documentation](https://thchr.github.io/Brillouin.jl/stable/kpaths/).
