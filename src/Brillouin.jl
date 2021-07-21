@@ -8,8 +8,8 @@ const AVec = AbstractVector
 const BasisLike{D} = AVec{<:SVector{D,<:Real}}
 const SHOWDIGITS = 6
 # ---------------------------------------------------------------------------------------- #
-# defines a a module `CrystallineBravaisVendor` with a single function `bravaistype`, which
-# is just a hardcopy of output from Crystalline's equivalent function
+# defines a a module `CrystallineBravaisVendor` with a few functions that are simply copies
+# of equivalent functions in Crystalline (i.e. trying to avoid a full dependence...)
 include("CrystallineBravaisVendor.jl")
 # ---------------------------------------------------------------------------------------- #
 @enum BasisEnum CARTESIAN LATTICE

@@ -126,15 +126,16 @@ function plot(kpi::KPathInterpolant, bands,
         # place any high-symmetry point annotations
         if annotations !== nothing
             for (lab, bandidxs_and_strs) in annotations
-                idx = findfirst(==(Symbol(lab)), labels)
-                idx == nothing && continue
-                for (bandidxs, str) in bandidxs_and_strs
-                    freq = sum(b->bands[b][idx + start_idx - 1], bandidxs)/length(bandidxs)                   
-                    push!(tbands,
-                            PlotlyJS.scatter(x = x[idx:idx], y=freq:freq,
-                                hoverinfo="text", hovertext=str, mode="marker",
-                                line=attr(color=:black)))
-                end                
+                for idx in findall(==(Symbol(lab)), labels)
+                    for (bandidxs, str) in bandidxs_and_strs
+                        Nbandidxs = length(bandidxs)
+                        freq = sum(b->bands[b][idx + start_idx - 1], bandidxs)/Nbandidxs
+                        push!(tbands,
+                                PlotlyJS.scatter(x = x[idx:idx], y=freq:freq,
+                                    hoverinfo="text", hovertext=str, mode="marker",
+                                    line=attr(color=:black)))
+                    end
+                end
             end
         end
         # draw boxes
@@ -157,8 +158,12 @@ function plot(kpi::KPathInterpolant, bands,
 end
 # `bands` can also be supplied as a matrix (w/ distinct bands in distinct columns)
 function plot(kpi::KPathInterpolant, bands::AbstractMatrix{<:Real},
-     layout::Layout = DEFAULT_PLOTLY_LAYOUT_DISPERSION; kwargs...)
-     plot(kpi, eachcol(bands), layout; kwargs...)
+    layout::Layout = DEFAULT_PLOTLY_LAYOUT_DISPERSION; kwargs...)
+    # TODO: would be nice to avoid collecting `eachcol` here, but if we don't, then we run
+    #       into problems with not being able to index into `eachcol(bands)` since it's a
+    #       generator... problem is gone if https://github.com/JuliaLang/julia/pull/32310
+    #       or https://github.com/JuliaLang/julia/pull/37648 are merged
+    plot(kpi, collect(eachcol(bands)), layout; kwargs...)
 end
 
 function default_dispersion_ylims(bands)
