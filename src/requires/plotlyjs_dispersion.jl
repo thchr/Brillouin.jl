@@ -9,10 +9,12 @@ const DEFAULT_PLOTLY_LAYOUT_DISPERSION = Layout(
     xaxis=attr(zeroline=false,
             showgrid=true, showbackground=false,
             gridcolor = KLINE_COL[], ticks="outside",
+            showline=true, mirror=true, # show axis boundary
             ),
     yaxis=attr(zeroline=false,
             showgrid=false, showbackground=false,
             ticks="outside",
+            showline=true, mirror="all", # show axis boundaries on all subplots
             ),
     hovermode = "closest",
     autosize = true,
@@ -97,31 +99,34 @@ function plot(kpi::KPathInterpolant, bands,
     end
 
     # prepare to plot band diagram
-    local_xs = cumdists.(kpi.kpaths)
-    spacing = sum(last, local_xs) / 30
+    Npaths           = length(kpi.kpaths)
+    local_xs         = cumdists.(kpi.kpaths)
+    local_xs_lengths = last.(local_xs)
+    total_xs_lengths = sum(local_xs_lengths)
+    spacing          = total_xs_lengths / 30
+    rel_xs_lengths   = local_xs_lengths./(total_xs_lengths+spacing*(Npaths-1))
+    rel_spacing      = spacing/(total_xs_lengths+spacing*(Npaths-1))
 
     # plot bands and k-lines/labels
     tbands = Vector{GenericTrace{Dict{Symbol,Any}}}()
-    xticks = Vector{Float64}(undef, sum(length, kpi.labels))
-    xlabs  = Vector{Symbol}(undef, sum(length, kpi.labels))
-    tboxs  = Vector{GenericTrace{Dict{Symbol,Any}}}()
+    xticks = [Vector{Float64}(undef, length(labels)) for labels in kpi.labels]
+    xlabs  = [Vector{Symbol}(undef, length(labels)) for labels in kpi.labels]
     start_idx = 1
-    offset_x  = 0.0
-    i = 0
-    for (local_x, labels) in zip(local_xs, kpi.labels)
+    domain_start = 0.0 # subplot domain "start" point
+    for (path_idx, (local_x, labels)) in enumerate(zip(local_xs, kpi.labels))
         stop_idx = start_idx+length(local_x)-1
-        x = local_x .+ offset_x
         # plot bands
         for (i, band) in enumerate(bands)
             line = something(_get_value_if_in_ranges(band_highlights, i), 
                              attr(color=BAND_COL[], width=3)) # default            
-            push!(tbands, PlotlyJS.scatter(x=x, y=band[start_idx:stop_idx],
-                                           hoverinfo="y", mode="lines", line=line))
+            push!(tbands,
+                PlotlyJS.scatter(x=local_x, y=band[start_idx:stop_idx],
+                    hoverinfo="y", mode="lines", line=line, xaxis="x$path_idx", yaxis="y"))
         end
         # define xticks
-        for (idx, lab) in labels
-            xticks[i+=1] = x[idx]
-            xlabs[i]     = lab
+        for (lab_idx, (x_idx, lab)) in enumerate(labels)
+            xticks[path_idx][lab_idx] = local_x[x_idx]
+            xlabs[path_idx][lab_idx]  = lab
         end
         # place any high-symmetry point annotations
         if annotations !== nothing
@@ -131,30 +136,32 @@ function plot(kpi::KPathInterpolant, bands,
                         Nbandidxs = length(bandidxs)
                         freq = sum(b->bands[b][idx + start_idx - 1], bandidxs)/Nbandidxs
                         push!(tbands,
-                                PlotlyJS.scatter(x = x[idx:idx], y=freq:freq,
+                                PlotlyJS.scatter(x = local_x[idx:idx], y=freq:freq,
                                     hoverinfo="text", hovertext=str, mode="marker",
-                                    line=attr(color=:black)))
+                                    line=attr(color=:black), xaxis="x$path_idx", yaxis="y"))
                     end
                 end
             end
         end
-        # draw boxes
-        xlims = extrema(x)
-        push!(tboxs, 
-                PlotlyJS.scatter(x=xlims[[1, 2, 2, 1, 1]], y=ylims[[1,1,2,2,1]],
-                    hoverinfo="none", mode="lines", line=attr(color="black", width=1)))
+        
+        # set subplot sizes and local xticks & xrange
+        sym_xaxis = Symbol("xaxis$path_idx") # subplot xaxis name
+
+        layout[sym_xaxis] = copy(get(layout, :xaxis, attr()))
+        layout[sym_xaxis][:range]  = [extrema(local_x)...]
+        layout[sym_xaxis][:tickvals] = xticks[path_idx]
+        layout[sym_xaxis][:ticktext] = xlabs[path_idx]
+        
+        domain_end = domain_start + rel_xs_lengths[path_idx]
+        layout[Symbol(sym_xaxis, "_domain")] = [domain_start, domain_end]
+        domain_start = domain_end + rel_spacing
+
         # prepare for next iteration
-        offset_x = last(x) + spacing
         start_idx = stop_idx + 1
     end
-    
-    # set xticks and x-range
-    haskey(layout, :xaxis) || (layout[:xaxis] = attr())
-    layout[:xaxis][:range]  = [0.0, offset_x - spacing]
-    layout[:xaxis][:tickvals] = xticks
-    layout[:xaxis][:ticktext] = xlabs
+    delete!(layout.fields, :xaxis) # get rid of unused xaxis in layout; causes artifacts...
 
-    return plot(vcat(tbands,tboxs), layout)
+    return plot(tbands, layout)
 end
 # `bands` can also be supplied as a matrix (w/ distinct bands in distinct columns)
 function plot(kpi::KPathInterpolant, bands::AbstractMatrix{<:Real},
