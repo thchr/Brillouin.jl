@@ -61,17 +61,6 @@ end
 Transform an interpolated **k**-path `kpi` in a lattice basis to a Cartesian basis with
 (primitive) reciprocal lattice vectors `basis(kpi)`.
 Modifies `kpi` in-place.
-
-!!! warning
-If `kpi` was originally created from a `KPath` in a non-cartesian basis, its points will
-not be equidistantly spaced when converted to a Cartesian basis. In particular, for a
-`kp::KPath` in the lattice basis, it is generally true that
-`interpolate(cartesianize(kp), N) ≠ cartesianize(interpolate(kp, N)))`, unless
-the reciprocal basis `pGs` is square. Only `interpolate(cartesianize(kp)` is guaranteed
-to produce paths that are approximately equidistantly spaced.
-
-It is therefore strongly recommended *not* to use `cartesianize!(::KPathInterpolant)`
-except in combination with [`latticize!(::KPathInterpolant)`](@ref).
 """
 function cartesianize!(kpi::KPathInterpolant)
     kpi.basisenum[] === CARTESIAN && return kp
