@@ -43,7 +43,9 @@ const AXIS_LIGHT_COL  = Ref("rgb(242,215,208)") # 20% AXIS_COL, 80% white
 # ---------------------------------------------------------------------------------------- #
 # 3D
 
-function plot(c::Cell{3}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_3D)
+function plot(c::Cell{3}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_3D;
+              config::PlotConfig = PlotConfig(responsive=true, displaylogo=false))
+
     c.basisenum[] !== CARTESIAN && (c = cartesianize(c))
     scale = maximum(norm, basis(c))
 
@@ -119,7 +121,7 @@ function plot(c::Cell{3}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_3D)
 
     # combine traces and plot
     ts = vcat(tbz, tgs, tgtips, taxs, taxtips)
-    return PlotlyJS.plot(ts, layout)
+    return PlotlyJS.plot(ts, layout; config=config)
 end
 
 # ---------------------------------------------------------------------------------------- #
@@ -145,7 +147,8 @@ const DEFAULT_PLOTLY_LAYOUT_2D  = Layout(
     annotations=PlotlyBase.PlotlyAttribute[]
     )
 
-function plot(c::Cell{2}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_2D)
+function plot(c::Cell{2}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_2D;
+              config::PlotConfig = PlotConfig(responsive=true, displaylogo=false))
     layout = deepcopy(layout) # because we have to mutate to get arrows...
     
     c.basisenum[] !== CARTESIAN && (c = cartesianize(c))
@@ -231,7 +234,7 @@ function plot(c::Cell{2}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_2D)
 
     # combine traces and plot
     ts = vcat(tbz, tgs, taxs)
-    return PlotlyJS.plot(ts, layout)
+    return PlotlyJS.plot(ts, layout; config=config)
 end
 
 # ---------------------------------------------------------------------------------------- #

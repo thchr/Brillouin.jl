@@ -65,7 +65,8 @@ function plot(kpi::KPathInterpolant, bands,
               layout::Layout = DEFAULT_PLOTLY_LAYOUT_DISPERSION;
               ylims = nothing, ylabel = "Energy", title = nothing,
               band_highlights::Union{Dict, Nothing} = nothing,
-              annotations::Union{Dict, Nothing} = nothing)
+              annotations::Union{Dict, Nothing} = nothing,
+              config::PlotConfig = PlotConfig(responsive=true, displaylogo=false))
     # check input
     N = length(kpi)
     if !all(band -> length(band) == N, bands)
@@ -161,7 +162,7 @@ function plot(kpi::KPathInterpolant, bands,
     end
     delete!(layout.fields, :xaxis) # get rid of unused xaxis in layout; causes artifacts...
 
-    return plot(tbands, layout)
+    return plot(tbands, layout; config=config)
 end
 # `bands` can also be supplied as a matrix (w/ distinct bands in distinct columns)
 function plot(kpi::KPathInterpolant, bands::AbstractMatrix{<:Real},

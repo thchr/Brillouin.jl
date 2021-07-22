@@ -7,7 +7,8 @@ const KPATH_COL = Ref("rgb(95,39,205)") # "nasu purple" (https://flatuicolors.co
 
 # ---------------------------------------------------------------------------------------- #
 
-function plot(kp::KPath{3}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_3D)
+function plot(kp::KPath{3}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_3D;
+              config::PlotConfig = PlotConfig(responsive=true, displaylogo=false))
     kp.basisenum[] !== CARTESIAN && (kp = cartesianize(kp))
 
     tpaths = Vector{GenericTrace{Dict{Symbol,Any}}}(undef, length(paths(kp)))
@@ -26,11 +27,12 @@ function plot(kp::KPath{3}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_3D)
             hoverinfo="text",
             marker=attr(color=KPATH_COL[], size=6, line=attr(color="white", width=1)))
     end
-    return plot(vcat(tpoints, tpaths), layout)
+    return plot(vcat(tpoints, tpaths), layout; config=config)
 end
 
 # ---------------------------------------------------------------------------------------- #
-function plot(kp::KPath{2}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_2D)
+function plot(kp::KPath{2}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_2D;
+              config::PlotConfig = PlotConfig(responsive=true, displaylogo=false))
     kp.basisenum[] !== CARTESIAN && (kp = cartesianize(kp))
 
     tpaths = Vector{GenericTrace{Dict{Symbol,Any}}}(undef, length(paths(kp)))
@@ -49,12 +51,13 @@ function plot(kp::KPath{2}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_2D)
             hoverinfo="text",
             marker=attr(color=KPATH_COL[], size=8, line=attr(color="white", width=1)))
     end
-    return plot(vcat(tpoints, tpaths), layout)
+    return plot(vcat(tpoints, tpaths), layout; config=config)
 end
 # ---------------------------------------------------------------------------------------- #
 
 function plot(c::Cell{D}, kp::KPath{D}, 
-              layout::Layout=(D==3 ? DEFAULT_PLOTLY_LAYOUT_3D : DEFAULT_PLOTLY_LAYOUT_2D)
+              layout::Layout=(D==3 ? DEFAULT_PLOTLY_LAYOUT_3D : DEFAULT_PLOTLY_LAYOUT_2D);
+              config::PlotConfig = PlotConfig(responsive=true, displaylogo=false)
               ) where D
 
     D ∉ (2,3) && error("must be 2D or 3D Cell and KPath")
@@ -78,6 +81,6 @@ function plot(c::Cell{D}, kp::KPath{D},
 
     # combine traces and plot
     ts = vcat(tsᶜ, tsᵏᵖ)
-    return PlotlyJS.plot(ts, layout′)
+    return PlotlyJS.plot(ts, layout′; config=config)
 end
 # ---------------------------------------------------------------------------------------- #
