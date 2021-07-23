@@ -1,7 +1,7 @@
 import Crystalline
 using Brillouin.KPaths: cartesianize, latticize
 
-@testset "KPaths" begin
+@testset "KPath & KPathInterpolant" begin
     # --- `cumdist` ---
     kvs_2d = [[0,0], [0,1], [1,1], [1,0], [0,0], [1,1], [-1,-2], [2,-1]]
     @test cumdists(kvs_2d) ≈ [0,1,2,3,4,4+√2,4+√2+√13, 4+√2+√13+√10]
@@ -97,6 +97,7 @@ using Brillouin.KPaths: cartesianize, latticize
     Rs′ = Crystalline.DirectBasis([1, 0, 0], [0.3, 0.8, 0], [-1.6, 0.8, 0.9]) # neither all-obtuse nor all-acute
     @test_throws DomainError Brillouin.KPaths.extended_bravais(1, "aP", Rs′, Val(3))       # `_throw_basis_required`
 
+
     # --- `KPathInterpolant` ---
     # `interpolate`
     N = 100
@@ -105,6 +106,7 @@ using Brillouin.KPaths: cartesianize, latticize
     
     # all points in `kp` must be explicitly contained in `kpi`
     @test all(∈(kpi), values(points(kp)))
+    @test kpi == interpolate(kp, length=N)
 
     # `splice`
     kps = splice(kp, N)
@@ -126,4 +128,14 @@ using Brillouin.KPaths: cartesianize, latticize
     @test typeof(kpi) === typeof(kpi′) === KPathInterpolant{2}
     @test kpi′ ≈ kpi # test that `interpolate` commutes with `latticize`/`cartesianize`
     @test Brillouin.cartesianize!(latticize!(kpi)) ≈ kpi
-end
+
+    # interpolate via `density` kwarg
+    for ρ = [1, 10, 20, 21, 100, 3.0]
+        kpi_ρ = interpolate(kp, density=10)
+        @test kpi_ρ ≈ interpolate(kp, length=length(kpi_ρ))
+    end
+
+    # interpolate with wrong kwargs
+    @test_throws ArgumentError interpolate(kp)
+    @test_throws ArgumentError interpolate(kp; length=10, density=2)
+end # testset

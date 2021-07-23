@@ -89,12 +89,18 @@ function latticize!(kpi::KPathInterpolant)
 end
 
 """
-    interpolate(kp::KPath, N::Integer) --> KPathInterpolant
+    interpolate(kp::KPath, length::Integer)
+    interpolate(kp::KPath; length::Integer, density::Real) --> KPathInterpolant
 
-Return an interpolant of `kp` with approximately `N` points distributed approximately
+Return an interpolant of `kp` with approximately `length` points distributed approximately
 equidistantly across the full **k**-path (equidistance is measured in a Cartesian metric).
 
-Note that the interpolant may contain fewer or more points than `N` (typically fewer). 
+Note that the interpolant may contain fewer or more points than `length` (typically fewer).
+`length` can also be provided as a keyword argument.
+
+As an alternative to specifying the desired total number of interpolate points via `length`,
+a desired density per unit (reciprocal) length can be specified via the keyword argument
+`density`.
 
 See also [`interpolate(::AbstractVector{::AbstractVector{<:Real}}, ::Integer)`](@ref).
 """
@@ -118,7 +124,54 @@ function interpolate(kp::KPath{D}, N::Integer) where D
                                              length=Nᵢ)[1:end-1]))
             push!(labels[j], length(kipaths[j])+1 => path[i+1])
         end
-        push!(kipaths[j], points(kp)[path[end]])
+        push!(kipaths[j], points(kp)[last(path)])
+    end
+
+    return KPathInterpolant(kipaths, labels, basis(kp), kp.basisenum)
+end
+
+function interpolate(kp::KPath;
+            length::Union{Integer, Nothing}=nothing,
+            density::Union{Real, Nothing}=nothing)
+    if length === nothing && density === nothing
+        throw(ArgumentError("must set either `length` or `density` keyword arguments explicitly or use positional argument for `length`"))
+    elseif length !== nothing && density !== nothing
+        throw(ArgumentError("cannot define `length` and `density` simultaneously"))
+    elseif length !== nothing && density === nothing
+        return interpolate(kp, length)
+    elseif length === nothing && density !== nothing
+        return interpolate_via_density(kp, density)
+    end
+    
+    error("unreachable reached; please file an issue")
+end
+
+function interpolate_via_density(kp::KPath{D}, density::Real) where D
+    kpᶜ = kp.basisenum[] === CARTESIAN ? kp : cartesianize(kp)
+
+    kipaths = [Vector{SVector{D, Float64}}() for _ in 1:length(paths(kp))]
+    labels = [Dict{Int, Symbol}() for _ in 1:length(paths(kp))]
+    for (j, path) in enumerate(paths(kpᶜ)) # over connected paths
+        push!(labels[j], 1 => first(path))
+        for i in 1:length(path)-1 # over linear segments
+            klabᵢ   = path[i]
+            klabᵢ₊₁ = path[i+1]
+
+            # compute required number of points for current segment
+            kᶜᵢ   = points(kpᶜ)[klabᵢ]   # start
+            kᶜᵢ₊₁ = points(kpᶜ)[klabᵢ₊₁] # end
+            distᵢ = norm(kᶜᵢ₊₁ - kᶜᵢ)
+            Nᵢ    = max(ceil(Int, distᵢ*density), 2)
+
+            # compute interpolation of current segment (excluding end point)
+            kᵢ    = points(kp)[klabᵢ]
+            kᵢ₊₁  = points(kp)[klabᵢ₊₁]
+            ks    = range(kᵢ, kᵢ₊₁, length=Nᵢ)[1:end-1]
+
+            append!(kipaths[j], ks)
+            push!(labels[j], length(kipaths[j])+1 => klabᵢ₊₁)
+        end
+        push!(kipaths[j], points(kp)[last(path)]) # add previously omitted end point
     end
 
     return KPathInterpolant(kipaths, labels, basis(kp), kp.basisenum)
@@ -143,7 +196,7 @@ function splice(kp::KPath{D}, N::Integer) where D
                                              length=N+2)[1:end-1]))
             push!(labels[j], length(kipaths[j])+1 => path[i+1])
         end
-        push!(kipaths[j], points(kp)[path[end]])
+        push!(kipaths[j], points(kp)[last(path)])
     end
 
     return KPathInterpolant(kipaths, labels, kp.basis, kp.basisenum)
