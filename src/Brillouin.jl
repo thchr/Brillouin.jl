@@ -16,7 +16,7 @@ include("CrystallineBravaisVendor.jl")
 # ---------------------------------------------------------------------------------------- #
 function latticize! end
 latticize(v::AVec{<:Real}, basismatrix::AbstractMatrix{<:Real}) = basismatrix\v
-latticize(v::AVec{<:Real}, basis::AVec{<:AVec{<:Real}}) = latticize(v, hcat(basis...))'
+latticize(v::AVec{<:Real}, basis::AVec{<:AVec{<:Real}}) = latticize(v, hcat(basis...))
 latticize(x) = (x.basisenum[] === CARTESIAN ? latticize!(deepcopy(x)) : deepcopy(x))
 
 function cartesianize! end
