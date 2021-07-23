@@ -1,8 +1,9 @@
 using .PlotlyJS
 import .PlotlyJS: plot
-                                          # from https://flatuicolors.com/palette/gb
-const BAND_COL  = Ref("rgb(39,60,117)")   # "mazarine blue"
-const KLINE_COL = Ref("rgb(220,221,225)") # "hint of pensive"
+                                            # from https://flatuicolors.com/palette/gb
+const BAND_COL  = Ref("rgb(39,60,117)")     # "mazarine blue"
+const KLINE_COL = Ref("rgb(220,221,225)")   # "hint of pensive" (light gray)
+const ANNOTATE_COL = Ref("rgb(53, 59, 72)") # "blue nights" (dark gray)
 
 const DEFAULT_PLOTLY_LAYOUT_DISPERSION = Layout(
     showlegend=false,
@@ -60,6 +61,8 @@ distinct energy bands and rows as distinct **k**-points.
   `annotations = Dict(:X => [1:2 => "touching!], :Γ => [1 => "isolated", 2 => "isolated"])`.
   If a band-range is provided, a single annotation is placed at the mean of the energies
   at these band-ranges.
+  Alternatively, if the first element of each pair isa non-`Integer` `Real` number, it is
+  interpreted as referring to the frequency of the annotation
 """
 function plot(kpi::KPathInterpolant, bands,
               layout::Layout = DEFAULT_PLOTLY_LAYOUT_DISPERSION;
@@ -131,15 +134,27 @@ function plot(kpi::KPathInterpolant, bands,
         end
         # place any high-symmetry point annotations
         if annotations !== nothing
-            for (lab, bandidxs_and_strs) in annotations
+            for (lab, positions_and_strs) in annotations
                 for idx in findall(==(Symbol(lab)), labels)
-                    for (bandidxs, str) in bandidxs_and_strs
-                        Nbandidxs = length(bandidxs)
-                        freq = sum(b->bands[b][idx + start_idx - 1], bandidxs)/Nbandidxs
+                    for (position, str) in positions_and_strs
+                        if eltype(position) <: Integer
+                            # interpret as referring to band indices
+                            Nbandidxs = length(position)
+                            freq = sum(b->bands[b][idx + start_idx - 1], position)/Nbandidxs
+                        elseif position isa Real
+                            # interpret as referring to a specific frequency
+                            freq = position
+                        else
+                            error(DomainError(position, "invalid annotation type"))
+                        end
+
                         push!(tbands,
                                 PlotlyJS.scatter(x = local_x[idx:idx], y=freq:freq,
-                                    hoverinfo="text", hovertext=str, mode="marker",
-                                    line=attr(color=:black), xaxis="x$path_idx", yaxis="y"))
+                                    hoverinfo="text", hovertext=str, mode="markers",
+                                    marker=attr(color=ANNOTATE_COL[], size=7,
+                                                line=attr(color=:white, width=2)),
+                                    xaxis="x$path_idx", yaxis="y")
+                            )
                     end
                 end
             end
