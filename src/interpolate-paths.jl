@@ -119,9 +119,8 @@ function interpolate(kp::KPath{D}, N::Integer) where D
         push!(labels[j], 1 => first(path))
         for i in 1:length(path)-1
             Nᵢ = max(convert(Int, div(N*dists[i], totaldist, RoundUp)), 2)
-            append!(kipaths[j], (@view range(points(kp)[path[i]], 
-                                             points(kp)[path[i+1]], 
-                                             length=Nᵢ)[1:end-1]))
+            append!(kipaths[j], range(points(kp)[path[i]], points(kp)[path[i+1]];
+                                      length=Nᵢ)[1:end-1])
             push!(labels[j], length(kipaths[j])+1 => path[i+1])
         end
         push!(kipaths[j], points(kp)[last(path)])

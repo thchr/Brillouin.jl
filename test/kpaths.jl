@@ -1,4 +1,5 @@
 import Crystalline
+using Brillouin
 using Brillouin.KPaths: cartesianize, latticize
 
 @testset "KPath & KPathInterpolant" begin
@@ -9,9 +10,9 @@ using Brillouin.KPaths: cartesianize, latticize
     @test cumdists(kvs_3d) ≈ [0, √25.25, √25.25+√103.9]
 
     # --- `KPath` ---
-    sgnum = 227
-    Rs = [[1,0,0], [0,1,0], [0,0,1]] # conventional direct basis
-    kp = irrfbz_path(sgnum, Rs)
+    sgnum = 227 # face-centered cubic (cF)
+    Rsᶜᶸᵇⁱᶜ = [[1,0,0], [0,1,0], [0,0,1]] # conventional direct basis
+    kp = irrfbz_path(sgnum, Rsᶜᶸᵇⁱᶜ)
 
     # test that `Rs` has no impact in sgnum 227 (cubic face-centered, FCC)
     @test kp == irrfbz_path(sgnum, [rand(3) for _ in 1:3])
@@ -130,9 +131,17 @@ using Brillouin.KPaths: cartesianize, latticize
     @test Brillouin.cartesianize!(latticize!(kpi)) ≈ kpi
 
     # interpolate via `density` kwarg
-    for ρ = [1, 10, 20, 21, 100, 3.0]
-        kpi_ρ = interpolate(kp, density=10)
-        @test kpi_ρ ≈ interpolate(kp, length=length(kpi_ρ))
+    kp = irrfbz_path(227, Rsᶜᶸᵇⁱᶜ)
+    for ρ in [1, 10, 20, 21, 100, 3.5]
+        kpi_ρ = interpolate(kp, density=ρ)
+        
+        # test a lower bound on how many points must be in kpi
+        segments = sum(p -> length(p) - 1, kp.paths)
+        tot_dist = sum(last.(cumdists.(Brillouin.cartesianize(kpi_ρ).kpaths)))
+        min_points = tot_dist*ρ - segments
+        @test length(kpi_ρ) > min_points
+
+        # TODO: test that the density of k-points is _at least_ equal to ρ at every segment
     end
 
     # interpolate with wrong kwargs
