@@ -13,15 +13,28 @@ const SHOWDIGITS = 6
 include("CrystallineBravaisVendor.jl")
 # ---------------------------------------------------------------------------------------- #
 @enum BasisEnum CARTESIAN LATTICE
+
+"""
+    setting(x::Union{KPath, KPathInterpolant, Cell})
+
+Return the basis setting of coordinates in `x`. The returned value is a member of the
+[`BasisEnum`](@ref) enum with member values `LATTICE` (i.e. coordinates in the basis of the
+lattice vectors) or `CARTESIAN` (i.e. coordinates in the Cartesian basis).
+By default, methods in Brillouin will return coordinates in the `LATTICE` setting.
+"""
+setting(x) = x.setting[]
+
+set_setting!(x, new_setting) = (x.setting[] = new_setting)
+
 # ---------------------------------------------------------------------------------------- #
 function latticize! end
 latticize(v::AVec{<:Real}, basismatrix::AbstractMatrix{<:Real}) = basismatrix\v
 latticize(v::AVec{<:Real}, basis::AVec{<:AVec{<:Real}}) = latticize(v, hcat(basis...))
-latticize(x) = (x.basisenum[] === CARTESIAN ? latticize!(deepcopy(x)) : deepcopy(x))
+latticize(x) = (setting(x) === CARTESIAN ? latticize!(deepcopy(x)) : deepcopy(x))
 
 function cartesianize! end
 cartesianize(v::AVec{<:Real}, basis::AVec{<:AVec{<:Real}}) = v'basis
-cartesianize(x) = (x.basisenum[] === LATTICE ? cartesianize!(deepcopy(x)) : deepcopy(x))
+cartesianize(x) = (setting(x) === LATTICE ? cartesianize!(deepcopy(x)) : deepcopy(x))
 
 """
     basis(x::Union{KPath, KPathInterpolant, Cell})
@@ -30,9 +43,9 @@ Return the (reciprocal or direct) lattice basis associated with `x`, in Cartesia
 coordinates.
 
 Methods in Brillouin will by default return points in the lattice basis, i.e., points are
-referred to `basis(x)`. This corresponds to the setting `x.basisenum[] == LATTICE`.
+referred to `basis(x)`. This corresponds to the `setting(x) == LATTICE`.
 Coordinates may instead be referred to a Cartesian basis, corresponding to
-`x.basisenum[] == CARTESIAN` by using [`cartesianize`](@ref). The result of `basis(x)`,
+`setting(x) == CARTESIAN` by using [`cartesianize`](@ref). The result of `basis(x)`,
 however, is invariant to this and always refers to the lattice basis in Cartesian
 coordinates.
 """
@@ -40,7 +53,7 @@ basis(x) = x.basis
 
 export latticize!, latticize,
     cartesianize!, cartesianize,
-    basis
+    basis, setting
 # ---------------------------------------------------------------------------------------- #
 
 # MAIN FUNCTIONALITY

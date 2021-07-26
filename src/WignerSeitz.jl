@@ -5,7 +5,7 @@ module WignerSeitz
 using ..Brillouin: 
     AVec,
     SHOWDIGITS,
-    BasisEnum, CARTESIAN, LATTICE,
+    BasisEnum, CARTESIAN, LATTICE, setting, set_setting!,
     cartesianize, latticize
 import ..Brillouin:
     latticize!, cartesianize!,
@@ -37,10 +37,10 @@ $(TYPEDEF)
 $(TYPEDFIELDS)
 """
 struct Cell{D} <: AVec{Vector{SVector{D, Float64}}} # over of polygons
-    verts :: Vector{SVector{D, Float64}}
-    faces :: Vector{Vector{Int}}
-    basis :: SVector{D, SVector{D, Float64}}
-    basisenum :: Ref{BasisEnum} # internal field
+    verts   :: Vector{SVector{D, Float64}}
+    faces   :: Vector{Vector{Int}}
+    basis   :: SVector{D, SVector{D, Float64}}
+    setting :: Ref{BasisEnum} # internal field
 end
 
 faces(c::Cell)    = c.faces
@@ -313,16 +313,16 @@ end
 
 
 function latticize!(c::Cell)
-    c.basisenum[] === LATTICE && return c
+    setting(c) === LATTICE && return c
     basismatrix = hcat(c.basis...)
     c.verts .= latticize.(c.verts, Ref(basismatrix))
-    c.basisenum[] = LATTICE
+    set_setting!(c, LATTICE)
     return c
 end
 function cartesianize!(c::Cell)
-    c.basisenum[] === CARTESIAN && return c
+    setting(c) === CARTESIAN && return c
     c.verts .= cartesianize.(c.verts, Ref(c.basis))
-    c.basisenum[] = CARTESIAN
+    set_setting!(c, CARTESIAN)
     return c
 end
 

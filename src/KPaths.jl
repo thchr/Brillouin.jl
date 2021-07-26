@@ -19,7 +19,7 @@ using ..Brillouin:
     AVec,
     BasisLike,
     SHOWDIGITS,
-    BasisEnum, CARTESIAN, LATTICE,
+    BasisEnum, CARTESIAN, LATTICE, setting, set_setting!,
     cartesianize, latticize
 import ..Brillouin:
     latticize!, cartesianize!,
@@ -43,10 +43,10 @@ $(TYPEDEF)
 $(TYPEDFIELDS)
 """
 struct KPath{D} <: AbstractPath{Pair{Symbol, SVector{D, Float64}}}
-    points :: Dict{Symbol, SVector{D,Float64}}
-    paths  :: Vector{Vector{Symbol}}
-    basis  :: SVector{D, SVector{D, Float64}}
-    basisenum :: Ref{BasisEnum}
+    points  :: Dict{Symbol, SVector{D,Float64}}
+    paths   :: Vector{Vector{Symbol}}
+    basis   :: SVector{D, SVector{D, Float64}}
+    setting :: Ref{BasisEnum}
 end
 
 """
@@ -219,11 +219,11 @@ reciprocal basis vectors `basis`.
 Modifies `kp` in-place.
 """
 function cartesianize!(kp::KPath{D}) where D
-    kp.basisenum[] === CARTESIAN && return kp
+    setting(kp) === CARTESIAN && return kp
     for (lab, kv) in points(kp)
         @inbounds points(kp)[lab] = cartesianize(kv, kp.basis)
     end
-    kp.basisenum[] = CARTESIAN
+    set_setting!(kp, CARTESIAN)
     return kp
 end
 
@@ -235,12 +235,12 @@ reciprocal lattice vectors `basis`.
 Modifies `kp` in-place.
 """
 function latticize!(kp::KPath{D}) where D
-    kp.basisenum[] === LATTICE && return kp
+    setting(kp) === LATTICE && return kp
     basismatrix = hcat(kp.basis...)
     for (lab, kv) in points(kp)
         @inbounds points(kp)[lab] = latticize(kv, basismatrix)
     end
-    kp.basisenum[] = LATTICE
+    set_setting!(kp, LATTICE)
     return kp
 end
 

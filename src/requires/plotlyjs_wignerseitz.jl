@@ -46,7 +46,7 @@ const AXIS_LIGHT_COL  = Ref("rgb(242,215,208)") # 20% AXIS_COL, 80% white
 function plot(c::Cell{3}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_3D;
               config::PlotConfig = PlotConfig(responsive=true, displaylogo=false))
 
-    c.basisenum[] !== CARTESIAN && (c = cartesianize(c))
+    setting(c) !== CARTESIAN && (c = cartesianize(c))
     scale = maximum(norm, basis(c))
 
     # BZ
@@ -151,7 +151,7 @@ function plot(c::Cell{2}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_2D;
               config::PlotConfig = PlotConfig(responsive=true, displaylogo=false))
     layout = deepcopy(layout) # because we have to mutate to get arrows...
     
-    c.basisenum[] !== CARTESIAN && (c = cartesianize(c))
+    setting(c) !== CARTESIAN && (c = cartesianize(c))
     
     scale = maximum(norm, basis(c))
     max_x, max_y = maximum(v->abs(v[1]), basis(c)), maximum(v->abs(v[2]), basis(c))

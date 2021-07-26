@@ -23,10 +23,10 @@ $(TYPEDEF)
 $(TYPEDFIELDS)
 """
 struct KPathInterpolant{D} <: AbstractPath{SVector{D, Float64}}
-    kpaths :: Vector{Vector{SVector{D, Float64}}}
-    labels :: Vector{Dict{Int, Symbol}}
-    basis  :: SVector{D, SVector{D, Float64}}
-    basisenum :: Ref{BasisEnum}
+    kpaths  :: Vector{Vector{SVector{D, Float64}}}
+    labels  :: Vector{Dict{Int, Symbol}}
+    basis   :: SVector{D, SVector{D, Float64}}
+    setting :: Ref{BasisEnum}
 end
 
 size(kpi::KPathInterpolant) = (sum(length, kpi.kpaths),)
@@ -63,11 +63,11 @@ Transform an interpolated **k**-path `kpi` in a lattice basis to a Cartesian bas
 Modifies `kpi` in-place.
 """
 function cartesianize!(kpi::KPathInterpolant)
-    kpi.basisenum[] === CARTESIAN && return kp
+    setting(kpi) === CARTESIAN && return kp
     for i in eachindex(kpi)
         @inbounds kpi[i] = cartesianize(kpi[i], kpi.basis)
     end
-    kpi.basisenum[] = CARTESIAN
+    set_setting!(kpi, CARTESIAN)
     return kpi
 end
 
@@ -79,12 +79,12 @@ Transform an interpolated **k**-path `kpi` in a Cartesian basis to a lattice bas
 Modifies `kpi` in-place.
 """
 function latticize!(kpi::KPathInterpolant)
-    kpi.basisenum[] === LATTICE && return kp
+    setting(kpi) === LATTICE && return kp
     basismatrix = hcat(kpi.basis...)
     for i in eachindex(kpi)
         @inbounds kpi[i] = latticize(kpi[i], basismatrix)
     end
-    kpi.basisenum[] = LATTICE
+    set_setting!(kpi, LATTICE)
     return kpi
 end
 
@@ -105,7 +105,7 @@ a desired density per unit (reciprocal) length can be specified via the keyword 
 See also [`interpolate(::AbstractVector{::AbstractVector{<:Real}}, ::Integer)`](@ref).
 """
 function interpolate(kp::KPath{D}, N::Integer) where D
-    kpᶜ = kp.basisenum[] === CARTESIAN ? kp : cartesianize(kp)
+    kpᶜ = setting(kp) === CARTESIAN ? kp : cartesianize(kp)
     distss = map(paths(kpᶜ)) do path
         map(1:length(path)-1) do i
             norm(points(kpᶜ)[path[i]] - points(kpᶜ)[path[i+1]])
@@ -126,7 +126,7 @@ function interpolate(kp::KPath{D}, N::Integer) where D
         push!(kipaths[j], points(kp)[last(path)])
     end
 
-    return KPathInterpolant(kipaths, labels, basis(kp), kp.basisenum)
+    return KPathInterpolant(kipaths, labels, basis(kp), Ref(setting(kp)))
 end
 
 function interpolate(kp::KPath;
@@ -146,7 +146,7 @@ function interpolate(kp::KPath;
 end
 
 function interpolate_via_density(kp::KPath{D}, density::Real) where D
-    kpᶜ = kp.basisenum[] === CARTESIAN ? kp : cartesianize(kp)
+    kpᶜ = setting(kp) === CARTESIAN ? kp : cartesianize(kp)
 
     kipaths = [Vector{SVector{D, Float64}}() for _ in 1:length(paths(kp))]
     labels = [Dict{Int, Symbol}() for _ in 1:length(paths(kp))]
@@ -173,7 +173,7 @@ function interpolate_via_density(kp::KPath{D}, density::Real) where D
         push!(kipaths[j], points(kp)[last(path)]) # add previously omitted end point
     end
 
-    return KPathInterpolant(kipaths, labels, basis(kp), kp.basisenum)
+    return KPathInterpolant(kipaths, labels, basis(kp), Ref(setting(kp)))
 end
 
 
@@ -198,7 +198,7 @@ function splice(kp::KPath{D}, N::Integer) where D
         push!(kipaths[j], points(kp)[last(path)])
     end
 
-    return KPathInterpolant(kipaths, labels, kp.basis, kp.basisenum)
+    return KPathInterpolant(kipaths, labels, kp.basis, Ref(setting(kp)))
 end
 
 # ---------------------------------------------------------------------------------------- #
