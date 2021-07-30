@@ -162,15 +162,14 @@ function interpolate_via_density(kp::KPath{D}, density::Real) where D
             distᵢ = norm(kᶜᵢ₊₁ - kᶜᵢ)
             Nᵢ    = max(ceil(Int, distᵢ*density), 2)
 
-            # compute interpolation of current segment (excluding end point)
+            # compute interpolation of current segment
             kᵢ    = points(kp)[klabᵢ]
             kᵢ₊₁  = points(kp)[klabᵢ₊₁]
-            ks    = range(kᵢ, kᵢ₊₁, length=Nᵢ)[1:end-1]
+            ks    = range(kᵢ, kᵢ₊₁, length=Nᵢ)[1:end]
 
             append!(kipaths[j], ks)
-            push!(labels[j], length(kipaths[j])+1 => klabᵢ₊₁)
+            push!(labels[j], length(kipaths[j]) => klabᵢ₊₁)
         end
-        push!(kipaths[j], points(kp)[last(path)]) # add previously omitted end point
     end
 
     return KPathInterpolant(kipaths, labels, basis(kp), Ref(setting(kp)))

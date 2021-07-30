@@ -141,7 +141,13 @@ using Brillouin.KPaths: cartesianize, latticize
         min_points = tot_dist*ρ - segments
         @test length(kpi_ρ) > min_points
 
-        # TODO: test that the density of k-points is _at least_ equal to ρ at every segment
+        # test that the density of k-points is _at least_ equal to ρ at every segment
+        for (i, path) in enumerate(paths(kp))
+	    klabels = Dict(value => key for (key, value) in kpi_ρ.labels[i])
+	    for j=1:length(path)-1
+		@test (klabels[path[j+1]] - klabels[path[j]]) >= ρ
+	    end
+	end
     end
 
     # interpolate with wrong kwargs
