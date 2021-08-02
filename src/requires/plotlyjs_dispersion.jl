@@ -10,12 +10,12 @@ const DEFAULT_PLOTLY_LAYOUT_DISPERSION = Layout(
     xaxis=attr(zeroline=false,
             showgrid=true, showbackground=false,
             gridcolor = KLINE_COL[], ticks="outside",
-            showline=true, mirror=true, # show axis boundary
+            showline=true, mirror=true, linecolor="black", # show axis boundary
             ),
     yaxis=attr(zeroline=false,
             showgrid=false, showbackground=false,
             ticks="outside",
-            showline=true, mirror="all", # show axis boundaries on all subplots
+            showline=true, mirror="all", linecolor="black", # show axis boundaries on all subplots
             ),
     hovermode = "closest",
     autosize = true,
