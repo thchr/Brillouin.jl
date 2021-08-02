@@ -15,7 +15,7 @@ const PLOT_DIR = joinpath(ROOT_DIR, "plots")
 function Base.show(io::IO, ::MIME"text/html", p::HTMLPlot)
     mkpath(PLOT_DIR)
     path = joinpath(PLOT_DIR, string(hash(p) % UInt32, ".html"))
-    PlotlyJS.savefig(p.p, path, format=:html)
+    PlotlyJS.savefig(p.p, path, format="html")
     print(io, "<object type=\"text/html\" data=\"../$(relpath(path, ROOT_DIR))\" style=\"width:100%;height:$(p.h)px;\"></object>")
 end
 # ---------------------------------------------------------------------------------------- #
