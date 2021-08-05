@@ -7,9 +7,10 @@ const KPATH_COL = Ref("rgb(95,39,205)") # "nasu purple" (https://flatuicolors.co
 
 # ---------------------------------------------------------------------------------------- #
 
-function plot(kp::KPath{3}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_3D;
+function plot(kp::KPath{3}, layout::Layout = attr();
               config::PlotConfig = PlotConfig(responsive=true, displaylogo=false))
     setting(kp) !== CARTESIAN && (kp = cartesianize(kp))
+    layout = merge(DEFAULT_PLOTLY_LAYOUT_3D, layout)
 
     tpaths = Vector{GenericTrace{Dict{Symbol,Any}}}(undef, length(paths(kp)))
     for (i,path) in enumerate(paths(kp))
@@ -31,9 +32,10 @@ function plot(kp::KPath{3}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_3D;
 end
 
 # ---------------------------------------------------------------------------------------- #
-function plot(kp::KPath{2}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_2D;
+function plot(kp::KPath{2}, layout::Layout = attr();
               config::PlotConfig = PlotConfig(responsive=true, displaylogo=false))
     setting(kp) !== CARTESIAN && (kp = cartesianize(kp))
+    layout = merge(DEFAULT_PLOTLY_LAYOUT_2D, layout)
 
     tpaths = Vector{GenericTrace{Dict{Symbol,Any}}}(undef, length(paths(kp)))
     for (i,path) in enumerate(paths(kp))
@@ -55,16 +57,15 @@ function plot(kp::KPath{2}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_2D;
 end
 # ---------------------------------------------------------------------------------------- #
 
-function plot(c::Cell{D}, kp::KPath{D}, 
-              layout::Layout=(D==3 ? DEFAULT_PLOTLY_LAYOUT_3D : DEFAULT_PLOTLY_LAYOUT_2D);
+function plot(c::Cell{D}, kp::KPath{D}, layout::Layout = attr();
               config::PlotConfig = PlotConfig(responsive=true, displaylogo=false)
               ) where D
 
     D ∉ (2,3) && error("must be 2D or 3D Cell and KPath")
     # ::Cell
-    Pᶜ  = plot(c, layout)
+    Pᶜ  = plot(c, layout) # modifies `layout`; gets stored in resulting `Pᶜ`
     tsᶜ = Pᶜ.plot.data
-    layout′ = Pᶜ.plot.layout # grab modified layout
+    layout′ = Pᶜ.plot.layout # grab modified `layout`
 
     # get rid of "inside" axis lines; can be identified based on color
     filter!(tsᶜ) do t

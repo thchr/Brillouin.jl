@@ -43,8 +43,10 @@ const AXIS_LIGHT_COL  = Ref("rgb(242,215,208)") # 20% AXIS_COL, 80% white
 # ---------------------------------------------------------------------------------------- #
 # 3D
 
-function plot(c::Cell{3}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_3D;
+function plot(c::Cell{3}, layout::Layout = attr();
               config::PlotConfig = PlotConfig(responsive=true, displaylogo=false))
+
+    layout = merge(DEFAULT_PLOTLY_LAYOUT_3D, layout)
 
     setting(c) !== CARTESIAN && (c = cartesianize(c))
     scale = maximum(norm, basis(c))
@@ -147,12 +149,13 @@ const DEFAULT_PLOTLY_LAYOUT_2D  = Layout(
     annotations=PlotlyBase.PlotlyAttribute[]
     )
 
-function plot(c::Cell{2}, layout::Layout=DEFAULT_PLOTLY_LAYOUT_2D;
+function plot(c::Cell{2}, layout::Layout = attr();
               config::PlotConfig = PlotConfig(responsive=true, displaylogo=false))
-    layout = deepcopy(layout) # because we have to mutate to get arrows...
-    
+
+    layout = merge(DEFAULT_PLOTLY_LAYOUT_2D, layout)
+
     setting(c) !== CARTESIAN && (c = cartesianize(c))
-    
+
     scale = maximum(norm, basis(c))
     max_x, max_y = maximum(v->abs(v[1]), basis(c)), maximum(v->abs(v[2]), basis(c))
     get!(layout[:xaxis], :range, [-max_x-scale/15, max_x+scale/15])

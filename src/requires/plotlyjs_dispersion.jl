@@ -38,6 +38,10 @@ Note that the length of each iterant of `bands` must equal `length(kpi)`.
 Alternatively, `bands` can be an `AbstractMatrix{<:Real}`, with columns interpreted as
 distinct energy bands and rows as distinct **k**-points.
 
+A `layout` can be supplied to overwrite default layout choices (set by
+`$((@__MODULE__)).DEFAULT_PLOTLY_LAYOUT_DISPERSION)`).
+Alternatively, some simple settings can be set directly via keyword arguments (see below).
+
 ## Keyword arguments `kwargs`
 
 - `ylims`: y-axis limits (default: quasi-tight around `bands`'s range)
@@ -57,15 +61,15 @@ distinct energy bands and rows as distinct **k**-points.
 - `annotations`: dictionary of hover-text annotations for labeled high-symmetry points in
   `kpi` (default: `nothing`, indicating no annotations). Suitable for labeling of irreps.
 
-  **Example**: Assume bands 1 and 2 touch at :X, but not at :Γ. To label this, we set:
+  **Example**: Assume bands 1 and 2 touch at X, but not at Γ. To label this, we set:
   `annotations = Dict(:X => [1:2 => "touching!], :Γ => [1 => "isolated", 2 => "isolated"])`.
   If a band-range is provided, a single annotation is placed at the mean of the energies
   at these band-ranges.
-  Alternatively, if the first element of each pair isa non-`Integer` `Real` number, it is
-  interpreted as referring to the frequency of the annotation
+  Alternatively, if the first element of each pair is a non-`Integer` `Real` number, it is
+  interpreted as referring to the frequency of the annotation.
 """
 function plot(kpi::KPathInterpolant, bands,
-              layout::Layout = DEFAULT_PLOTLY_LAYOUT_DISPERSION;
+              layout::Layout = attr();
               ylims = nothing, ylabel = "Energy", title = nothing,
               band_highlights::Union{Dict, Nothing} = nothing,
               annotations::Union{Dict, Nothing} = nothing,
@@ -75,8 +79,9 @@ function plot(kpi::KPathInterpolant, bands,
     if !all(band -> length(band) == N, bands)
         throw(DimensionMismatch("mismatched dimensions of `kpi` and `bands`"))
     end
-    # copy layout since we may want to mutate the layout and don't want to corrupt it
-    layout = deepcopy(layout)
+    # merge (and implicitly copy) `layout` (copy ensures we can mutate `layout` without
+    # corrupting user input)
+    layout = merge(DEFAULT_PLOTLY_LAYOUT_DISPERSION, layout)
 
     # set default y-limits in layout, if not already set
     haskey(layout, :yaxis) || (layout[:yaxis] = attr())
@@ -137,7 +142,7 @@ function plot(kpi::KPathInterpolant, bands,
             for (lab, positions_and_strs) in annotations
                 for idx in findall(==(Symbol(lab)), labels)
                     for (position, str) in positions_and_strs
-                        if eltype(position) <: Integer
+                        if position isa Integer
                             # interpret as referring to band indices
                             Nbandidxs = length(position)
                             freq = sum(b->bands[b][idx + start_idx - 1], position)/Nbandidxs
@@ -180,8 +185,8 @@ function plot(kpi::KPathInterpolant, bands,
     return plot(tbands, layout; config=config)
 end
 # `bands` can also be supplied as a matrix (w/ distinct bands in distinct columns)
-function plot(kpi::KPathInterpolant, bands::AbstractMatrix{<:Real},
-    layout::Layout = DEFAULT_PLOTLY_LAYOUT_DISPERSION; kwargs...)
+function plot(kpi::KPathInterpolant, bands::AbstractMatrix{<:Real}, layout::Layout = attr();
+              kwargs...)
     # TODO: would be nice to avoid collecting `eachcol` here, but if we don't, then we run
     #       into problems with not being able to index into `eachcol(bands)` since it's a
     #       generator... problem is gone if https://github.com/JuliaLang/julia/pull/32310
