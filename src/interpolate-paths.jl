@@ -209,7 +209,7 @@ end
 
 """
     interpolate(kvs::AbstractVector{<:AbstractVector{<:Real}}, N::Integer)
-        --> Vector{<:Vector{<:Real}}
+                                                    --> Vector{Vector{<:Real}}
 
 Return an interpolated **k**-path between discrete **k**-points in `kvs`, with approximately
 `N` interpolation points in total (typically fewer).
@@ -244,7 +244,7 @@ end
 
 """
     splice(kvs::AbstractVector{<:AbstractVector{<:Real}}, N::Integer)
-        --> Vector{<:Vector{<:Real}}
+                                                    --> Vector{Vector{<:Real}}
 
 Return an interpolated **k**-path between the discrete **k**-points in `kvs`, with `N`
 interpolation points inserted in each segment defined by pairs of adjacent **k**-points.

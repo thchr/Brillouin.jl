@@ -81,7 +81,7 @@ end
 
 """
     wignerseitz(basis::AbstractVector{<:SVector{D}}; merge::Bool = true, Nmax = 3)
-    wignerseitz(basis::AbstractVector{AbstractVector}; merge::Bool = true, Nmax = 3)
+    wignerseitz(basis::AbstractVector{<:AbstractVector}; merge::Bool = true, Nmax = 3)
                                                                 --> Cell{D}
 
 Given a provided basis, return a `Cell{D}` containing the vertices and associated (outward
