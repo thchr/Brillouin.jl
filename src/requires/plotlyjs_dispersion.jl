@@ -84,7 +84,7 @@ function plot(kpi::KPathInterpolant, bands,
     layout = merge(DEFAULT_PLOTLY_LAYOUT_DISPERSION, layout)
 
     # set default y-limits in layout, if not already set
-    yaxis = get!(layout, :yaxis, attr())
+    yaxis = get!(layout.fields, :yaxis, attr())
     if isnothing(ylims)
         if !haskey(yaxis, :range)
             ylims = default_dispersion_ylims(bands)
