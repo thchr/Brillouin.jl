@@ -39,7 +39,7 @@ Alternatively, `bands` can be an `AbstractMatrix{<:Real}`, with columns interpre
 distinct energy bands and rows as distinct **k**-points.
 
 A `layout` can be supplied to overwrite default layout choices (set by
-`$((@__MODULE__)).DEFAULT_PLOTLY_LAYOUT_DISPERSION)`).
+`$((@__MODULE__)).DEFAULT_PLOTLY_LAYOUT_DISPERSION`).
 Alternatively, some simple settings can be set directly via keyword arguments (see below).
 
 ## Keyword arguments `kwargs`

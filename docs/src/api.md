@@ -15,7 +15,7 @@ Brillouin.KPaths.KPathInterpolant
 
 ## Exported methods
 ```@autodocs
-Modules = [Brillouin.WignerSeitz, Brillouin.KPaths]
+Modules = [Brillouin, Brillouin.WignerSeitz, Brillouin.KPaths]
 Private = false
 Order   = [:function]
 ```

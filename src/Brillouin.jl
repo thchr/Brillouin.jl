@@ -71,7 +71,7 @@ coordinates.
 Methods in Brillouin will by default return points in the lattice basis, i.e., points are
 referred to `basis(x)`. This corresponds to the `setting(x) == LATTICE`.
 Coordinates may instead be referred to a Cartesian basis, corresponding to
-`setting(x) == CARTESIAN` by using [`cartesianize(::KPath)`](@ref). The result of 
+`setting(x) == CARTESIAN` by using [`cartesianize`](@ref). The result of 
 `basis(x)`, however, is invariant to this and always refers to the lattice basis in
 Cartesian coordinates.
 """
