@@ -7,7 +7,7 @@ const KPATH_COL = Ref("rgb(95,39,205)") # "nasu purple" (https://flatuicolors.co
 
 # ---------------------------------------------------------------------------------------- #
 
-function plot(kp::KPath{3}, layout::Layout = attr();
+function plot(kp::KPath{3}, layout::Layout = Layout();
               config::PlotConfig = PlotConfig(responsive=true, displaylogo=false))
     setting(kp) !== CARTESIAN && (kp = cartesianize(kp))
     layout = merge(DEFAULT_PLOTLY_LAYOUT_3D, layout)
@@ -32,7 +32,7 @@ function plot(kp::KPath{3}, layout::Layout = attr();
 end
 
 # ---------------------------------------------------------------------------------------- #
-function plot(kp::KPath{2}, layout::Layout = attr();
+function plot(kp::KPath{2}, layout::Layout = Layout();
               config::PlotConfig = PlotConfig(responsive=true, displaylogo=false))
     setting(kp) !== CARTESIAN && (kp = cartesianize(kp))
     layout = merge(DEFAULT_PLOTLY_LAYOUT_2D, layout)
@@ -57,7 +57,7 @@ function plot(kp::KPath{2}, layout::Layout = attr();
 end
 # ---------------------------------------------------------------------------------------- #
 
-function plot(c::Cell{D}, kp::KPath{D}, layout::Layout = attr();
+function plot(c::Cell{D}, kp::KPath{D}, layout::Layout = Layout();
               config::PlotConfig = PlotConfig(responsive=true, displaylogo=false)
               ) where D
 

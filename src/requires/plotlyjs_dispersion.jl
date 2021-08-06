@@ -69,7 +69,7 @@ Alternatively, some simple settings can be set directly via keyword arguments (s
   interpreted as referring to the frequency of the annotation.
 """
 function plot(kpi::KPathInterpolant, bands,
-              layout::Layout = attr();
+              layout::Layout = Layout();
               ylims = nothing, ylabel = "Energy", title = nothing,
               band_highlights::Union{Dict, Nothing} = nothing,
               annotations::Union{Dict, Nothing} = nothing,
@@ -84,19 +84,19 @@ function plot(kpi::KPathInterpolant, bands,
     layout = merge(DEFAULT_PLOTLY_LAYOUT_DISPERSION, layout)
 
     # set default y-limits in layout, if not already set
-    haskey(layout, :yaxis) || (layout[:yaxis] = attr())
+    yaxis = get!(layout, :yaxis, attr())
     if isnothing(ylims)
-        if !haskey(layout[:yaxis], :range)
+        if !haskey(yaxis, :range)
             ylims = default_dispersion_ylims(bands)
-            layout[:yaxis][:range] = ylims
+            yaxis[:range] = ylims
         else
-            ylims = layout[:yaxis][:range] # grab what was already in `layout`
+            ylims = yaxis[:range] # grab what was already in `layout`
         end
     else
         # overwrite if ylims was provided, regardless of what it is in `layout`
-        layout[:yaxis][:range] = ylims
+        yaxis[:range] = ylims
     end
-    layout[:yaxis][:title] = ylabel
+    yaxis[:title] = ylabel
 
     # add title, if requested
     if !isnothing(title)
@@ -169,7 +169,7 @@ function plot(kpi::KPathInterpolant, bands,
         sym_xaxis = Symbol("xaxis$path_idx") # subplot xaxis name
 
         layout[sym_xaxis] = copy(get(layout, :xaxis, attr()))
-        layout[sym_xaxis][:range]  = [extrema(local_x)...]
+        layout[sym_xaxis][:range] = [extrema(local_x)...]
         layout[sym_xaxis][:tickvals] = xticks[path_idx]
         layout[sym_xaxis][:ticktext] = xlabs[path_idx]
         
@@ -185,8 +185,8 @@ function plot(kpi::KPathInterpolant, bands,
     return plot(tbands, layout; config=config)
 end
 # `bands` can also be supplied as a matrix (w/ distinct bands in distinct columns)
-function plot(kpi::KPathInterpolant, bands::AbstractMatrix{<:Real}, layout::Layout = attr();
-              kwargs...)
+function plot(kpi::KPathInterpolant, bands::AbstractMatrix{<:Real},
+              layout::Layout = Layout(); kwargs...)
     # TODO: would be nice to avoid collecting `eachcol` here, but if we don't, then we run
     #       into problems with not being able to index into `eachcol(bands)` since it's a
     #       generator... problem is gone if https://github.com/JuliaLang/julia/pull/32310

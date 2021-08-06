@@ -43,7 +43,7 @@ const AXIS_LIGHT_COL  = Ref("rgb(242,215,208)") # 20% AXIS_COL, 80% white
 # ---------------------------------------------------------------------------------------- #
 # 3D
 
-function plot(c::Cell{3}, layout::Layout = attr();
+function plot(c::Cell{3}, layout::Layout = Layout();
               config::PlotConfig = PlotConfig(responsive=true, displaylogo=false))
 
     layout = merge(DEFAULT_PLOTLY_LAYOUT_3D, layout)
@@ -149,7 +149,7 @@ const DEFAULT_PLOTLY_LAYOUT_2D  = Layout(
     annotations=PlotlyBase.PlotlyAttribute[]
     )
 
-function plot(c::Cell{2}, layout::Layout = attr();
+function plot(c::Cell{2}, layout::Layout = Layout();
               config::PlotConfig = PlotConfig(responsive=true, displaylogo=false))
 
     layout = merge(DEFAULT_PLOTLY_LAYOUT_2D, layout)
