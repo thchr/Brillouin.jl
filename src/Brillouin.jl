@@ -27,12 +27,36 @@ setting(x) = x.setting[]
 set_setting!(x, new_setting) = (x.setting[] = new_setting)
 
 # ---------------------------------------------------------------------------------------- #
+"""
+    latticize!
+
+In-place conversion of an object with coordinates in a Cartesian basis to an object with
+coordinates in a (explicitly or implicitly specified) lattice basis.
+"""
 function latticize! end
+"""
+    latticize!
+
+Convert an object with coordinates in a Cartesian basis to an object with coordinates in
+a (explicitly or implicitly specified) lattice basis.
+"""
 latticize(v::AVec{<:Real}, basismatrix::AbstractMatrix{<:Real}) = basismatrix\v
 latticize(v::AVec{<:Real}, basis::AVec{<:AVec{<:Real}}) = latticize(v, hcat(basis...))
 latticize(x) = (setting(x) === CARTESIAN ? latticize!(deepcopy(x)) : deepcopy(x))
 
+"""
+    cartesianize!
+
+In-place conversion of an object with coordinates in a lattice basis to an object with
+coordinates in a Cartesian basis.
+"""
 function cartesianize! end
+"""
+    cartesianize
+
+Convert an object with coordinates in a lattice basis to an object with coordinates in a
+Cartesian basis.
+"""
 cartesianize(v::AVec{<:Real}, basis::AVec{<:AVec{<:Real}}) = v'basis
 cartesianize(x) = (setting(x) === LATTICE ? cartesianize!(deepcopy(x)) : deepcopy(x))
 
