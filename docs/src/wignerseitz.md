@@ -9,7 +9,7 @@ using Brillouin
 Rs = [[0.0, 0.5, 0.5], [0.5, 0.0, 0.5], [0.5, 0.5, 0.0]]
 cᴿ = wignerseitz(Rs)
 ```
-Note that the coordinates of the Wigner-Seitz cell vertices are referred to the basis `Rs`; to convert to Cartesian space, see [`cartesianize`](@ref) and [`cartesianize!`](@ref) (in-place).
+Note that the coordinates of the Wigner-Seitz cell vertices are referred to the basis `Rs`; to convert to Cartesian space, see [`cartesianize(::Cell)`](@ref) and [`cartesianize!(::Cell)`](@ref) (in-place).
 
 We can plot the generated cells using e.g. [PlotlyJS.jl](https://github.com/JuliaPlots/PlotlyJS.jl) via `plot(cᴿ)` (or, alternatively, via a 3D-capable backend of [AbstractPlotting.jl](https://github.com/JuliaPlots/AbstractPlotting.jl)):
 ```@example wignerseitz-cF

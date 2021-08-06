@@ -27,36 +27,38 @@ setting(x) = x.setting[]
 set_setting!(x, new_setting) = (x.setting[] = new_setting)
 
 # ---------------------------------------------------------------------------------------- #
-"""
+@doc """
     latticize!
 
-In-place conversion of an object with coordinates in a Cartesian basis to an object with
+In-place transform object with coordinates in a Cartesian basis to an object with
 coordinates in a (explicitly or implicitly specified) lattice basis.
 """
 function latticize! end
-"""
-    latticize!
+@doc """
+    latticize
 
-Convert an object with coordinates in a Cartesian basis to an object with coordinates in
+Transform an object with coordinates in a Cartesian basis to an object with coordinates in
 a (explicitly or implicitly specified) lattice basis.
 """
+function latticize end
 latticize(v::AVec{<:Real}, basismatrix::AbstractMatrix{<:Real}) = basismatrix\v
 latticize(v::AVec{<:Real}, basis::AVec{<:AVec{<:Real}}) = latticize(v, hcat(basis...))
 latticize(x) = (setting(x) === CARTESIAN ? latticize!(deepcopy(x)) : deepcopy(x))
 
-"""
+@doc """
     cartesianize!
 
-In-place conversion of an object with coordinates in a lattice basis to an object with
-coordinates in a Cartesian basis.
+In-place transform an object with coordinates in a (explicitly or implicitly specified)
+lattice basis to an object with coordinates in a Cartesian basis.
 """
 function cartesianize! end
-"""
+@doc """
     cartesianize
 
-Convert an object with coordinates in a lattice basis to an object with coordinates in a
-Cartesian basis.
+Transform an object with coordinates in a (explicitly or implicitly specified) lattice basis
+to an object with coordinates in a Cartesian basis.
 """
+function cartesianize end
 cartesianize(v::AVec{<:Real}, basis::AVec{<:AVec{<:Real}}) = v'basis
 cartesianize(x) = (setting(x) === LATTICE ? cartesianize!(deepcopy(x)) : deepcopy(x))
 
@@ -69,9 +71,9 @@ coordinates.
 Methods in Brillouin will by default return points in the lattice basis, i.e., points are
 referred to `basis(x)`. This corresponds to the `setting(x) == LATTICE`.
 Coordinates may instead be referred to a Cartesian basis, corresponding to
-`setting(x) == CARTESIAN` by using [`cartesianize`](@ref). The result of `basis(x)`,
-however, is invariant to this and always refers to the lattice basis in Cartesian
-coordinates.
+`setting(x) == CARTESIAN` by using [`cartesianize(::KPath)`](@ref). The result of 
+`basis(x)`, however, is invariant to this and always refers to the lattice basis in
+Cartesian coordinates.
 """
 basis(x) = x.basis
 

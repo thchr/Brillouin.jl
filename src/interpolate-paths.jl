@@ -102,7 +102,7 @@ As an alternative to specifying the desired total number of interpolate points v
 a desired density per unit (reciprocal) length can be specified via the keyword argument
 `density`.
 
-See also [`interpolate(::AbstractVector{::AbstractVector{<:Real}}, ::Integer)`](@ref).
+See also [`interpolate(::AbstractVector{<:AbstractVector{<:Real}}, ::Integer)`](@ref).
 """
 function interpolate(kp::KPath{D}, N::Integer) where D
     kpᶜ = setting(kp) === CARTESIAN ? kp : cartesianize(kp)
@@ -182,7 +182,7 @@ end
 
 Return an interpolant of `kp` with `N` points inserted into each **k**-path segment of `kp`.
 
-See also [`splice(::AbstractVector{::AbstractVector{<:Real}}, ::Integer)`](@ref).
+See also [`splice(::AbstractVector{<:AbstractVector{<:Real}}, ::Integer)`](@ref).
 """
 function splice(kp::KPath{D}, N::Integer) where D
     kipaths = [Vector{SVector{D, Float64}}() for _ in 1:length(paths(kp))]
