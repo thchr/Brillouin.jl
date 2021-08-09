@@ -14,10 +14,10 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 [compat]
 DocStringExtensions = "0.8"
 PyCall = "1.92"
-Reexport = "0.2, 1.0"
+Reexport = "0.2, 1.0, 1.1"
 Requires = "1.1"
-StaticArrays = "1.0"
-julia = "1.5"
+StaticArrays = "1.2"
+julia = "1.6"
 
 [extras]
 Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
