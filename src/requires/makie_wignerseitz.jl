@@ -1,5 +1,5 @@
-using AbstractPlotting
-import AbstractPlotting: plot, plot!
+using Makie
+import Makie: plot, plot!
 
 const DEFAULT_PYPLOT_OPTS = (color=:mediumblue, linewidth=2)
 function plot!(s::Scene, c::Cell; kwargs...)

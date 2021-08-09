@@ -94,8 +94,8 @@ include("WignerSeitz.jl")
 
 function __init__()
     # plotting extensions on GLMakie load
-    @require AbstractPlotting="537997a7-5e4e-5d89-9595-2241ea00577e" begin
-        include("requires/abstractplotting_wignerseitz.jl")
+    @require AbstractPlotting="ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a" begin
+        include("requires/makie_wignerseitz.jl")
     end
 
     # plotting extensions on PlotlyJS load
