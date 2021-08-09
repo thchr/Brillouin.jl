@@ -94,7 +94,7 @@ include("WignerSeitz.jl")
 
 function __init__()
     # plotting extensions on GLMakie load
-    @require AbstractPlotting="ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a" begin
+    @require Makie="ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a" begin
         include("requires/makie_wignerseitz.jl")
     end
 
