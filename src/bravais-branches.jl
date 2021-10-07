@@ -16,7 +16,7 @@ end
 # of SeeK's `get_path` extended bravais type branch table. It should be pretty much the
 # same as Table 94 of the HPKOT paper (i.e. paper "behind" SeeK). It simply returns the
 # extended Bravais symbol as a `Symbol`. Note the input direct basis is expected to
-# be a conventional cell in ITA settings.
+# be a conventional cell in ITA settings
 function extended_bravais(sgnum::Integer,
                           bt::String,
                           Rs::Union{Nothing, StaticVector{3, <:StaticVector{3, <:Real}}},
@@ -114,6 +114,7 @@ function extended_bravais(sgnum::Integer,
         return :mP1
 
     elseif bt == "mC"
+        # FIX
         a, b, c = basisnorms(Rs)
         cosβ = dot(Rs[3], Rs[1])/(c*a)
         if b < a * sqrt(1 - cosβ^2)

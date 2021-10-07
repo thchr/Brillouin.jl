@@ -25,7 +25,7 @@ $(TYPEDFIELDS)
 struct KPathInterpolant{D} <: AbstractPath{SVector{D, Float64}}
     kpaths  :: Vector{Vector{SVector{D, Float64}}}
     labels  :: Vector{Dict{Int, Symbol}}
-    basis   :: SVector{D, SVector{D, Float64}}
+    basis   :: ReciprocalBasis{D}
     setting :: Ref{BasisEnum}
 end
 

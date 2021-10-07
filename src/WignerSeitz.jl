@@ -8,12 +8,19 @@ using ..Brillouin:
     BasisEnum, CARTESIAN, LATTICE, setting, set_setting!,
     cartesianize, latticize
 import ..Brillouin:
-    latticize!, cartesianize!,
+    latticize!,
+    cartesianize!,
     basis
 using StaticArrays
-using LinearAlgebra: dot, cross, norm
+using LinearAlgebra:
+    norm,
+    dot,
+    ×
 using PyCall
 using DocStringExtensions
+using Bravais:
+    ReciprocalBasis,
+    DirectBasis
 
 import Base: getindex, size, IndexStyle, show, summary
 
@@ -216,7 +223,7 @@ end
 function face_normal(vs::AVec{<:SVector{3,<:Real}}, f::Vector{Int})
     v₁₂ = vs[f[2]] - vs[f[1]]
     v₂₃ = vs[f[3]] - vs[f[2]]
-    n = cross(v₁₂, v₂₃)
+    n = v₁₂ × v₂₃
 
     return n/norm(n)
 end

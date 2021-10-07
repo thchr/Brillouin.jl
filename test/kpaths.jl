@@ -1,6 +1,5 @@
-import Crystalline
 using Brillouin
-using Brillouin.KPaths: cartesianize, latticize
+using Brillouin.KPaths: cartesianize, latticize, Bravais
 
 @testset "KPath & KPathInterpolant" begin
     # --- `cumdist` ---
@@ -56,11 +55,6 @@ using Brillouin.KPaths: cartesianize, latticize
     @test keys(points(kp′′)) == keys(points(kp)) # point labels agree
     @test paths(kp′′)        == paths(kp)        # segments agree
     @test all(values(points(kp′′)) .≈ values(points(kp))) # point coordinates approx. agree
-
-    # vendored `bravaistype` vs upstream Crystalline; check that they are in sync
-    for D in 1:3, sgnum in 1:Crystalline.MAX_SGNUM[D]
-        @test Crystalline.bravaistype(sgnum, D, normalize=false) == Brillouin.CrystallineBravaisVendor.bravaistype(sgnum, D)
-    end
     
     # `extended_bravais` and `irrfbz_path`
     sgnums = (1:2, 1:17, 1:230)
@@ -71,23 +65,24 @@ using Brillouin.KPaths: cartesianize, latticize
                 # the 3D triclinic case (space group 1 & 2) needs more care, since Brillouin
                 # only allows all-obtuse or all-acute bases; just hardcode two examples
                 if sgnum == 1 && D == 3    # check all-obtuse triclinic `Rs`
-                    Crystalline.DirectBasis([1.0, 0.0, 0.0], [1.18, 1.54, 0.0], [0.95, 0.44, 1.32])
+                    Bravais.DirectBasis([1.0, 0.0, 0.0], [1.18, 1.54, 0.0], [0.95, 0.44, 1.32])
                 elseif sgnum == 2 && D == 3 # check all-acute triclinic `Rs`
-                    Crystalline.DirectBasis([1.0, 0.0, 0.0], [-0.53, 0.49, 0.0], [0.13, -0.30, 0.74])
+                    Bravais.DirectBasis([1.0, 0.0, 0.0], [-0.53, 0.49, 0.0], [0.13, -0.30, 0.74])
                 else                        # go with `directbasis` for everything else
-                    Crystalline.directbasis(sgnum, Dᵛ)
+                    Bravais.directbasis(sgnum, Dᵛ)
                 end
             end
-            bt = Crystalline.bravaistype(sgnum, D, normalize=false)
+            bt = Bravais.bravaistype(sgnum, D, normalize=false)
             # extended Bravais types
             ebt = Brillouin.KPaths.extended_bravais(sgnum, bt, Rs, Dᵛ)
             @test contains(string(ebt), bt)
 
             # hard to test output of `irrfbz_path` systematically; just test that it returns
-            # a `KPath`, and matches `get_points` and `get_paths`
+            # a `KPath`, and matches `unshuffle_hpkot_setting! ∘ get_points` and `get_paths`
             kp = irrfbz_path(sgnum, Rs)
             @test kp isa KPath{D}
-            @test points(kp) == Brillouin.KPaths.get_points(ebt, Rs, Dᵛ)
+            @test points(kp) == Brillouin.KPaths.unshuffle_hpkot_setting!(
+                                    Brillouin.KPaths.get_points(ebt, Rs, Dᵛ), bt, D)
             @test paths(kp)  == Brillouin.KPaths.get_paths(ebt, Dᵛ)
         end
     end
@@ -95,7 +90,7 @@ using Brillouin.KPaths: cartesianize, latticize
     @test_throws DomainError Brillouin.KPaths.extended_bravais(194, "cP", nothing, Val(3)) # `_throw_conflicting_sgnum_and_bravais`
     @test_throws DomainError Brillouin.KPaths.extended_bravais(194, "cF", nothing, Val(3)) # `_throw_conflicting_sgnum_and_bravais`
     @test_throws DomainError Brillouin.KPaths.extended_bravais(38, "tI", nothing, Val(3))  # `_throw_basis_required`
-    Rs′ = Crystalline.DirectBasis([1, 0, 0], [0.3, 0.8, 0], [-1.6, 0.8, 0.9]) # neither all-obtuse nor all-acute
+    Rs′ = Bravais.DirectBasis([1, 0, 0], [0.3, 0.8, 0], [-1.6, 0.8, 0.9]) # neither all-obtuse nor all-acute
     @test_throws DomainError Brillouin.KPaths.extended_bravais(1, "aP", Rs′, Val(3))       # `_throw_basis_required`
 
 
@@ -117,10 +112,10 @@ using Brillouin.KPaths: cartesianize, latticize
 
     # `cartesianize` 
     # test that `cartesianize` commutes with `interpolate` when applied to a `kp`/`kpi`
-    cntr = Crystalline.centering(5, 2)         # centering type 'c' in plane group 5
-    Rs   = Crystalline.directbasis(5, Val(2))
-    Gs   = Crystalline.reciprocalbasis(Rs)
-    pGs  = Crystalline.primitivize(Gs, cntr)
+    cntr = Bravais.centering(5, 2)         # centering type 'c' in plane group 5
+    Rs   = Bravais.directbasis(5, Val(2))
+    Gs   = Bravais.reciprocalbasis(Rs)
+    pGs  = Bravais.primitivize(Gs, cntr)
 
     kp   = irrfbz_path(5, Rs, Val(2))
     kpi  = interpolate(Brillouin.cartesianize(kp), 100)

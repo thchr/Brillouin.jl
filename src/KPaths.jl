@@ -10,12 +10,17 @@ module KPaths
 # ---------------------------------------------------------------------------------------- #
 export irrfbz_path, KPath, points, paths, KPathInterpolant
 # ---------------------------------------------------------------------------------------- #
-using ..CrystallineBravaisVendor: 
+using Bravais:
+    Bravais, # so it is possible to call Brillouin.Bravais from the "outside"
     bravaistype,
     boundscheck_sgnum,
     reciprocalbasis,
-    primitivize_reciprocal
-using ..Brillouin: 
+    primitivize,
+    transform,
+    ReciprocalBasis,
+    DirectBasis,
+    primitivebasismatrix
+using ..Brillouin:
     AVec,
     BasisLike,
     SHOWDIGITS,
@@ -24,7 +29,10 @@ using ..Brillouin:
 import ..Brillouin:
     latticize!, cartesianize!,
     basis
-using LinearAlgebra: norm, dot, ×
+using LinearAlgebra:
+    norm,
+    dot,
+    ×
 using StaticArrays
 using DocStringExtensions
 
@@ -45,7 +53,7 @@ $(TYPEDFIELDS)
 struct KPath{D} <: AbstractPath{Pair{Symbol, SVector{D, Float64}}}
     points  :: Dict{Symbol, SVector{D,Float64}}
     paths   :: Vector{Vector{Symbol}}
-    basis   :: SVector{D, SVector{D, Float64}}
+    basis   :: ReciprocalBasis{D}
     setting :: Ref{BasisEnum}
 end
 
@@ -128,43 +136,53 @@ static `Val{D}` type parameter (or, type-unstably, as an `<:Integer`). Defaults 
 
 `Rs` refers to the direct basis of the conventional unit cell, i.e., not the primitive 
 direct basis vectors. The setting of `Rs` must agree with the conventional setting choices
-in the International Tables of Crystallography.
+in the International Tables of Crystallography, Volume A (the "ITA setting").
 If `Rs` is a subtype of a `StaticVector` or `NTuple`, the dimension can be inferred from its
 (static) size; in this case, this dimension will take precedence (i.e. override, if
 different) over any dimension specified in the third input argument.
 
 ## Notes
-- The returned **k**-points are given in the basis of the **primitive** reciprocal basis
-  (see [`cartesianize!`](@ref)).
+- The returned **k**-points are given in the basis of the **primitive** reciprocal basis in
+  the CDML setting. To obtain the associated transformation matrices between the
+  conventional ITA setting and the CDML primitive setting, see `primitivebasismatrix` of
+  Bravais.jl](https://thchr.github.io/Crystalline.jl/stable/bravais/) (or, equivalently, the
+  relations defined Table 2 of [^1]).
+  To transform to a Cartesian basis, see [`cartesianize!`](@ref).
 - To interpolate a `KPath`, see [`interpolate(::KPath, ::Integer)`](@ref) and
   [`splice(::KPath, ::Integer)`](@ref).
 - All paths currently assume time-reversal symmetry (or, equivalently, inversion symmetry).
   If neither are present, include the "inverted" -**k** paths manually.
 
 ## Data and referencing
-3D paths are sourced from the SeeK HPKOT publication: please cite the original work [^1].
+3D paths are sourced from the SeeK-path publication: please cite the original work
+[^2].
 
-[^1] Hinuma, Pizzi, Kumagai, Oba, & Tanaka, *Band structure diagram paths based on
-     crystallography*, 
-     [Comp. Mat. Sci. **128**, 140 (2017)](http://dx.doi.org/10.1016/j.commatsci.2016.10.015)
+## References
+[^1] Aroyo et al., [Acta Cryst. A70, 126 (2014)](https://doi.org/10.1107/S205327331303091X).
+[^2] Hinuma, Pizzi, Kumagai, Oba, & Tanaka, *Band structure diagram paths based on
+    crystallography*, [Comp. Mat. Sci. **128**, 140 (2017)]
+    (http://dx.doi.org/10.1016/j.commatsci.2016.10.015).
 """
 function irrfbz_path(sgnum::Integer, Rs, Dᵛ::Val{D}=Val(3)) where D
     D′ = length(Rs)
     D′ ≠ D && throw(DimensionMismatch("inconsistent dimensions of `Rs` and `Dᵛ`"))
     any(R -> length(R) ≠ D, Rs) && throw(DimensionMismatch("inconsistent element dimensions in `Rs`"))
-    Rs = convert(SVector{D, SVector{D, Float64}}, Rs)
+    Rs = convert(DirectBasis{D}, Rs)
 
     # (extended) bravais type
-    bt = bravaistype(sgnum, Dᵛ)
+    bt = bravaistype(sgnum, D; normalize=false)
     ext_bt = extended_bravais(sgnum, bt, Rs, Dᵛ)
 
     # get data about path
     lab2kvs = get_points(ext_bt, Rs, Dᵛ)
     paths = get_paths(ext_bt, Dᵛ)
 
+    # unshuffle HPKOT-standard primitive setting-difference in oA and mC settings
+    unshuffle_hpkot_setting!(lab2kvs, bt, D)
+    
     # compute (primitive) reciprocal basis
     cntr = last(bt)
-    pGs = primitivize_reciprocal(reciprocalbasis(Rs), cntr)
+    pGs = primitivize(reciprocalbasis(Rs), cntr)
 
     return KPath(lab2kvs, paths, pGs, Ref(LATTICE))
 end
@@ -174,6 +192,9 @@ function irrfbz_path(sgnum::Integer,
 end
 irrfbz_path(sgnum::Integer, Rs::AVec{<:AVec{<:Real}}, D::Integer) = irrfbz_path(sgnum, Rs, Val(D))
 
+# Note: output k-points are returned in the primitive setting defined in Table 3 of the 
+# HPKOT paper. This setting differs from the standard crystallographic primitive setting
+# for 'oA' and 'mC' Bravais types; "unshuffling" this is done in `unshuffle_hpkot_setting!`
 function get_points(ext_bt::Symbol,
                     Rs::Union{Nothing, AVec{<:AVec{<:Real}}},
                     Dᵛ::Val{D}) where D
@@ -202,6 +223,32 @@ function get_paths(ext_bt::Symbol, Dᵛ::Val{D}) where D
 
     paths === nothing && throw(DomainError(ext_bt, "invalid extended Bravais type"))
     return paths
+end
+
+function unshuffle_hpkot_setting!(lab2kvs, bt, D)
+    # the points in `labs2kvs` are returned in the reciprocal basis of the primitive HPKOT
+    # setting (Table 3, HPKOT paper). That setting differs from the primitive CDML setting
+    # that we follow (Table 2, https://doi.org/10.1107/S205327331303091X) for Bravais types
+    # 'oA' and 'mC'. Hence, we need to shuffle it back to CDML primitive settings.
+    # Specifically, HPKOT has centering matrix `P′` which differs from the CDML centering
+    # matrix `P`. To cast the points back to the CDML primitive setting we first transform
+    # the points to the conventional setting (by multiplying by `((P′)⁻¹)ᵀ`) and then
+    # transform back to the CDML primitive setting (by  multiplying with `Pᵀ`):
+    if D == 3 && (bt == "oA" || bt == "mC")
+        cntr = last(bt)
+        if bt == "oA"
+            P′ = @SMatrix [0 0 1; 0.5 0.5 0; -0.5 0.5 0] # HPKOT centering matrix
+        else # bt == "mC"
+            P′ = @SMatrix [0.5 -0.5 0; 0.5 0.5 0; 0 0 1]
+        end
+        P = primitivebasismatrix(cntr, Val(3))           # CDML centering matrix
+        PᵀP′⁻¹ᵀ = P'*inv(P′)'
+        for (lab, kv′) in lab2kvs
+            kv = PᵀP′⁻¹ᵀ*kv′  # k-vector coordinates transform w/ transpose of matrix (as
+            lab2kvs[lab] = kv # explained in e.g. Bravais.jl's src/transform.jl)
+        end
+    end
+    return lab2kvs
 end
 
 # ---------------------------------------------------------------------------------------- #
