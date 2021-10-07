@@ -136,7 +136,7 @@ static `Val{D}` type parameter (or, type-unstably, as an `<:Integer`). Defaults 
 
 `Rs` refers to the direct basis of the conventional unit cell, i.e., not the primitive 
 direct basis vectors. The setting of `Rs` must agree with the conventional setting choices
-in the International Tables of Crystallography, Volume A (the "ITA setting").
+in the International Tables of Crystallography, Volume A (the "ITA conventional setting").
 If `Rs` is a subtype of a `StaticVector` or `NTuple`, the dimension can be inferred from its
 (static) size; in this case, this dimension will take precedence (i.e. override, if
 different) over any dimension specified in the third input argument.
@@ -144,7 +144,7 @@ different) over any dimension specified in the third input argument.
 ## Notes
 - The returned **k**-points are given in the basis of the **primitive** reciprocal basis in
   the CDML setting. To obtain the associated transformation matrices between the
-  conventional ITA setting and the CDML primitive setting, see `primitivebasismatrix` of
+  ITA conventional setting and the CDML primitive setting, see `primitivebasismatrix` of
   Bravais.jl](https://thchr.github.io/Crystalline.jl/stable/bravais/) (or, equivalently, the
   relations defined Table 2 of [^1]).
   To transform to a Cartesian basis, see [`cartesianize!`](@ref).
