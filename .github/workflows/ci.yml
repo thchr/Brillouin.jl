@@ -43,7 +43,7 @@ jobs:
       - run: | # TODO: Remove this after Bravais.jl is registered (right now, need to manually add package)
           julia --color=yes --project -e '
             using Pkg
-            Pkg.develop(PackageSpec(url="https://github.com/thchr/Crystalline.jl/tree/master/Bravais"))'
+            Pkg.develop(PackageSpec(url="https://github.com/thchr/Crystalline.jl", subdir="Bravais"))'
         shell: bash # avoid escaping issues w/ pwsh on Windows (cf. https://github.com/julia-actions/setup-julia#matrix-testing)
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
@@ -63,7 +63,7 @@ jobs:
       - run: |  # TODO: Remove manual Bravais.jl dev'ing after it is registered
           julia --project=docs -e '
             using Pkg
-            Pkg.develop(PackageSpec(url="https://github.com/thchr/Crystalline.jl/tree/master/Bravais"))
+            Pkg.develop(PackageSpec(url="https://github.com/thchr/Crystalline.jl", subdir="Bravais"))
             Pkg.develop(PackageSpec(path=pwd()))
             Pkg.instantiate()'
 #        shell: bash # avoid escaping issues w/ pwsh on Windows (cf. https://github.com/julia-actions/setup-julia#matrix-testing)
