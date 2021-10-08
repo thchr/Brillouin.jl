@@ -114,7 +114,6 @@ function extended_bravais(sgnum::Integer,
         return :mP1
 
     elseif bt == "mC"
-        # FIX
         a, b, c = basisnorms(Rs)
         cosβ = dot(Rs[3], Rs[1])/(c*a)
         if b < a * sqrt(1 - cosβ^2)
