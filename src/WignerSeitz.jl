@@ -374,7 +374,7 @@ function search_shortest_norm_among_neighbors_recursive(
     for I in CartesianIndices(ntuple(_->-1:1, Val(D)))
         iszero(I) && continue
         v′ = v₀ .+ Tuple(I)
-        v′ᶜ = cartesianize(v′ᶜ, Vs)
+        v′ᶜ = cartesianize(v′, Vs)
         d′ = norm(v′ᶜ)
         if d′ < d₀
             return search_shortest_norm_among_neighbors_recursive(v′, d′, Vs)
