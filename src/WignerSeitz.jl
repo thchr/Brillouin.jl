@@ -24,7 +24,7 @@ import Base: getindex, size, IndexStyle, show, summary
 
 # ---------------------------------------------------------------------------------------- #
 
-export Cell, wignerseitz, faces, vertices
+export Cell, wignerseitz, faces, vertices, reduce_to_wignerseitz
 
 # ---------------------------------------------------------------------------------------- #
 
@@ -353,7 +353,7 @@ function reduce_to_wignerseitz(v::StaticVector{D}, Vs::BasisLike{D}) where D
     v′c = cartesianize(v′, Vs)
     d′ = norm(v′c)
     # check whether `v′` is the closest point to origo out of all adjacent equivalent points
-    for I in CartesianIndices(ntuple(_->-1:1, Val(3)))
+    for I in CartesianIndices(ntuple(_->-1:1, Val(D)))
         iszero(I) && continue
         v′′ = v′₀ .+ Tuple(I)
         v′′c = cartesianize(v′′, Vs)
@@ -365,5 +365,16 @@ function reduce_to_wignerseitz(v::StaticVector{D}, Vs::BasisLike{D}) where D
         end
     end
     return v′
+end
+function reduce_to_wignerseitz(v::AVec{<:Real}, Vs::AVec{<:AVec{<:Real}})
+    D = length(v)
+    D == length(Vs) || throw(DimensionMismatch("dimensions of `v` and `Vs` must match"))
+    all(V -> length(V) == D, Vs) || throw(DimensionMismatch("internal dimensions of `Vs` do not match"))
+
+    # NB: type-unstable; but only really exists as a convenience accessor...
+    v_static  = convert(SVector{D, eltype(v)}, v)
+    Vs_static = convert(SVector{D, SVector{D, eltype(first(Vs))}}, Vs)
+    
+    return reduce_to_wignerseitz(v_static, Vs_static)
 end
 end # module
