@@ -5,6 +5,7 @@ module WignerSeitz
 using ..Brillouin: 
     AVec,
     SHOWDIGITS,
+    BasisLike,
     BasisEnum, CARTESIAN, LATTICE, setting, set_setting!,
     cartesianize, latticize
 import ..Brillouin:
@@ -18,9 +19,6 @@ using LinearAlgebra:
     ×
 using PyCall
 using DocStringExtensions
-using Bravais:
-    ReciprocalBasis,
-    DirectBasis
 
 import Base: getindex, size, IndexStyle, show, summary
 
@@ -43,7 +41,7 @@ end
 $(TYPEDEF)
 $(TYPEDFIELDS)
 """
-struct Cell{D} <: AVec{Vector{SVector{D, Float64}}} # over of polygons
+struct Cell{D} <: AVec{Vector{SVector{D, Float64}}}
     verts   :: Vector{SVector{D, Float64}}
     faces   :: Vector{Vector{Int}}
     basis   :: SVector{D, SVector{D, Float64}}
@@ -318,7 +316,6 @@ end
 
 # ---------------------------------------------------------------------------------------- #
 
-
 function latticize!(c::Cell)
     setting(c) === LATTICE && return c
     basismatrix = hcat(c.basis...)
@@ -333,4 +330,40 @@ function cartesianize!(c::Cell)
     return c
 end
 
+# ---------------------------------------------------------------------------------------- #
+
+reduce_to_symmetric_unitcell(x::Real) = mod(x + 1//2, 1) - 1//2
+reduce_to_symmetric_unitcell(v::AbstractVector{<:Real}) = reduce_to_symmetric_unitcell.(v)
+
+"""
+    reduce_to_wignerseitz(v::StaticVector, Vs::BasisLike)  -->  v′
+
+Return the periodic image `v′` of the point `v` in the basis `Vs`.
+
+`v` is assumed to be provided in the lattice basis (i.e., relative to `Vs`) and `v′` is
+returned in similar fashion.
+
+The returned point `v′` lies in the Wigner-Seitz cell (or its boundary) defined by `Vs`
+and differs from `v` at most by integer lattice translations (equivalently,
+`mod(v, 1) ≈ mod(v′, 1)`).
+"""
+function reduce_to_wignerseitz(v::StaticVector{D}, Vs::BasisLike{D}) where D
+    # reduce `v` to "rectangular" unit cell with coordinates in [-1/2, 1/2)
+    v′₀ = v′ = reduce_to_symmetric_unitcell(v)
+    v′c = cartesianize(v′, Vs)
+    d′ = norm(v′c)
+    # check whether `v′` is the closest point to origo out of all adjacent equivalent points
+    for I in CartesianIndices(ntuple(_->-1:1, Val(3)))
+        iszero(I) && continue
+        v′′ = v′₀ .+ Tuple(I)
+        v′′c = cartesianize(v′′, Vs)
+        d′′ = norm(v′′c)
+
+        if d′′ < d′
+            v′ = v′′
+            d′ = d′′
+        end
+    end
+    return v′
+end
 end # module

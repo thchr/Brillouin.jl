@@ -52,6 +52,7 @@ $(TYPEDFIELDS)
 """
 struct KPath{D} <: AbstractPath{Pair{Symbol, SVector{D, Float64}}}
     points  :: Dict{Symbol, SVector{D,Float64}}
+    # TODO: Make values of `points` of type `ReciprocalPoint{D}`?
     paths   :: Vector{Vector{Symbol}}
     basis   :: ReciprocalBasis{D}
     setting :: Ref{BasisEnum}
