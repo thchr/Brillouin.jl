@@ -46,20 +46,22 @@ Pᴳ = plot(cᴳ)
 Main.HTMLPlot(Pᴳ) # hide
 ```
 
-# Reducing points to the interior of Wigner-Seitz cell
+## Reducing points to the interior of Wigner-Seitz cell
 
-Arbitrary points can be reduced to their equivalent image in the Wigner-Seitz cell via  [`reduce_to_wignerseitz`](@ref). The resulting point has the minimum (Cartesian) norm of all equivalent images.
+Points can be reduced to their equivalent image in the Wigner-Seitz cell via  [`reduce_to_wignerseitz`](@ref).
+The resulting point has the least possible norm of all equivalent images.
 
-As an example, we consider the reduction of a point `v` initially outside the 2D Brillouin zone defined earlier:
+As an example, consider the reduction of a point `v` initially outside the 2D Brillouin zone defined earlier:
 ```@example wignerseitz-2d
-v = [0.8, 0.7]
-vᶜ = cartesianize(v, Gs)
-t = scatter(x=v[1], y=v[2], hovertext="v (unreduced)")
-addtraces!(Pᴳ, t)
-
+v = [0.8, 0.2]
 v′ = reduce_to_wignerseitz(v, Gs)
+```
+We can visualize the reduction by adding the points to the previous plot of the Brillouin zone:
+```@example wignerseitz-2d
+vᶜ = cartesianize(v, Gs)
 v′ᶜ = cartesianize(v′, Gs)
-t′ = scatter(x=v′[1], y=v′[2], hovertext="v′ (reduced)")
-addtraces!(Pᴳ, t′)
+
+addtraces!(Pᴳ, scatter(x=vᶜ[1:1],  y=vᶜ[2:2],  hovertext="v (unreduced)"))
+addtraces!(Pᴳ, scatter(x=v′ᶜ[1:1], y=v′ᶜ[2:2], hovertext="v′ (reduced)"))
 Main.HTMLPlot(Pᴳ) # hide
 ```

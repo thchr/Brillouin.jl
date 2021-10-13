@@ -343,28 +343,18 @@ Return the periodic image `v′` of the point `v` in the basis `Vs`.
 `v` is assumed to be provided in the lattice basis (i.e., relative to `Vs`) and `v′` is
 returned in similar fashion.
 
-The returned point `v′` lies in the Wigner-Seitz cell (or its boundary) defined by `Vs`
-and differs from `v` at most by integer lattice translations (equivalently,
-`mod(v, 1) ≈ mod(v′, 1)`).
+The returned point `v′` lies in the Wigner-Seitz cell (or its boundary) defined by `Vs`,
+has the least possible norm among all equivalent images of `v`, and differs from `v` at
+most by integer lattice translations such that `mod(v, 1) ≈ mod(v′, 1)`.
 """
-function reduce_to_wignerseitz(v::StaticVector{D}, Vs::BasisLike{D}) where D
+function reduce_to_wignerseitz(v::StaticVector{D, <:Real}, Vs::BasisLike{D}) where D
     # reduce `v` to "rectangular" unit cell with coordinates in [-1/2, 1/2)
-    v′₀ = v′ = reduce_to_symmetric_unitcell(v)
-    v′c = cartesianize(v′, Vs)
-    d′ = norm(v′c)
-    # check whether `v′` is the closest point to origo out of all adjacent equivalent points
-    for I in CartesianIndices(ntuple(_->-1:1, Val(D)))
-        iszero(I) && continue
-        v′′ = v′₀ .+ Tuple(I)
-        v′′c = cartesianize(v′′, Vs)
-        d′′ = norm(v′′c)
-
-        if d′′ < d′
-            v′ = v′′
-            d′ = d′′
-        end
-    end
-    return v′
+    v₀ = reduce_to_symmetric_unitcell(v)
+    v₀ᶜ = cartesianize(v₀, Vs)
+    d₀ = norm(v₀ᶜ)
+    # check whether `v₀` has the smallest norm of all adjacent equivalent points; if not,
+    # we initiate a recursive search the new possible minimum until convergence
+    return search_shortest_norm_among_neighbors_recursive(v₀, d₀, Vs)
 end
 function reduce_to_wignerseitz(v::AVec{<:Real}, Vs::AVec{<:AVec{<:Real}})
     D = length(v)
@@ -374,7 +364,22 @@ function reduce_to_wignerseitz(v::AVec{<:Real}, Vs::AVec{<:AVec{<:Real}})
     # NB: type-unstable; but only really exists as a convenience accessor...
     v_static  = convert(SVector{D, eltype(v)}, v)
     Vs_static = convert(SVector{D, SVector{D, eltype(first(Vs))}}, Vs)
-    
+
     return reduce_to_wignerseitz(v_static, Vs_static)
+end
+
+function search_shortest_norm_among_neighbors_recursive(
+            v₀::StaticVector{D, <:Real}, d₀::Real, Vs::BasisLike{D}) where D
+
+    for I in CartesianIndices(ntuple(_->-1:1, Val(D)))
+        iszero(I) && continue
+        v′ = v₀ .+ Tuple(I)
+        v′ᶜ = cartesianize(v′ᶜ, Vs)
+        d′ = norm(v′ᶜ)
+        if d′ < d₀
+            return search_shortest_norm_among_neighbors_recursive(v′, d′, Vs)
+        end
+    end
+    return v₀
 end
 end # module
