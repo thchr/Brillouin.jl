@@ -89,20 +89,18 @@ function latticize!(kpi::KPathInterpolant)
 end
 
 """
-    interpolate(kp::KPath, length::Integer)
-    interpolate(kp::KPath; length::Integer, density::Real) --> KPathInterpolant
+    interpolate(kp::KPath, N::Integer)
+    interpolate(kp::KPath; N::Integer, density::Real) --> KPathInterpolant
 
-Return an interpolant of `kp` with approximately `length` points distributed approximately
-equidistantly across the full **k**-path (equidistance is measured in a Cartesian metric).
+Return an interpolant of `kp` with `N` points distributed approximately equidistantly
+across the full **k**-path (equidistance is measured in a Cartesian metric).
 
-Note that the interpolant may contain fewer or more points than `length` (typically fewer).
-`length` can also be provided as a keyword argument.
+Note that the interpolant may contain slightly fewer or more points than `N` (typically
+fewer) in order to improve equidistance. `N` can also be provided as a keyword argument.
 
-As an alternative to specifying the desired total number of interpolate points via `length`,
+As an alternative to specifying the desired total number of interpolate points via `N`,
 a desired density per unit (reciprocal) length can be specified via the keyword argument
 `density`.
-
-See also [`interpolate(::AbstractVector{<:AbstractVector{<:Real}}, ::Integer)`](@ref).
 """
 function interpolate(kp::KPath{D}, N::Integer) where D
     kpᶜ = setting(kp) === CARTESIAN ? kp : cartesianize(kp)
@@ -181,8 +179,6 @@ end
     splice(kp::KPath, N::Integer) --> KPathInterpolant
 
 Return an interpolant of `kp` with `N` points inserted into each **k**-path segment of `kp`.
-
-See also [`splice(::AbstractVector{<:AbstractVector{<:Real}}, ::Integer)`](@ref).
 """
 function splice(kp::KPath{D}, N::Integer) where D
     kipaths = [Vector{SVector{D, Float64}}() for _ in 1:length(paths(kp))]
@@ -219,6 +215,9 @@ are equidistant; samples are however *exactly* equidistant across each linear se
 defined by points in `kvs` and *approximately* equidistant across all segments.
 
 See also [`interpolate(::KPath, ::Integer)`](@ref) and [`splice`](@ref).
+
+!!! warning "Future deprecation"
+    This method signature is likely to be deprecated in future versions of Brillouin.jl.
 """
 function interpolate(kvs::AVec{<:AVec{<:Real}}, N::Integer)
     Nkpairs = length(kvs)-1
@@ -250,6 +249,9 @@ Return an interpolated **k**-path between the discrete **k**-points in `kvs`, wi
 interpolation points inserted in each segment defined by pairs of adjacent **k**-points.
 
 See also [`splice(::KPath, ::Integer)`](@ref) and [`interpolate`](@ref).
+
+!!! warning "Future deprecation"
+    This method signature is likely to be deprecated in future versions of Brillouin.jl.
 """
 function splice(kvs::AVec{<:AVec{<:Real}}, N::Integer)
     D       = length(first(kvs))
