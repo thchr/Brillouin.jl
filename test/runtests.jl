@@ -6,5 +6,10 @@ using StaticArrays
 include("testutils_show.jl")
 
 # ---------------------------------------------------------------------------------------- #
+# core API/utilities
 include("kpaths.jl")
 include("wignerseitz.jl")
+
+# ---------------------------------------------------------------------------------------- #
+# optional plot utilities
+include("plotlyjs.jl")
