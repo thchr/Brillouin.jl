@@ -145,8 +145,8 @@ function wignerseitz(basis::AVec{<:AVec{<:Real}}; kwargs...)
 end
 
 function wignerseitz(basis::AVec{<:SVector{1,<:Real}}; kwargs...)
-    a = only(only(basis))
-    Cell{1}([(@SVector [-a/2]), (@SVector [a/2])], [1,2], basis)
+    length(basis) == 1 || throw(DimensionMismatch("dimensions of `basis` are inconsistent"))
+    Cell{1}([(@SVector [-1/2]), (@SVector [1/2])], [[1,2]], basis, Ref(LATTICE))
 end
 # ---------------------------------------------------------------------------------------- #
 # UTILITIES & SUBFUNCTIONS

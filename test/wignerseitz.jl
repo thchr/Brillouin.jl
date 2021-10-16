@@ -3,12 +3,13 @@ using LinearAlgebra
 @testset "WignerSeitz" begin
     # --- `wignerseitz` ---
     # hexagonal lattice (example from space group 147)
-    Rs = SVector{3,Float64}.([[1,0,0], [-.5,√3/2,0], [0,0,1.25]])        # direct basis
-    Gs = SVector{3,Float64}.([[2π,2π/√3,0], [0,4π/√3,0], [0,0,2π/1.25]]) # reciprocal basis
+    Rs = convert(SVector{3,SVector{3,Float64}}, [[1.0,0,0], [-.5,√3/2,0], [0,0,1.25]])      # direct basis
+    Gs = convert(SVector{3,SVector{3,Float64}}, [[2π,2π/√3,0], [0,4π/√3,0], [0,0,2π/1.25]]) # reciprocal basis
     cell = wignerseitz(Gs)
     @test length(cell) == 8
     @test length(vertices(cell)) == 12
     @test basis(cell) == Gs
+    @test wignerseitz(convert(Vector{Vector{Float64}}, Gs)) == cell
 
     # ------------------------------------------------------------------------------------ #
     # for CI and testing generally, we cannot depend on a specific sorting/ordering
@@ -38,6 +39,7 @@ using LinearAlgebra
 
     # actually canonicalize `cell`
     canonicalize!(cell)
+
     # ------------------------------------------------------------------------------------ #
 
     # test show/display (canonicalization is crucial here)
@@ -95,7 +97,7 @@ using LinearAlgebra
     test_show(cell, cell_show_reference)
     test_show(Brillouin.cartesianize(cell), cell_show_referenceᶜ)
 
-    # test iteration of Cell struct
+    # test indexing/iteration of Cell struct
     @test cell[1] ≈ [[-2/3,  1/3, -1/2],
                      [-2/3,  1/3, 1/2],
                      [-1/3,  2/3, 1/2],
@@ -106,6 +108,7 @@ using LinearAlgebra
                      [ 2/3, -1/3, 1/2],
                      [ 1/3,  1/3, 1/2],
                      [-1/3,  2/3, 1/2]]
+    @test collect(cell) == [cell[i] for i in 1:length(cell)] # iteration vs. indexing
 
     # test that everything works the same if we use ordinary vectors instead of SVectors
     @test wignerseitz(Gs) ≈ wignerseitz(collect.(Gs))
@@ -115,11 +118,27 @@ using LinearAlgebra
 
     # test :triangles output
     cell′ = wignerseitz(Gs; merge = true)
-    @test all(v -> length(v) == 3, vertices(cell′))
+    @test all(v -> length(v) == 3, vertices(cell′))   
+
+    # ------------------------------------------------------------------------------------ #
+    # 2D test case
+    Rs_2d = convert(SVector{2,SVector{2,Float64}}, [[1.0,0], [-.5,√3/2]])
+    cell_2d = wignerseitz(Rs_2d)
+    @test length(vertices(cell_2d)) == 6
+    @test length(only(faces(cell_2d))) == 6
+    @test basis(cell_2d) == Rs_2d
+
+    # 1D test case
+    Rs_1d = convert(SVector{1,SVector{1,Float64}}, [[1.5]])
+    cell_1d = wignerseitz(Rs_1d)
+    @test vertices(cell_1d) == [[-0.5], [0.5]]
+    @test only(faces(cell_1d)) == [1,2]
+    @test basis(cell_1d) == Rs_1d
+    @test_throws DimensionMismatch wignerseitz([SVector(1.0), SVector(1.0)])
 end
 
 @testset "reduce_to_wignerseitz" begin
-    Rs = SVector{3,Float64}.([[1,0,0], [-.5,√3/2,0], [0,0,1.25]])
+    Rs = convert(SVector{3,SVector{3,Float64}}, [[1.0,0,0], [-.5,√3/2,0], [0,0,1.25]])
     cell = wignerseitz(Rs)
     vs = vertices(cell)
 
