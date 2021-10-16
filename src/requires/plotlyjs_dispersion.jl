@@ -55,14 +55,14 @@ Alternatively, some simple settings can be set directly via keyword arguments (s
   `nothing`, indicating all-default styling).
 
   **Example**: To color bands 2 and 3 black, set
-  `band_highlights = Dict(2:3 => attr(color=:black, width=3)`.
+  `band_highlights = Dict(2:3 => attr(color=:black, width=3))`.
   Unlisted band ranges are shown in default band styling.
 
 - `annotations`: dictionary of hover-text annotations for labeled high-symmetry points in
   `kpi` (default: `nothing`, indicating no annotations). Suitable for labeling of irreps.
 
   **Example**: Assume bands 1 and 2 touch at X, but not at Γ. To label this, we set:
-  `annotations = Dict(:X => [1:2 => "touching!], :Γ => [1 => "isolated", 2 => "isolated"])`.
+  `annotations = Dict(:X => [1:2 => "touching!"], :Γ => [1 => "isolated", 2 => "isolated"])`.
   If a band-range is provided, a single annotation is placed at the mean of the energies
   at these band-ranges.
   Alternatively, if the first element of each pair is a non-`Integer` `Real` number, it is
@@ -142,7 +142,7 @@ function plot(kpi::KPathInterpolant, bands,
             for (lab, positions_and_strs) in annotations
                 for idx in findall(==(Symbol(lab)), labels)
                     for (position, str) in positions_and_strs
-                        if position isa Integer
+                        if position isa Integer || position isa AbstractVector{<:Integer}
                             # interpret as referring to band indices
                             Nbandidxs = length(position)
                             freq = sum(b->bands[b][idx + start_idx - 1], position)/Nbandidxs

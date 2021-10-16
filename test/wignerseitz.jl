@@ -108,7 +108,7 @@ using LinearAlgebra
                      [ 2/3, -1/3, 1/2],
                      [ 1/3,  1/3, 1/2],
                      [-1/3,  2/3, 1/2]]
-    @test collect(cell) == [cell[i] for i in 1:length(cell)] # iteration vs. indexing
+    @test collect(cell) == [cell[i] for i in eachindex(cell)] # iteration vs. indexing
 
     # test that everything works the same if we use ordinary vectors instead of SVectors
     @test wignerseitz(Gs) ≈ wignerseitz(collect.(Gs))

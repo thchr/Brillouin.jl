@@ -1,6 +1,10 @@
 using Brillouin, PlotlyJS, Test
 using Brillouin.KPaths: Bravais
 
+# NB: For the plot functionality, there's not that many meaningful things to test against
+#     in the output since it's a graphical thing. So, instead, we just check that things 
+#     run without erroring by checking that the return type is as expected
+
 @testset "PlotlyJS" begin
     # ------------------------------------------------------------------------------------ #
     # Wigner-Seitz cells and k-space path visualization
@@ -45,6 +49,21 @@ using Brillouin.KPaths: Bravais
     band1 = ϵ.(kpi)
     band2 = 20 .- (1/2).*band1
 
+    # basic functionality
     @test plot(kpi, [band1]) isa PlotlyJS.SyncPlot
-    @test plot(kpi, reduce(hcat, [band1, band2])) isa PlotlyJS.SyncPlot
+    @test plot(kpi, reduce(hcat, [band1, band2])) isa PlotlyJS.SyncPlot # matrix input
+
+    # annotations
+    offset = 2maximum(band2)
+    band3 = band1 .+ offset
+    annotations = Dict(:X => [1:2 => "X, bands 1:2", 30.0 => "X, some frequency"], 
+                       :Γ => [1 => "Γ, band 1", 3 => "Γ, band 3"])
+    @test plot(kpi, [band1, band2, band3]; annotations) isa PlotlyJS.SyncPlot
+
+    # band highlights
+    band_highlights = Dict(2:3 => attr(color=:black, width=3))
+    @test plot(kpi, [band1, band2, band3]; band_highlights) isa PlotlyJS.SyncPlot
+
+    # title/y-label
+    @test plot(kpi, [band1]; title="hello world", ylabel="ωa/2πc") isa PlotlyJS.SyncPlot
 end

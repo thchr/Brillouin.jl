@@ -104,6 +104,9 @@ using Brillouin.KPaths: cartesianize, latticize, Bravais
     @test all(∈(kpi), values(points(kp)))
     @test kpi == interpolate(kp, length=N)
 
+    # iterate vs. indexing
+    @test collect(kpi) == [kpi[i] for i in eachindex(kpi)]
+    
     # `splice`
     kps = splice(kp, N)
     highsym_points = sum(path->length(path), paths(kp))
