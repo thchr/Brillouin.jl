@@ -1,3 +1,5 @@
+using LinearAlgebra
+
 @testset "WignerSeitz" begin
     # --- `wignerseitz` ---
     # hexagonal lattice (example from space group 147)
@@ -114,4 +116,33 @@
     # test :triangles output
     cell′ = wignerseitz(Gs; merge = true)
     @test all(v -> length(v) == 3, vertices(cell′))
+end
+
+@testset "reduce_to_wignerseitz" begin
+    Rs = SVector{3,Float64}.([[1,0,0], [-.5,√3/2,0], [0,0,1.25]])
+    cell = wignerseitz(Rs)
+    vs = vertices(cell)
+
+    # we don't guarantee anything about points exactly on the border of the Wigner-Seitz
+    # both anything else should be solid: hence, check that points slightly inside stay
+    # put after reduction, while points outside definitely change
+    @test all(r->reduce_to_wignerseitz(r, Rs) ≈ r, .999*vs)
+    @test all(r->norm(reduce_to_wignerseitz(r, Rs) - r) > norm(r)/1.1, 1.001*vs)
+
+    # pick a point inside the cell, then shuffle it out by a few lattice vectors; check
+    # that it is shuffled back in
+    r = SVector(0.12, 0.32, -0.24)
+    r′ = r + SVector(3, -4, 8)
+    @test reduce_to_wignerseitz(r, Rs) ≈ r
+    @test reduce_to_wignerseitz(r′, Rs) ≈ r
+
+    # test a point in the rectangular unit cell that isn't in the Wigner-Seitz cell
+    ruc = SVector(-0.49, 0.49, 0.49)
+    @test !(reduce_to_wignerseitz(ruc, Rs) ≈ ruc)
+
+    # test utility accessors
+    r′′ = convert(Vector{Float64}, r)
+    @test reduce_to_wignerseitz(r′′, Rs) ≈ r
+    @test_throws DimensionMismatch reduce_to_wignerseitz(r′′[1:2], Rs)
+    @test_throws DimensionMismatch reduce_to_wignerseitz(r′′, [Rs[1][1:3], Rs[2][1:3], Rs[3][1:2]])
 end
