@@ -1,5 +1,6 @@
 using Brillouin, PlotlyJS, Test
 using Brillouin.KPaths: Bravais
+using StaticArrays
 
 # NB: For the plot functionality, there's not that many meaningful things to test against
 #     in the output since it's a graphical thing. So, instead, we just check that things 

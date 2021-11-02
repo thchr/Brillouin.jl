@@ -1,8 +1,8 @@
 # test print with nicely printed diff on failures (from 
 # https://github.com/invenia/PkgTemplates.jl/blob/master/test/runtests.jl): access point
 # is `test_show`.
-
 using DeepDiffs: deepdiff
+
 function print_diff(a, b)
     old = Base.have_color
     @eval Base have_color = true

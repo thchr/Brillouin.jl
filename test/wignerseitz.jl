@@ -1,4 +1,6 @@
+using Brillouin, Test
 using LinearAlgebra
+using StaticArrays
 
 @testset "WignerSeitz" begin
     # --- `wignerseitz` ---
@@ -9,6 +11,10 @@ using LinearAlgebra
     @test length(cell) == 8
     @test length(vertices(cell)) == 12
     @test basis(cell) == Gs
+
+    # test that everything works the same if we use ordinary vectors instead of SVectors
+    @test wignerseitz(convert(Vector{SVector{3,Float64}}, Gs)) == cell
+    @test wignerseitz(convert(Vector{Vector{Float64}}, Gs))    == cell
 
     # ------------------------------------------------------------------------------------ #
     # for CI and testing generally, we cannot depend on a specific sorting/ordering
@@ -108,10 +114,6 @@ using LinearAlgebra
                      [ 1/3,  1/3, 1/2],
                      [-1/3,  2/3, 1/2]]
     @test collect(cell) == [cell[i] for i in eachindex(cell)] # iteration vs. indexing
-
-    # test that everything works the same if we use ordinary vectors instead of SVectors
-    @test wignerseitz(convert(Vector{SVector{3,Float64}}, Gs)) ≈ cell
-    @test wignerseitz(convert(Vector{Vector{Float64}}, Gs))    ≈ cell
 
     # test error on out-of-bounds indexing error
     @test_throws BoundsError cell[9]

@@ -1,4 +1,4 @@
-using Brillouin
+using Brillouin, Test
 using Brillouin.KPaths: cartesianize, latticize, Bravais
 
 @testset "KPath & KPathInterpolant" begin
