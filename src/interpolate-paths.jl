@@ -59,8 +59,7 @@ end
     cartesianize!(kpi::KPathInterpolant)
 
 Transform an interpolated **k**-path `kpi` in a lattice basis to a Cartesian basis with
-(primitive) reciprocal lattice vectors `basis(kpi)`.
-Modifies `kpi` in-place.
+(primitive) reciprocal lattice vectors `basis(kpi)`. Modifies `kpi` in-place.
 """
 function cartesianize!(kpi::KPathInterpolant)
     setting(kpi) === CARTESIAN && return kp
@@ -75,17 +74,36 @@ end
     latticize!(kpi::KPathInterpolant{D})
 
 Transform an interpolated **k**-path `kpi` in a Cartesian basis to a lattice basis with
-(primitive) reciprocal lattice vectors `basis(kpi)`.
-Modifies `kpi` in-place.
+(primitive) reciprocal lattice vectors `basis(kpi)`. Modifies `kpi` in-place.
 """
 function latticize!(kpi::KPathInterpolant)
     setting(kpi) === LATTICE && return kp
-    basismatrix = hcat(kpi.basis...)
+    basismatrix = reduce(hcat, basis(kpi))
     for i in eachindex(kpi)
         @inbounds kpi[i] = latticize(kpi[i], basismatrix)
     end
     set_setting!(kpi, LATTICE)
     return kpi
+end
+
+"""
+    latticize(kpi::KPathInterpolant{D}, basis::AbstractVector{<:AbstractVector{<:Real}})
+
+Transform an interpolated **k**-path `kpi` in a Cartesian basis to a lattice basis with
+(primitive) reciprocal lattice vectors `basis`.
+
+If `kpi` is not in a Cartesian basis (i.e., if `setting(kpi) == LATTICE`), `kpi` is returned
+as-is.
+"""
+function latticize(kpi::KPathInterpolant{D}, basis::AVec{<:AVec{<:Real}}) where D
+    setting(kpi) === LATTICE && return kp
+    basismatrix = convert(SMatrix{D,D,Float64,D*D}, reduce(hcat, basis))
+    kpi′ = typeof(kpi)([copy(kpathsⱼ) for kpathsⱼ in kpi.kpaths], # ⇐ mutate this below
+                       kpi.labels, basis, Ref(LATTICE))
+    for i in eachindex(kpi′)
+        @inbounds kpi′[i] = latticize(kpi′[i], basismatrix)
+    end
+    return kpi′
 end
 
 """

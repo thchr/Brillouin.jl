@@ -38,7 +38,7 @@ a (explicitly or implicitly specified) lattice basis.
 """
 function latticize end
 latticize(v::AVec{<:Real}, basismatrix::AbstractMatrix{<:Real}) = basismatrix\v
-latticize(v::AVec{<:Real}, basis::AVec{<:AVec{<:Real}}) = latticize(v, hcat(basis...))
+latticize(v::AVec{<:Real}, basis::AVec{<:AVec{<:Real}}) = latticize(v, reduce(hcat, basis))
 latticize(x) = (setting(x) === CARTESIAN ? latticize!(deepcopy(x)) : deepcopy(x))
 
 # TODO: Move "root" definition of `cartesianize(!)` and `latticize(!)` to Bravais, so we

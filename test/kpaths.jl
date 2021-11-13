@@ -52,10 +52,14 @@ using Brillouin.KPaths: cartesianize, latticize, Bravais
         klab == klab′ && kv'pGs ≈ kv′
     end
     kp′′ = Brillouin.latticize(kp′)
-    @test keys(points(kp′′)) == keys(points(kp)) # point labels agree
-    @test paths(kp′′)        == paths(kp)        # segments agree
+    @test keys(points(kp′′)) == keys(points(kp))          # point labels agree
+    @test paths(kp′′) == paths(kp)                        # segments agree
     @test all(values(points(kp′′)) .≈ values(points(kp))) # point coordinates approx. agree
-    
+    kp′′′ = Brillouin.cartesianize!(Brillouin.latticize(kp′, pGs[[2,3,1]]))
+    @test keys(points(kp′′′)) == keys(points(kp′))
+    @test paths(kp′′′) == paths(kp′)
+    @test all(values(points(kp′′′)) .≈ values(points(kp′)))
+
     # `extended_bravais` and `irrfbz_path`
     sgnums = (1:2, 1:17, 1:230)
     for D in (1, 2, 3)
@@ -126,7 +130,9 @@ using Brillouin.KPaths: cartesianize, latticize, Bravais
 
     @test typeof(kpi) === typeof(kpi′) === KPathInterpolant{2}
     @test kpi′ ≈ kpi # test that `interpolate` commutes with `latticize`/`cartesianize`
-    @test Brillouin.cartesianize!(latticize!(kpi)) ≈ kpi
+    @test Brillouin.cartesianize!(latticize!(kpi)) ≈ kpi′
+
+    @test Brillouin.cartesianize!(Brillouin.latticize(kpi, pGs[[2,1]])) ≈ kpi′
 
     # interpolate via `density` kwarg
     kp = irrfbz_path(227, Rsᶜᶸᵇⁱᶜ)

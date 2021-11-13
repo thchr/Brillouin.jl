@@ -9,6 +9,7 @@ using ..Brillouin:
     BasisEnum, CARTESIAN, LATTICE, setting, set_setting!,
     cartesianize, latticize
 import ..Brillouin:
+    latticize,
     latticize!,
     cartesianize!,
     basis
@@ -316,13 +317,42 @@ end
 
 # ---------------------------------------------------------------------------------------- #
 
+"""
+    latticize!(c::Cell)
+
+Transform a Wigner-Seitz cell `c` in a Cartesian basis to a lattice basis with (primitive)
+reciprocal lattice vectors `basis(c)`. Modifies `c` in-place.
+"""
 function latticize!(c::Cell)
     setting(c) === LATTICE && return c
-    basismatrix = hcat(c.basis...)
+    basismatrix = reduce(hcat, basis(c))
     c.verts .= latticize.(c.verts, Ref(basismatrix))
     set_setting!(c, LATTICE)
     return c
 end
+
+"""
+    latticize(c::Cell{D}, basis::AbstractVector{<:AbstractVector{<:Real}})
+
+Transform a Wigner-Seitz cell `c` in a Cartesian basis to a lattice basis with (primitive)
+reciprocal lattice vectors `basis`.
+
+If `c` is not in a Cartesian basis (i.e., if `setting(c) == LATTICE`), `c` is returned
+as-is.
+"""
+function latticize(c::Cell{D}, basis::AVec{<:AVec{<:Real}}) where D
+    setting(c) === LATTICE && return c
+    basismatrix = convert(SMatrix{D,D,Float64,D*D}, reduce(hcat, basis))
+    verts = latticize.(c.verts, Ref(basismatrix))
+    return typeof(c)(verts, faces(c), basis, Ref(LATTICE))
+end
+
+"""
+    cartesianize!(c::Cell{D})
+
+Transform a Wigner-Seitz cell `c` in a lattice basis to a Cartesian basis with (primitive)
+reciprocal basis vectors `basis(c)`. Modifies `c` in-place.
+"""
 function cartesianize!(c::Cell)
     setting(c) === CARTESIAN && return c
     c.verts .= cartesianize.(c.verts, Ref(c.basis))

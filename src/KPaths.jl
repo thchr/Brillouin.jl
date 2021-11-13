@@ -27,7 +27,9 @@ using ..Brillouin:
     BasisEnum, CARTESIAN, LATTICE, setting, set_setting!,
     cartesianize, latticize
 import ..Brillouin:
-    latticize!, cartesianize!,
+    latticize,
+    latticize!,
+    cartesianize!,
     basis
 using LinearAlgebra:
     norm,
@@ -260,36 +262,53 @@ export interpolate, splice, cumdists
 # ---------------------------------------------------------------------------------------- #
 
 """
-    cartesianize!(kp::KPath{D}, Gs::BasisLike{D})
+    cartesianize!(kp::KPath{D})
 
 Transform a **k**-path `kp` in a lattice basis to a Cartesian basis with (primitive)
-reciprocal basis vectors `basis`.
-Modifies `kp` in-place.
+reciprocal basis vectors `basis(kp)`. Modifies `kp` in-place.
 """
 function cartesianize!(kp::KPath{D}) where D
     setting(kp) === CARTESIAN && return kp
     for (lab, kv) in points(kp)
-        @inbounds points(kp)[lab] = cartesianize(kv, kp.basis)
+        @inbounds points(kp)[lab] = cartesianize(kv, basis(kp))
     end
     set_setting!(kp, CARTESIAN)
     return kp
 end
 
 """
-    latticize!(kp::KPath{D}, Gs::BasisLike{D})
+    latticize!(kp::KPath)
 
-Transform a **k**-path `kpi` in a Cartesian basis to a lattice basis with (primitive)
-reciprocal lattice vectors `basis`.
-Modifies `kp` in-place.
+Transform a **k**-path `kp` in a Cartesian basis to a lattice basis with (primitive)
+reciprocal lattice vectors `basis(kp)`. Modifies `kp` in-place.
 """
-function latticize!(kp::KPath{D}) where D
+function latticize!(kp::KPath)
     setting(kp) === LATTICE && return kp
-    basismatrix = hcat(kp.basis...)
+    basismatrix = reduce(hcat, basis(kp))
     for (lab, kv) in points(kp)
         @inbounds points(kp)[lab] = latticize(kv, basismatrix)
     end
     set_setting!(kp, LATTICE)
     return kp
+end
+
+"""
+    latticize(kp::KPath{D}, basis::AbstractVector{<:AbstractVector{<:Real}})
+
+Transform a **k**-path `kp` in a Cartesian basis to a lattice basis with (primitive)
+reciprocal lattice vectors `basis`.
+
+If `kp` is not in a Cartesian basis (i.e., if `setting(kp) == LATTICE`), `kp` is returned
+as-is.
+"""
+function latticize(kp::KPath{D}, basis::AVec{<:AVec{<:Real}}) where D
+    setting(kp) === LATTICE && return kp
+    basismatrix = convert(SMatrix{D,D,Float64,D*D}, reduce(hcat, basis))
+    kvs′ = Dict{Symbol, SVector{D,Float64}}()
+    for (lab, kv) in points(kp)
+        @inbounds kvs′[lab] = latticize(kv, basismatrix)
+    end
+    return typeof(kp)(kvs′, paths(kp), basis, Ref(LATTICE))
 end
 
 # ---------------------------------------------------------------------------------------- #

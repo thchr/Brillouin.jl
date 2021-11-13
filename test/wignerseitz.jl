@@ -102,6 +102,11 @@ using StaticArrays
     test_show(cell, cell_show_reference)
     test_show(Brillouin.cartesianize(cell), cell_show_referenceᶜ)
 
+    # cartesianize/latticize(!)
+    @test Brillouin.latticize!(Brillouin.cartesianize!(deepcopy(cell))) ≈ cell
+    cellᶜ = Brillouin.cartesianize!(deepcopy(cell))
+    @test Brillouin.cartesianize!(Brillouin.latticize(cellᶜ, basis(cell)[[3,2,1]])) ≈ cellᶜ
+
     # test indexing/iteration of Cell struct
     @test cell[1] ≈ [[-2/3,  1/3, -1/2],
                      [-2/3,  1/3, 1/2],
