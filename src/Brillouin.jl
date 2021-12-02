@@ -104,7 +104,7 @@ function __init__()
     end
 
     @require Spglib="f761d5c5-86db-4880-b97f-9680a7cccfb5" begin
-        include("spglib.jl")
+        include("requires/spglib.jl")
     end
 end
 

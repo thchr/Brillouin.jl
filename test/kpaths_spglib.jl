@@ -25,9 +25,9 @@ using Spglib
     cell_nonstandard = Spglib.Cell(lattice_nonstandard, [[0, 0, 0]], [0])
     cell_rotated = Spglib.Cell(lattice_rotated, [[0, 0, 0]], [0])
 
-    kp_standard = irrfbz_path_for_cell(cell_standard)
-    kp_nonstandard = irrfbz_path_for_cell(cell_nonstandard)
-    kp_rotated = irrfbz_path_for_cell(cell_rotated)
+    kp_standard = irrfbz_path(cell_standard)
+    kp_nonstandard = irrfbz_path(cell_nonstandard)
+    kp_rotated = irrfbz_path(cell_rotated)
 
     @test Bravais.reciprocalbasis(kp_standard.basis) ≈ lattice_standard
     @test Bravais.reciprocalbasis(kp_nonstandard.basis) ≈ lattice_nonstandard

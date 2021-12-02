@@ -1,19 +1,20 @@
 # Functionalities that are available when Spglib is loaded
 
-export irrfbz_path_for_cell
-
 using Bravais: reciprocalbasis, DirectBasis
 using LinearAlgebra
+import ..KPaths: irrfbz_path
+
+export irrfbz_path
 
 """
-    irrfbz_path_for_cell(cell::Spglib.Cell)  -->  ::KPath{D}
+    irrfbz_path(cell::Spglib.Cell)  -->  ::KPath{D}
 
 Returns a k-path for arbitrary 3D cell in the Spglib format. The k-path is equivalent to the
 "standard" k-path given by `irrfbz_path` for the equivalent standard primitive lattice.
 Does not give the correct k-path if the input cell is a supercell of a smaller primitive
 cell (a warning is printed).
 """
-function irrfbz_path_for_cell(cell::Spglib.Cell)
+function irrfbz_path(cell::Spglib.Cell)
     # standardize cell
     dset = Spglib.get_dataset(cell)
     sgnum = dset.spacegroup_number
