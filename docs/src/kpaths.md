@@ -85,4 +85,32 @@ Main.HTMLPlot(P¹², 525) # hide
 plot(::KPathInterpolant, ::Any, ::Layout)
 ```
 
+## K-paths for non-standard lattices
+One can create a **k**-path for a non-standard unit cell by using Spglib.
+```@example kpath
+using Spglib
+# Trigonal lattice, space group R-3m, 166
+a = 1.0
+c = 8.0
+lattice_standard    = SVector(SVector(a*sqrt(3)/2,  a/2, c/3),
+                              SVector(-a*sqrt(3)/2, a/2, c/3),
+                              SVector(0.0, -a, c/3))
+lattice_nonstandard = SVector(SVector(a*sqrt(3)/2, -a/2, c/3),
+                              SVector(0.0, a, c/3),
+                              SVector(-a*sqrt(3)/2, -a/2, c/3))
+
+cell_standard = Spglib.Cell(lattice_standard, [[0, 0, 0]], [0])
+cell_nonstandard = Spglib.Cell(lattice_nonstandard, [[0, 0, 0]], [0])
+
+kp_standard = irrfbz_path(cell_standard)
+kp_nonstandard = irrfbz_path(cell_nonstandard)
+```
+
+One can check that the generated **k**-paths for the non-standard and standard lattice vectors are equivalent by plotting the path and the Wigner-Seitz cell.
+```@example kpath
+using Bravais
+PlotlyJS.plot(wignerseitz(Bravais.reciprocalbasis(Bravais.DirectBasis(lattice_standard))), kp_standard, Layout(title="standard cell"))
+PlotlyJS.plot(wignerseitz(Bravais.reciprocalbasis(Bravais.DirectBasis(lattice_nonstandard))), kp_nonstandard, Layout(title="non-standard cell"))
+```
+
 [^1] See e.g. [http://www.physics.rutgers.edu/~eandrei/chengdu/reading/tight-binding.pdf](http://www.physics.rutgers.edu/~eandrei/chengdu/reading/tight-binding.pdf)
