@@ -102,6 +102,10 @@ function __init__()
         include("requires/plotlyjs_kpaths.jl")
         include("requires/plotlyjs_dispersion.jl")
     end
+
+    @require Spglib="f761d5c5-86db-4880-b97f-9680a7cccfb5" begin
+        include("requires/spglib.jl")
+    end
 end
 
 # ---------------------------------------------------------------------------------------- #

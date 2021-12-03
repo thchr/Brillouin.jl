@@ -8,6 +8,7 @@ include("testutils_show.jl")
 # core API/utilities
 include("kpaths.jl")
 include("wignerseitz.jl")
+include("kpaths_spglib.jl")
 
 # ---------------------------------------------------------------------------------------- #
 # optional plot utilities
