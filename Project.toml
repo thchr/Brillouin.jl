@@ -13,7 +13,7 @@ Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
-Bravais = "0.1.2"
+Bravais = "0.1.4"
 DocStringExtensions = "0.8"
 PyCall = "1.92"
 Reexport = "1.0, 1.1, 1.2"
