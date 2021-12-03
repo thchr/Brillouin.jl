@@ -26,15 +26,15 @@ using Spglib
     kp_nonstandard = irrfbz_path(cell_nonstandard)
     kp_rotated = irrfbz_path(cell_rotated)
 
-    @test Bravais.reciprocalbasis(kp_standard.basis) ≈ pRs_standard
-    @test Bravais.reciprocalbasis(kp_nonstandard.basis) ≈ pRs_nonstandard
-    @test Bravais.reciprocalbasis(kp_rotated.basis) ≈ pRs_rotated
+    @test Bravais.reciprocalbasis(basis(kp_standard)) ≈ pRs_standard
+    @test Bravais.reciprocalbasis(basis(kp_nonstandard)) ≈ pRs_nonstandard
+    @test Bravais.reciprocalbasis(basis(kp_rotated)) ≈ pRs_rotated
 
-    @test kp_nonstandard.paths == kp_standard.paths
-    @test kp_rotated.paths == kp_standard.paths
+    @test paths(kp_nonstandard) == paths(kp_standard)
+    @test paths(kp_rotated) == paths(kp_standard)
 
-    for (lab, kv) in kp_standard.points
-        @test kp_nonstandard.points[lab] ≈ kv
-        @test kp_rotated.points[lab] ≈ kv
+    for (lab, kv) in points(kp_standard)
+        @test points(kp_nonstandard)[lab] ≈ kv
+        @test points(kp_rotated)[lab] ≈ kv
     end
 end
