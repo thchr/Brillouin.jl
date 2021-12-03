@@ -113,8 +113,10 @@ Note that the space group symmetry is inferred by Spglib from the atomic positio
 We can check that the generated **k**-paths for the non-standard and standard lattices are equivalent by plotting the computed **k**-paths and the associated Wigner-Seitz cells:
 ```@example kpath
 using Bravais # for `reciprocalbasis`
-plot(wignerseitz(reciprocalbasis(DirectBasis(pRs_standard))), kp_standard, Layout(title="standard cell"))
-plot(wignerseitz(reciprocalbasis(DirectBasis(pRs_nonstandard))), kp_nonstandard, Layout(title="non-standard cell"))
+Pˢ  = plot(wignerseitz(reciprocalbasis(DirectBasis(pRs_standard))), kp_standard, Layout(title="standard cell"))
+Pⁿˢ = plot(wignerseitz(reciprocalbasis(DirectBasis(pRs_nonstandard))), kp_nonstandard, Layout(title="non-standard cell"))
+Main.HTMLPlot(Pˢ) # hide
+Main.HTMLPlot(Pⁿˢ) # hide
 ```
 
 [^1] See e.g. [http://www.physics.rutgers.edu/~eandrei/chengdu/reading/tight-binding.pdf](http://www.physics.rutgers.edu/~eandrei/chengdu/reading/tight-binding.pdf)
