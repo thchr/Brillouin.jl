@@ -4,30 +4,28 @@ using Bravais: reciprocalbasis, DirectBasis
 using LinearAlgebra
 import ..KPaths: irrfbz_path
 
-export irrfbz_path
-
 """
     irrfbz_path(cell::Spglib.Cell)  -->  ::KPath{D}
 
-Returns a k-path for arbitrary 3D cell in the Spglib format. The k-path is equivalent to the
-"standard" k-path given by `irrfbz_path` for the equivalent standard primitive lattice.
-Does not give the correct k-path if the input cell is a supercell of a smaller primitive
-cell (a warning is printed).
+Returns a **k**-path for an arbitrary 3D cell in the Spglib format. The **k**-path is equivalent to the
+"standard" **k**-path given by `irrfbz_path` for the associated standard primitive lattice,
+but adapted to the possibly non-standard setting of `cell`.
+
+`cell` cannot represent a supercell of a smaller primitive cell.
 """
 function irrfbz_path(cell::Spglib.Cell)
     # standardize cell
     dset = Spglib.get_dataset(cell)
     sgnum = dset.spacegroup_number
-    std_lattice = DirectBasis(collect(eachcol(dset.std_lattice)))
+    std_lattice = DirectBasis{3}(collect(eachcol(dset.std_lattice)))
 
     # If the input cell is a supercell (without any distortion), then the irrfbz algorithm cannot work.
-    # Check the volume of the input cell and primitive cell are equal.
-    if round(Int, det(cell.lattice) / det(dset.primitive_lattice)) != 1
-        @warn "input cell is a supercell. irrfbz Does not give a correct k path."
+    if !isapprox(det(cell.lattice), det(dset.primitive_lattice)) # check volumes agree
+        errror(DomainError(cell, "`cell` is a supercell and untreatable by `irrfbz_path`."))
     end
 
     # Calculate kpath for standard primitive lattice
-    kp_standard = Brillouin.irrfbz_path(sgnum, std_lattice)
+    kp_standard = irrfbz_path(sgnum, std_lattice)
 
     # Now, we convert from the standard primitive lattice to the original lattice.
     # The conversion formula is `cell.lattice = rotation * dset.primitive_lattice * transformation`.
@@ -36,11 +34,11 @@ function irrfbz_path(cell::Spglib.Cell)
     rotation = dset.std_rotation_matrix
 
     # Rotate k points in Cartesian space by `rotation`
-    recip_basis = reciprocalbasis(DirectBasis(collect(eachcol(Matrix(cell.lattice)))))
+    recip_basis = reciprocalbasis(collect.(eachcol(cell.lattice)))
     kp_cart = cartesianize(kp_standard)
     for (lab, kv) in points(kp_cart)
         points(kp_cart)[lab] = rotation * kv
     end
     kp = latticize(kp_cart, recip_basis)
-    kp
+    return kp
 end
