@@ -92,15 +92,15 @@ The provided unit cell must be a primitive cell (that, additionally, is not a su
 
 For example, to construct a **k**-path for a non-standard trigonal lattice in space group 166 (R-3m):
 ```@example kpath
-using StaticArrays, Spglib
+using Spglib
 a = 1.0
 c = 8.0
-pRs_standard    = @SVector [[a*√3/2,  a/2, c/3],
-                            [-a*√3/2, a/2, c/3],
-                            [0, -a, c/3]]
-pRs_nonstandard = @SVector [[a*√3/2, -a/2, c/3],
-                            [0, a, c/3],
-                            [-a*√3/2, -a/2, c/3]]
+pRs_standard    = [[a*√3/2,  a/2, c/3],
+                   [-a*√3/2, a/2, c/3],
+                   [0, -a, c/3]]
+pRs_nonstandard = [[a*√3/2, -a/2, c/3],
+                   [0, a, c/3],
+                   [-a*√3/2, -a/2, c/3]]
 
 cell_standard = Spglib.Cell(pRs_standard, [[0, 0, 0]], [0])
 cell_nonstandard = Spglib.Cell(pRs_nonstandard, [[0, 0, 0]], [0])
@@ -112,8 +112,9 @@ Note that the space group symmetry is inferred by Spglib from the atomic positio
 
 We can check that the generated **k**-paths for the non-standard and standard lattices are equivalent by plotting the computed **k**-paths and the associated Wigner-Seitz cells:
 ```@example kpath
-plot(wignerseitz(reciprocalbasis(pRs_standard)), kp_standard, Layout(title="standard cell"))
-plot(wignerseitz(reciprocalbasis(pRs_nonstandard)), kp_nonstandard, Layout(title="non-standard cell"))
+using Bravais # for `reciprocalbasis`
+plot(wignerseitz(reciprocalbasis(DirectBasis(pRs_standard))), kp_standard, Layout(title="standard cell"))
+plot(wignerseitz(reciprocalbasis(DirectBasis(pRs_nonstandard))), kp_nonstandard, Layout(title="non-standard cell"))
 ```
 
 [^1] See e.g. [http://www.physics.rutgers.edu/~eandrei/chengdu/reading/tight-binding.pdf](http://www.physics.rutgers.edu/~eandrei/chengdu/reading/tight-binding.pdf)
