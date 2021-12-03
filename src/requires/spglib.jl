@@ -21,7 +21,8 @@ function irrfbz_path(cell::Spglib.Cell)
 
     # If the input cell is a supercell (without any distortion), then the irrfbz algorithm cannot work.
     if !isapprox(det(cell.lattice), det(dset.primitive_lattice)) # check volumes agree
-        errror(DomainError(cell, "`cell` is a supercell and untreatable by `irrfbz_path`."))
+        error(DomainError(cell, "`cell` is a supercell and untreatable by `irrfbz_path`. " *
+            "If the cell represents a standard conventional lattice, use `irrfbz_path(sgnum::Integer, Rs)`"))
     end
 
     # Calculate kpath for standard primitive lattice
@@ -29,6 +30,8 @@ function irrfbz_path(cell::Spglib.Cell)
 
     # Now, we convert from the standard primitive lattice to the original lattice.
     # The conversion formula is `cell.lattice = rotation * dset.primitive_lattice * transformation`.
+    # `rotation` rotates the lattice vectors in 3D space.
+    # `transformation` is an integer-valued matrix that represents the linear combination of the lattice basis vectors.
     # `transformation` is not used, but is commented here just for information.
     # transformation = inv(Bravais.primitivebasismatrix(Bravais.centering(sgnum, 3))) * dset.transformation_matrix'
     rotation = dset.std_rotation_matrix
