@@ -115,9 +115,9 @@ We can check that the generated **k**-paths for the standard and non-standard la
 using Bravais # for `reciprocalbasis`
 Pˢ  = plot(wignerseitz(reciprocalbasis(DirectBasis(pRs_standard))), kp_standard, Layout(title="standard cell"))
 Main.HTMLPlot(Pˢ) # hide
-```@example kpath
-
 ```
+
+```@example kpath
 Pⁿˢ = plot(wignerseitz(reciprocalbasis(DirectBasis(pRs_nonstandard))), kp_nonstandard, Layout(title="non-standard cell"))
 Main.HTMLPlot(Pⁿˢ) # hide
 ```
