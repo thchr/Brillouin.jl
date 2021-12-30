@@ -13,8 +13,8 @@ The **k**-path is equivalent to the standard **k**-path given by `irrfbz_path` f
 associated standard primitive lattice, but adapted to the possibly non-standard setting of
 `cell`.
 
-Note that `cell` must be a primitive unit cell and also cannot be a supercell of a smaller
-primitive cell.
+If `cell` is a supercell of a smaller primitive cell, return the standard **k**-path of the
+primitive cell in the basis of supercell reciprocal lattices.
 """
 function irrfbz_path(cell::Spglib.Cell)
     # extract a standardized primitive basis `pRs` assoc. w/ `cell` via Spglib
@@ -22,12 +22,10 @@ function irrfbz_path(cell::Spglib.Cell)
     sgnum = dset.spacegroup_number
     pRs = SVector{3}(SVector{3,Float64}(col) for col in eachcol(dset.std_lattice))
 
-    # if the input cell is a supercell (without any distortion), then the irrfbz algorithm
-    # cannot work
+    # print warning if the input cell is a supercell (without any distortion)
     if !isapprox(det(cell.lattice), det(dset.primitive_lattice)) # check volumes agree
-        error(DomainError(cell, 
-            "`cell` is either not primitive or a supercell and is untreatable by " * 
-            "`irrfbz_path(::Spglib.Cell)`"))
+        (@warn "$cell `cell` is a supercell. The resulting **k**-path is the standard " *
+            "**k**-path of the primitive cell in the basis of supercell reciprocal lattices.")
     end
 
     # Calculate kpath for standard primitive lattice

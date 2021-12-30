@@ -88,7 +88,7 @@ plot(::KPathInterpolant, ::Any, ::Layout)
 ## Treating unit cells in non-standard settings
 `irrfbz_path(sgnum, Rs)` requires `Rs` to be provided in a standard setting. Often, the setting of `Rs` may not be standard and it can be a hassle to convert existing calculations to such a setting.
 To avoid this, we can provide the unit cell information to `irrfbz` via `Spglib`'s `Cell` format (this functionality depends on separately loading the [Spglib.jl](https://github.com/singularitti/Spglib.jl) package).
-The provided unit cell must be a primitive cell (that, additionally, is not a supercell of a smaller primitive cell).
+If the provided unit cell is a supercell of a smaller primitive cell, `irrfbz_path` returns the standard **k**-path of the smaller primitive cell in the basis of the supercell reciprocal lattice vectors.
 
 For example, to construct a **k**-path for a non-standard trigonal lattice in space group 166 (R-3m):
 ```@example kpath

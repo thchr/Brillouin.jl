@@ -37,4 +37,19 @@ using Spglib
         @test points(kp_nonstandard)[lab] ≈ kv
         @test points(kp_rotated)[lab] ≈ kv
     end
+
+    # The case where the input cell is a supercell of a smaller primitive cell
+    pRs_super = [pRs_standard[1], pRs_standard[2], 2 .* pRs_standard[3]]
+    cell_super = Spglib.Cell(pRs_super, [[0, 0, 0], [0, 0, 0.5]], [0, 0])
+    kp_super = irrfbz_path(cell_super)
+
+    @test Bravais.reciprocalbasis(basis(kp_super)) ≈ pRs_super
+    @test paths(kp_super) == paths(kp_standard)
+
+    # Check that the Cartesian coordinates of the high-symmetry k points are identical
+    kp_standard_cart = cartesianize(kp_standard)
+    kp_super_cart = cartesianize(kp_super)
+    for (lab, kv) in points(kp_standard_cart)
+        @test points(kp_super_cart)[lab] ≈ kv
+    end
 end
