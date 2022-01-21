@@ -2,7 +2,7 @@ module WignerSeitz
 
 # ---------------------------------------------------------------------------------------- #
 
-using ..Brillouin: 
+using ..Brillouin:
     AVec,
     SHOWDIGITS,
     BasisLike,
@@ -32,7 +32,13 @@ export Cell, wignerseitz, faces, vertices, reduce_to_wignerseitz
 const PySpatial = PyNULL()
 function __init__()
     # bringing in SciPy's Spatial module (for `Voronoi` and `ConvexHull`)
-    copy!(PySpatial, pyimport_conda("scipy.spatial", "scipy"))
+    if PyCall.conda
+        copy!(PySpatial, pyimport_conda("scipy.spatial", "scipy"))
+    else
+        copy!(PySpatial, pyimport_e("scipy.spatial"))
+    end
+    ispynull(PySpatial) && @warn("scipy python package not found. " *
+                                 "WignerSeitz.wignerseitz is nonfunctional.")
 end
 
 # ---------------------------------------------------------------------------------------- #
@@ -119,6 +125,7 @@ function wignerseitz(basis::AVec{<:SVector{D,<:Real}};
         iszero(I) && (idx_cntr = idx)
     end
 
+    ispynull(PySpatial) && error("You need to install scipy for wignerseitz to work.")
     vor = PySpatial.Voronoi(lattice) # voronoi tesselation of lattice
 
     # grab all the vertices of the central voronoi region enclosing origo
