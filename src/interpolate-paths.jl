@@ -26,7 +26,7 @@ struct KPathInterpolant{D} <: AbstractPath{SVector{D, Float64}}
     kpaths  :: Vector{Vector{SVector{D, Float64}}}
     labels  :: Vector{Dict{Int, Symbol}}
     basis   :: ReciprocalBasis{D}
-    setting :: Ref{BasisEnum}
+    setting :: Base.RefValue{BasisEnum}
 end
 
 size(kpi::KPathInterpolant) = (sum(length, kpi.kpaths),)

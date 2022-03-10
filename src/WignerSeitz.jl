@@ -52,7 +52,7 @@ struct Cell{D} <: AVec{Vector{SVector{D, Float64}}}
     verts   :: Vector{SVector{D, Float64}}
     faces   :: Vector{Vector{Int}}
     basis   :: SVector{D, SVector{D, Float64}}
-    setting :: Ref{BasisEnum} # internal field
+    setting :: Base.RefValue{BasisEnum} # internal field
 end
 
 faces(c::Cell)    = c.faces
