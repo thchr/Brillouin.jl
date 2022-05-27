@@ -14,7 +14,7 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
 Bravais = "0.1.4"
-DocStringExtensions = "0.8"
+DocStringExtensions = "0.8, 0.9"
 PyCall = "1.92"
 Reexport = "1.0, 1.1, 1.2"
 Requires = "1.1"
