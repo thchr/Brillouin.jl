@@ -109,7 +109,7 @@ function plot(kpi::KPathInterpolant, bands,
 
     # prepare to plot band diagram
     Npaths           = length(kpi.kpaths)
-    local_xs         = cumdists.(kpi.kpaths)
+    local_xs         = cumdists.(cartesianize(kpi).kpaths)
     local_xs_lengths = last.(local_xs)
     total_xs_lengths = sum(local_xs_lengths)
     spacing          = total_xs_lengths / 30
