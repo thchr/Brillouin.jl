@@ -75,7 +75,7 @@ KPath{3} (7 points, 3 paths, 13 points in paths):
          [0.0, 7.255197, 0.0]
          [0.0, -0.0, 5.026548]
 ```
-Returned **k**-vector coordinates are referred to the basis of the primitive reciprocal cell (in the CDML setting). The associated transformation matrix between conventional and primitive bases can be obtained via [Bravais.jl's `primitivebasismatrix`].
+Returned **k**-vector coordinates are referred to the basis of the primitive reciprocal cell (in the CDML setting). The associated transformation matrix between conventional and primitive bases can be obtained via [Bravais.jl's `primitivebasismatrix`](https://thchr.github.io/Crystalline.jl/stable/bravais/#Bravais.primitivebasismatrix).
 
 The resulting object `kp` can be interpolated, using either `interpolate(kp, N)` or `splice(kp, N)` which return a `KPathInterpolant` iterable whose values interpolate the connected paths (and enable convenient plotting of [band structure diagrams](https://thchr.github.io/Brillouin.jl/stable/kpaths/#Band-structure)). 
 See also visualization [examples in documentation](https://thchr.github.io/Brillouin.jl/stable/kpaths/).
