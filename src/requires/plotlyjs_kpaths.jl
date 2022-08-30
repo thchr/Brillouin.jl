@@ -3,8 +3,6 @@ import .PlotlyJS: plot
 
 # NB: This file expects to be loaded *after* /src/compat/plotlyjs_wignerseitz.jl
 
-const KPATH_COL = Ref("rgb(95,39,205)") # "nasu purple" (https://flatuicolors.com/palette/ca)
-
 # ---------------------------------------------------------------------------------------- #
 
 function plot(kp::KPath{3}, layout::Layout = Layout();

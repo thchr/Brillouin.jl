@@ -30,15 +30,8 @@ const DEFAULT_PLOTLY_LAYOUT_3D  = Layout(
     margin=attr(l=0, r=0, b=0, t=0),
     autosize=false,
     #width=200, height=200,
-    plot_bgcolor="rgba(255, 255, 255, 1)", paper_bgcolor="rgba(255, 255, 255, 1)",
+    plot_bgcolor=TRANSPARENT_COL[], paper_bgcolor=TRANSPARENT_COL[],
     )
-
-# colors from the "british" flatcolors color palette: https://flatuicolors.com/palette/gb
-const BZ_COL          = Ref("rgb(47,54,64)")    # "electromagnetic"
-const BASIS_COL       = Ref("rgb(39,60,117)")   # "pico void"
-const BASIS_LIGHT_COL = Ref("rgb(212,216,227)") # 20% BASIS_COL, 80% white
-const AXIS_COL        = Ref("rgb(194,54,22)")   # "harley davidson orange"
-const AXIS_LIGHT_COL  = Ref("rgb(242,215,208)") # 20% AXIS_COL, 80% white
 
 # ---------------------------------------------------------------------------------------- #
 # 3D
@@ -145,7 +138,7 @@ const DEFAULT_PLOTLY_LAYOUT_2D  = Layout(
     hovermode="closest",
     margin=attr(l=0, r=0, b=0, t=0),
     autosize=false,
-    plot_bgcolor="rgba(255, 255, 255, 1)", paper_bgcolor="rgba(255, 255, 255, 1)",
+    plot_bgcolor=TRANSPARENT_COL[], paper_bgcolor=TRANSPARENT_COL[],
     annotations=PlotlyBase.PlotlyAttribute[]
     )
 

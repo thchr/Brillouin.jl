@@ -1,9 +1,5 @@
 using .PlotlyJS
 import .PlotlyJS: plot
-                                            # from https://flatuicolors.com/palette/gb
-const BAND_COL  = Ref("rgb(39,60,117)")     # "mazarine blue"
-const KLINE_COL = Ref("rgb(220,221,225)")   # "hint of pensive" (light gray)
-const ANNOTATE_COL = Ref("rgb(53, 59, 72)") # "blue nights" (dark gray)
 
 const DEFAULT_PLOTLY_LAYOUT_DISPERSION = Layout(
     showlegend=false,
@@ -22,7 +18,7 @@ const DEFAULT_PLOTLY_LAYOUT_DISPERSION = Layout(
     width = 480, height = 480,
     #margin=attr(l=50, r=5, b=15, t=10),
 
-    plot_bgcolor="rgba(255, 255, 255, 1)", paper_bgcolor="rgba(255, 255, 255, 1)",
+    plot_bgcolor=TRANSPARENT_COL[], paper_bgcolor=TRANSPARENT_COL[],
     )
 
 """

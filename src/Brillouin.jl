@@ -55,11 +55,13 @@ include("WignerSeitz.jl")
 function __init__()
     # plotting extensions on GLMakie load
     @require Makie="ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a" begin
+        include("requires/default_colors.jl")
         include("requires/makie_wignerseitz.jl")
     end
 
     # plotting extensions on PlotlyJS load
     @require PlotlyJS="f0f68f2c-4968-5e81-91da-67840de0976a" begin
+        include("requires/default_colors.jl")
         include("requires/plotlyjs_wignerseitz.jl")
         include("requires/plotlyjs_kpaths.jl")
         include("requires/plotlyjs_dispersion.jl")
