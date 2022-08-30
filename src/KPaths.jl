@@ -271,10 +271,10 @@ export interpolate, splice, cumdists
 
 # ---------------------------------------------------------------------------------------- #
 
-function cartesianize(x::Union{KPath, KPathInterpolanth})
+function cartesianize(x::Union{KPath, KPathInterpolant})
     return setting(x) === LATTICE ? cartesianize!(deepcopy(x)) : deepcopy(x)
 end
-function latticize(x::Union{KPath, KPathInterpolanth})
+function latticize(x::Union{KPath, KPathInterpolant})
     return setting(x) === CARTESIAN ? latticize!(deepcopy(x)) : deepcopy(x)
 end
 
