@@ -61,6 +61,7 @@ We can visualize the reduction by adding the points to the previous plot of the 
 vᶜ = cartesianize(v, Gs)
 v′ᶜ = cartesianize(v′, Gs)
 
+Pᴳ = deepcopy(Pᴳ)
 addtraces!(Pᴳ, scatter(x=vᶜ[1:1],  y=vᶜ[2:2],  hovertext="v (unreduced)"))
 addtraces!(Pᴳ, scatter(x=v′ᶜ[1:1], y=v′ᶜ[2:2], hovertext="v′ (reduced)"))
 Main.HTMLPlot(Pᴳ) # hide
