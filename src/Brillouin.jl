@@ -23,43 +23,6 @@ setting(x) = x.setting[]
 set_setting!(x, new_setting) = (x.setting[] = new_setting)
 
 # ---------------------------------------------------------------------------------------- #
-@doc """
-    latticize!
-
-In-place transform object with coordinates in a Cartesian basis to an object with
-coordinates in a (explicitly or implicitly specified) lattice basis.
-"""
-function latticize! end
-@doc """
-    latticize
-
-Transform an object with coordinates in a Cartesian basis to an object with coordinates in
-a (explicitly or implicitly specified) lattice basis.
-"""
-function latticize end
-latticize(v::AVec{<:Real}, basismatrix::AbstractMatrix{<:Real}) = basismatrix\v
-latticize(v::AVec{<:Real}, basis::AVec{<:AVec{<:Real}}) = latticize(v, reduce(hcat, basis))
-latticize(x) = (setting(x) === CARTESIAN ? latticize!(deepcopy(x)) : deepcopy(x))
-
-# TODO: Move "root" definition of `cartesianize(!)` and `latticize(!)` to Bravais, so we
-#       can share the definition with Crystalline
-@doc """
-    cartesianize!
-
-In-place transform an object with coordinates in a (explicitly or implicitly specified)
-lattice basis to an object with coordinates in a Cartesian basis.
-"""
-function cartesianize! end
-@doc """
-    cartesianize
-
-Transform an object with coordinates in a (explicitly or implicitly specified) lattice basis
-to an object with coordinates in a Cartesian basis.
-"""
-function cartesianize end
-cartesianize(v::AVec{<:Real}, basis::AVec{<:AVec{<:Real}}) = v'basis
-cartesianize(x) = (setting(x) === LATTICE ? cartesianize!(deepcopy(x)) : deepcopy(x))
-
 """
     basis(x::Union{KPath, KPathInterpolant, Cell})
 
@@ -75,9 +38,8 @@ Cartesian coordinates.
 """
 basis(x) = x.basis
 
-export latticize!, latticize,
-    cartesianize!, cartesianize,
-    basis, setting
+export basis, setting
+
 # ---------------------------------------------------------------------------------------- #
 
 # MAIN FUNCTIONALITY

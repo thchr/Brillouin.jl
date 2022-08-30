@@ -8,8 +8,7 @@
 module KPaths
 
 # ---------------------------------------------------------------------------------------- #
-export irrfbz_path, KPath, points, paths, KPathInterpolant
-# ---------------------------------------------------------------------------------------- #
+
 using Bravais:
     Bravais, # so it is possible to call Brillouin.Bravais from the "outside"
     bravaistype,
@@ -20,16 +19,21 @@ using Bravais:
     ReciprocalBasis,
     DirectBasis,
     primitivebasismatrix
+import Bravais:
+    cartesianize,
+    cartesianize!,
+    latticize,
+    latticize!
 using ..Brillouin:
     AVec,
     BasisLike,
     SHOWDIGITS,
-    BasisEnum, CARTESIAN, LATTICE, setting, set_setting!,
-    cartesianize, latticize
+    BasisEnum,
+    CARTESIAN,
+    LATTICE,
+    setting,
+    set_setting!
 import ..Brillouin:
-    latticize,
-    latticize!,
-    cartesianize!,
     basis
 using LinearAlgebra:
     norm,
@@ -39,6 +43,12 @@ using StaticArrays
 using DocStringExtensions
 
 import Base: show, summary, getindex, setindex!, IndexStyle, size
+
+# ---------------------------------------------------------------------------------------- #
+
+export irrfbz_path, KPath, points, paths, KPathInterpolant
+export cartesianize, cartesianize!, latticize, latticize!
+
 # ---------------------------------------------------------------------------------------- #
 
 include("codegen-kpoints.jl")  # defines `get_points_3d`, `pathsd_3d` (& other subfunctions)
@@ -260,6 +270,13 @@ include("interpolate-paths.jl")
 export interpolate, splice, cumdists
 
 # ---------------------------------------------------------------------------------------- #
+
+function cartesianize(x::Union{KPath, KPathInterpolanth})
+    return setting(x) === LATTICE ? cartesianize!(deepcopy(x)) : deepcopy(x)
+end
+function latticize(x::Union{KPath, KPathInterpolanth})
+    return setting(x) === CARTESIAN ? latticize!(deepcopy(x)) : deepcopy(x)
+end
 
 """
     cartesianize!(kp::KPath{D})

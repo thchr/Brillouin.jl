@@ -58,8 +58,8 @@ end
 """
     cartesianize!(kpi::KPathInterpolant)
 
-Transform an interpolated **k**-path `kpi` in a lattice basis to a Cartesian basis with
-(primitive) reciprocal lattice vectors `basis(kpi)`. Modifies `kpi` in-place.
+In-place transform an interpolated **k**-path `kpi` in a lattice basis to a Cartesian basis
+with (primitive) reciprocal lattice vectors `basis(kpi)`.
 """
 function cartesianize!(kpi::KPathInterpolant)
     setting(kpi) === CARTESIAN && return kp
@@ -73,8 +73,8 @@ end
 """
     latticize!(kpi::KPathInterpolant{D})
 
-Transform an interpolated **k**-path `kpi` in a Cartesian basis to a lattice basis with
-(primitive) reciprocal lattice vectors `basis(kpi)`. Modifies `kpi` in-place.
+In-place transform an interpolated **k**-path `kpi` in a Cartesian basis to a lattice basis
+with (primitive) reciprocal lattice vectors `basis(kpi)`.
 """
 function latticize!(kpi::KPathInterpolant)
     setting(kpi) === LATTICE && return kp

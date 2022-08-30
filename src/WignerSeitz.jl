@@ -6,13 +6,18 @@ using ..Brillouin:
     AVec,
     SHOWDIGITS,
     BasisLike,
-    BasisEnum, CARTESIAN, LATTICE, setting, set_setting!,
-    cartesianize, latticize
+    BasisEnum,
+    CARTESIAN,
+    LATTICE,
+    setting,
+    set_setting!
 import ..Brillouin:
-    latticize,
-    latticize!,
-    cartesianize!,
     basis
+import Bravais:
+    cartesianize,
+    cartesianize!,
+    latticize,
+    latticize!
 using StaticArrays
 using LinearAlgebra:
     norm,
@@ -323,6 +328,13 @@ function segments2polygon(fs::Vector{Vector{Int}})
 end
 
 # ---------------------------------------------------------------------------------------- #
+
+function cartesianize(c::Cell)
+    return setting(c) === LATTICE ? cartesianize!(deepcopy(c)) : deepcopy(c)
+end
+function latticize(c::Cell)
+    return setting(c) === CARTESIAN ? latticize!(deepcopy(c)) : deepcopy(c)
+end
 
 """
     latticize!(c::Cell)
