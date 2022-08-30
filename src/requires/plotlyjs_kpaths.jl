@@ -1,7 +1,7 @@
 using .PlotlyJS
 import .PlotlyJS: plot
 
-# NB: This file expects to be loaded *after* /src/compat/plotlyjs_wignerseitz.jl
+# NB: This file expects to be loaded *after* /src/requires/plotlyjs_wignerseitz.jl
 
 # ---------------------------------------------------------------------------------------- #
 

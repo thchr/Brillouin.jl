@@ -57,6 +57,7 @@ function __init__()
     @require Makie="ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a" begin
         include("requires/default_colors.jl")
         include("requires/makie_wignerseitz.jl")
+        include("requires/makie_kpaths.jl")
     end
 
     # plotting extensions on PlotlyJS load
