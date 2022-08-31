@@ -52,7 +52,7 @@ function Makie.plot!(kpp::KPathPlot{Tuple{KPath{D}}}) where D
                    kpp.markerkws...)
     Makie.text!(kpp, labelspos[]; text=labels[],
                 align = (0.5,0.5), fontsize = 22,
-                color = kpp.textcolor, strokewidth = D==3 ? 3.5 : 0, strokecolor = :white,
+                color = kpp.textcolor, strokewidth = D==3 ? 3 : 0, strokecolor = :white,
                 kpp.textkws...)
 
     return kpp
