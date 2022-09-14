@@ -39,7 +39,7 @@ function Makie.plot!(c::Union{Observable{<:Cell}, <:Cell}; kws...)
 end
 
 @inline _Axis_by_dim(D)   = D == 3 ? Makie.Axis3   : Makie.Axis
-@inline _aspect_by_dim(D) = D == 3 ? (1.0,1.0,1.0) : Makie.DataAspect()
+@inline _aspect_by_dim(D) = D == 3 ? :data : Makie.DataAspect()
 function Makie.plot(c::Union{Observable{Cell{D}}, Cell{D}};
                     axis = NamedTuple(), figure = NamedTuple(), kws...) where D
     f = Makie.Figure(; figure...)
