@@ -68,8 +68,7 @@ end
 function Makie.plot(kp::Union{Observable{KPath{D}}, KPath{D}};
                     axis = NamedTuple(), figure = NamedTuple(), kws...) where D
     f = Makie.Figure(; figure...)
-    f[1,1] = ax = _Axis_by_dim(D)(f; aspect=_aspect_by_dim(D), axis...)
-    Makie.hidedecorations!(ax); Makie.hidespines!(ax)
+    ax = _default_bare_axis!(f, Val(D); axis)
 
     p = Makie.plot!(ax, kp; kws...)
 
@@ -91,3 +90,64 @@ function eval_label_positions(kvs, basis)
     end
 end
 
+# ---------------------------------------------------------------------------------------- #
+# Hover interaction 
+# (borrowed from https://github.com/JuliaPlots/GraphMakie.jl/blob/master/src/interaction.jl)
+
+"""
+    mutable struct HoverHandler{P, F}
+
+Object to handle hovers on `plot::P`. Calls `fun` on hover.
+"""
+mutable struct HoverHandler{P,F}
+    idx::Union{Nothing,Int}
+    plot::Union{Nothing,P}
+    fun::F
+end
+
+function process_interaction(handler::HoverHandler, event::MouseEvent, axis)
+    if event.type === MouseEventTypes.over
+        (element, idx) = convert_selection(mouse_selection(axis.scene)...)
+        if element == handler.plot
+            if handler.idx === nothing
+                handler.idx = idx
+                ret = handler.fun(true, handler.idx, event, axis)
+                return ret isa Bool ? ret : false
+            end
+        else
+            if handler.idx !== nothing
+                ret = handler.fun(false, handler.idx, event, axis)
+                handler.idx = nothing
+                return ret isa Bool ? ret : false
+            end
+        end
+    end
+    return false
+end
+
+"""
+    NodeHoverHandler(fun)
+
+Initializes `HoverHandler` for markers. Calls function `fun(hoverstate, idx, event, axis)`
+with `hoverstate=true` on hover and `false` at the end of hover. `idx` is the marker index.
+Enabled by `register_interaction!(ax, :nodehover, NodeHoverHandler(action))`.
+"""
+NodeHoverHandler(fun::F) where {F} = HoverHandler{Scatter,F}(nothing, nothing, fun)
+
+"""
+    NodeHoverHeighlight(p::KPathPlot, factor=2)
+
+Magnifies the `markersize` of node under cursor by `factor`.
+Enabled by `register_interaction!(ax, :nodehover, NodeHoverHighlight(p))`
+"""
+function NodeHoverHighlight(p::KPathPlot, factor=2)
+    if !(p.markersize[] isa Vector{<:Real})
+        error("`markersize` must be a `Vector{<:Real}` for this interactivity to work")
+    end
+    action = (state, idx, _, _) -> begin
+        old = p.markersize[][idx]
+        p.markersize[][idx] = state ? old * factor : old / factor
+        p.markersize[] = p.markersize[] #trigger observable
+    end
+    return NodeHoverHandler(action)
+end

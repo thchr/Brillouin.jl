@@ -43,10 +43,27 @@ end
 function Makie.plot(c::Union{Observable{Cell{D}}, Cell{D}};
                     axis = NamedTuple(), figure = NamedTuple(), kws...) where D
     f = Makie.Figure(; figure...)
-    f[1,1] = ax = _Axis_by_dim(D)(f; aspect=_aspect_by_dim(D), axis...)
-    Makie.hidedecorations!(ax); Makie.hidespines!(ax)
+    ax = _default_bare_axis!(f, Val(D); axis)
 
     p = Makie.plot!(ax, c; kws...)
 
     return Makie.FigureAxisPlot(f, ax, p)
+end
+
+function _default_bare_axis!(f, ::Val{3}; axis=NamedTuple())
+    f[1,1] = ax = Makie.Axis3(f;
+        aspect=:data,
+        viewmode=:fit,
+        xautolimitmargin=(0f0,0f0), yautolimitmargin=(0f0,0f0), zautolimitmargin=(0f0,0f0),
+        axis...)
+    Makie.hidedecorations!(ax); Makie.hidespines!(ax) # TODO: make this toggleable?
+    return ax
+end
+function _default_bare_axis!(f, ::Val{2}; axis=NamedTuple())
+    f[1,1] = ax = Makie.Axis(f;
+        aspect=Makie.DataAspect(),
+        xautolimitmargin=(0f0,0f0), yautolimitmargin=(0f0,0f0),
+        axis...)
+    Makie.hidedecorations!(ax); Makie.hidespines!(ax)
+    return ax
 end
