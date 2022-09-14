@@ -66,9 +66,10 @@ function Makie.plot!(kp::Union{Observable{<:KPath}, <:KPath}; kws...)
 end
 
 function Makie.plot(kp::Union{Observable{KPath{D}}, KPath{D}};
+                    hideaxis::Bool = true,
                     axis = NamedTuple(), figure = NamedTuple(), kws...) where D
     f = Makie.Figure(; figure...)
-    ax = _default_bare_axis!(f, Val(D); axis)
+    ax = _default_bare_axis!(f, Val(D); hideaxis, axis)
 
     p = Makie.plot!(ax, kp; kws...)
 

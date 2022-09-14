@@ -41,29 +41,33 @@ end
 @inline _Axis_by_dim(D)   = D == 3 ? Makie.Axis3   : Makie.Axis
 @inline _aspect_by_dim(D) = D == 3 ? :data : Makie.DataAspect()
 function Makie.plot(c::Union{Observable{Cell{D}}, Cell{D}};
+                    hideaxis::Bool = true,
                     axis = NamedTuple(), figure = NamedTuple(), kws...) where D
     f = Makie.Figure(; figure...)
-    ax = _default_bare_axis!(f, Val(D); axis)
+    ax = _default_bare_axis!(f, Val(D); hideaxis, axis)
 
     p = Makie.plot!(ax, c; kws...)
 
     return Makie.FigureAxisPlot(f, ax, p)
 end
 
-function _default_bare_axis!(f, ::Val{3}; axis=NamedTuple())
+function _default_bare_axis!(f, ::Val{3}; hideaxis::Bool=true, axis=NamedTuple())
     f[1,1] = ax = Makie.Axis3(f;
         aspect=:data,
         viewmode=:fit,
         xautolimitmargin=(0f0,0f0), yautolimitmargin=(0f0,0f0), zautolimitmargin=(0f0,0f0),
         axis...)
-    Makie.hidedecorations!(ax); Makie.hidespines!(ax) # TODO: make this toggleable?
+    if hideaxis
+        Makie.hidedecorations!(ax); ax.protrusions[] = 0 # cf. https://github.com/MakieOrg/Makie.jl/issues/2259
+        Makie.hidespines!(ax)
+    end
     return ax
 end
-function _default_bare_axis!(f, ::Val{2}; axis=NamedTuple())
+function _default_bare_axis!(f, ::Val{2}; hideaxis::Bool=true, axis=NamedTuple())
     f[1,1] = ax = Makie.Axis(f;
         aspect=Makie.DataAspect(),
         xautolimitmargin=(0f0,0f0), yautolimitmargin=(0f0,0f0),
         axis...)
-    Makie.hidedecorations!(ax); Makie.hidespines!(ax)
+    hideaxis && (Makie.hidedecorations!(ax); Makie.hidespines!(ax))
     return ax
 end
