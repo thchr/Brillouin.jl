@@ -177,10 +177,10 @@ different) over any dimension specified in the third input argument.
     (http://dx.doi.org/10.1016/j.commatsci.2016.10.015).
 """
 function irrfbz_path(sgnum::Integer, Rs, Dᵛ::Val{D}=Val(3)) where D
-    D′ = length(Rs)
+    D′ = length(Rs)::Int
     D′ ≠ D && throw(DimensionMismatch("inconsistent dimensions of `Rs` and `Dᵛ`"))
-    any(R -> length(R) ≠ D, Rs) && throw(DimensionMismatch("inconsistent element dimensions in `Rs`"))
-    Rs = convert(DirectBasis{D}, Rs)
+    any(R -> length(R)::Int ≠ D, Rs) && throw(DimensionMismatch("inconsistent element dimensions in `Rs`"))
+    Rs = convert(DirectBasis{D}, Rs)::DirectBasis{D}
 
     # (extended) bravais type
     bt = bravaistype(sgnum, D; normalize=false)

@@ -19,8 +19,8 @@ get_expr_symbols(ex::Expr) = get_expr_symbols!(Symbol[], ex)
 
 # ---------------------------------------------------------------------------------------- #
 # LOAD CONSTANT GLOBAL `pointsd_Nd`, & `paramsd_Nd` DICTIONARIES (for N={2,3})
-include(joinpath(pkgdir(KPaths), "assets", "data-SeeK.jl"))
-include(joinpath(pkgdir(KPaths), "assets", "data-2d.jl"))
+include(joinpath("..", "assets", "data-SeeK.jl"))
+include(joinpath("..", "assets", "data-2d.jl"))
 
 # ---------------------------------------------------------------------------------------- #
 # CODEGEN TO CREATE FUNCTIONS FOR EXTENDED BRAVAIS TYPES
@@ -81,6 +81,10 @@ for (D, pointsd, paramsd) in zip((2,3), (pointsd_2d, pointsd_3d), (paramsd_2d, p
                 $params_ex
                 return $ex
             end
+            errstr = "the irreducible path of a Bravais lattice of extended type " *
+                     string(bt) * " cannot be constructed without knowledge of the " *
+                     "lattice: provide a (conventional) direct lattice basis `Rs`"
+            @eval $fn(::Nothing) = error($errstr)
         end
 
         #=
