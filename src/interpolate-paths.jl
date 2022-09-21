@@ -62,7 +62,7 @@ In-place transform an interpolated **k**-path `kpi` in a lattice basis to a Cart
 with (primitive) reciprocal lattice vectors `basis(kpi)`.
 """
 function cartesianize!(kpi::KPathInterpolant)
-    setting(kpi) === CARTESIAN && return kp
+    setting(kpi) === CARTESIAN && return kpi
     for i in eachindex(kpi)
         @inbounds kpi[i] = cartesianize(kpi[i], kpi.basis)
     end
@@ -77,7 +77,7 @@ In-place transform an interpolated **k**-path `kpi` in a Cartesian basis to a la
 with (primitive) reciprocal lattice vectors `basis(kpi)`.
 """
 function latticize!(kpi::KPathInterpolant)
-    setting(kpi) === LATTICE && return kp
+    setting(kpi) === LATTICE && return kpi
     basismatrix = reduce(hcat, basis(kpi))
     for i in eachindex(kpi)
         @inbounds kpi[i] = latticize(kpi[i], basismatrix)
@@ -96,7 +96,7 @@ If `kpi` is not in a Cartesian basis (i.e., if `setting(kpi) == LATTICE`), `kpi`
 as-is.
 """
 function latticize(kpi::KPathInterpolant{D}, basis::AVec{<:AVec{<:Real}}) where D
-    setting(kpi) === LATTICE && return kp
+    setting(kpi) === LATTICE && return kpi
     basismatrix = convert(SMatrix{D,D,Float64,D*D}, reduce(hcat, basis))
     kpi′ = typeof(kpi)([copy(kpathsⱼ) for kpathsⱼ in kpi.kpaths], # ⇐ mutate this below
                        kpi.labels, basis, Ref(LATTICE))
