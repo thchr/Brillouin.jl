@@ -180,7 +180,16 @@ function irrfbz_path(sgnum::Integer, Rs, Dᵛ::Val{D}=Val(3)) where D
     D′ = length(Rs)::Int
     D′ ≠ D && throw(DimensionMismatch("inconsistent dimensions of `Rs` and `Dᵛ`"))
     any(R -> length(R)::Int ≠ D, Rs) && throw(DimensionMismatch("inconsistent element dimensions in `Rs`"))
-    Rs = convert(DirectBasis{D}, Rs)::DirectBasis{D}
+    Rs = convert(DirectBasis{D}, Rs)
+    @static if VERSION ≥ v"1.9.0-DEV.1433"
+        # for earlier versions of Julia, this could fail due to an internal compiler bug,
+        # cf. issue #21 and https://github.com/JuliaLang/julia/issues/46871; this was fixed
+        # in https://github.com/JuliaLang/julia/pull/46882; so only typeassert on Julia
+        # versions where this is fixed.
+        # the typeassert is here in order to improve inference for callers of `irrfbz_path`
+        # where `Rs` is poorly inferred or entirely uninferred (e.g., `typeof(Rs) === Any`)
+        Rs::DirectBasis{D}
+    end
 
     # (extended) bravais type
     bt = bravaistype(sgnum, D; normalize=false)
