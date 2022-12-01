@@ -23,7 +23,7 @@ using LinearAlgebra:
     norm,
     dot,
     ×
-using PyCall
+import DirectQhull
 using DocStringExtensions
 
 import Base: getindex, size, IndexStyle, show, summary
@@ -31,20 +31,6 @@ import Base: getindex, size, IndexStyle, show, summary
 # ---------------------------------------------------------------------------------------- #
 
 export Cell, wignerseitz, faces, vertices, reduce_to_wignerseitz
-
-# ---------------------------------------------------------------------------------------- #
-
-const PySpatial = PyNULL()
-function __init__()
-    # bringing in SciPy's Spatial module (for `Voronoi` and `ConvexHull`)
-    if PyCall.conda
-        copy!(PySpatial, pyimport_conda("scipy.spatial", "scipy"))
-    else
-        copy!(PySpatial, pyimport_e("scipy.spatial"))
-    end
-    ispynull(PySpatial) && @warn("scipy python package not found. " *
-                                 "WignerSeitz.wignerseitz is nonfunctional.")
-end
 
 # ---------------------------------------------------------------------------------------- #
 # STRUCTURES
@@ -130,15 +116,15 @@ function wignerseitz(basis::AVec{<:SVector{D,<:Real}};
         iszero(I) && (idx_cntr = idx)
     end
 
-    ispynull(PySpatial) && error("You need to install scipy for wignerseitz to work.")
-    vor = PySpatial.Voronoi(lattice) # voronoi tesselation of lattice
+    vor = DirectQhull.Voronoi(reduce(hcat, lattice)) # voronoi tesselation of lattice
 
     # grab all the vertices of the central voronoi region enclosing origo
-    verts_cntr =  # NB: offsets by 1 due to Julia 1-based vs. Python 0-based indexing
-        [vor.vertices[idx+1,:] for idx in vor.regions[vor.point_region[idx_cntr]+1]]
-
+    # [NB: offsets by 1 due to Julia 1-based vs. C++ 0-based indexing; 
+    #      see https://github.com/JuhaHeiskala/DirectQhull.jl/issues/7]
+    verts_cntr = vor.vertices[:, vor.regions[vor.point_region[idx_cntr]+1] .+ 1]
+    
     # get convex hull of central vertices
-    hull = PySpatial.ConvexHull(verts_cntr)
+    hull = DirectQhull.ConvexHull(verts_cntr)
     c    = convert_to_cell(hull, basis)
     c    = reorient_normals!(c)
 
@@ -165,11 +151,11 @@ end
 # UTILITIES & SUBFUNCTIONS
 
 function convert_to_cell(hull, basis::AVec{<:SVector{D,<:Real}}) where D
-    vs′ = hull.points         # vertices
-    fs′ = hull.simplices .+ 1 # faces
+    vs′ = hull.points    # vertices
+    fs′ = hull.simplices # faces [NB: 1-based, cf. https://github.com/JuhaHeiskala/DirectQhull.jl/issues/7#issuecomment-1334411873]
 
-    vs = SVector{D, Float64}.(eachrow(vs′))
-    fs = Vector{Int}.(eachrow(fs′))
+    vs = SVector{D, Float64}.(eachcol(vs′))
+    fs = Vector{Int}.(eachcol(fs′))
     return Cell(vs, fs, SVector{D, SVector{D, Float64}}(basis), Ref(CARTESIAN))
 end
 
