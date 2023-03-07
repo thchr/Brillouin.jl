@@ -1,9 +1,10 @@
-# Functionalities that are available when Spglib is loaded
+module BrillouinSpglibExt
+using Brillouin
+isdefined(Base, :get_extension) ? (import Spglib) : (import ..Spglib)
 
 using Bravais: reciprocalbasis
-using StaticArrays
-using LinearAlgebra
-import ..KPaths: irrfbz_path
+using StaticArrays: SVector
+using LinearAlgebra: det
 
 """
     irrfbz_path(cell::Spglib.Cell)  -->  ::KPath{D}
@@ -16,7 +17,7 @@ associated standard primitive lattice, but adapted to the possibly non-standard 
 If `cell` is a supercell of a smaller primitive cell, the standard **k**-path of the
 associated primitive cell is returned (in the basis of supercell reciprocal lattice).
 """
-function irrfbz_path(cell::Spglib.Cell)
+function Brillouin.KPaths.irrfbz_path(cell::Spglib.Cell)
     # extract a standardized primitive basis `pRs` assoc. w/ `cell` via Spglib
     dset = Spglib.get_dataset(cell)
     sgnum = dset.spacegroup_number
@@ -51,3 +52,5 @@ function irrfbz_path(cell::Spglib.Cell)
     end
     return latticize(kp, pGs_original)
 end
+
+end # module BrillouinSpglibExt

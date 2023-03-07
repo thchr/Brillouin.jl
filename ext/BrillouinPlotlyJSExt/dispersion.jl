@@ -1,6 +1,3 @@
-using .PlotlyJS
-import .PlotlyJS: plot
-
 const DEFAULT_PLOTLY_LAYOUT_DISPERSION = Layout(
     showlegend=false,
     xaxis=attr(zeroline=false,

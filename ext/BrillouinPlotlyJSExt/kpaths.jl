@@ -1,7 +1,4 @@
-using .PlotlyJS
-import .PlotlyJS: plot
-
-# NB: This file expects to be loaded *after* /src/requires/plotlyjs_wignerseitz.jl
+# NB: This file should be loaded *after* /ext/BrillouinPlotlyExt/wignerseitz.jl
 
 # ---------------------------------------------------------------------------------------- #
 
@@ -30,6 +27,7 @@ function plot(kp::KPath{3}, layout::Layout = Layout();
 end
 
 # ---------------------------------------------------------------------------------------- #
+
 function plot(kp::KPath{2}, layout::Layout = Layout();
               config::PlotConfig = PlotConfig(responsive=true, displaylogo=false))
     setting(kp) !== CARTESIAN && (kp = cartesianize(kp))
@@ -54,6 +52,7 @@ function plot(kp::KPath{2}, layout::Layout = Layout();
     return plot(vcat(tpoints, tpaths), layout; config=config)
 end
 # ---------------------------------------------------------------------------------------- #
+
 
 function plot(c::Cell{D}, kp::KPath{D}, layout::Layout = Layout();
               config::PlotConfig = PlotConfig(responsive=true, displaylogo=false)
@@ -82,4 +81,5 @@ function plot(c::Cell{D}, kp::KPath{D}, layout::Layout = Layout();
     ts = vcat(tsᶜ, tsᵏᵖ)
     return PlotlyJS.plot(ts, layout′; config=config)
 end
+
 # ---------------------------------------------------------------------------------------- #

@@ -1,9 +1,7 @@
-using LinearAlgebra
-using .StaticArrays: normalize
+# NB: This file expects to be loaded *after* /ext/BrillouinMakieExt/wignerseitz.jl
 
 # ---------------------------------------------------------------------------------------- #
 # `KPath`
-# NB: This file expects to be loaded *after* /src/requires/makie_wignerseitz.jl
 
 @recipe(KPathPlot) do scene
     Attributes(
