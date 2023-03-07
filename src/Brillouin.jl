@@ -39,7 +39,6 @@ basis(x) = x.basis
 export basis, setting
 
 # ---------------------------------------------------------------------------------------- #
-
 # MAIN FUNCTIONALITY
 
 include("KPaths.jl")
@@ -49,7 +48,13 @@ include("WignerSeitz.jl")
 @reexport using .WignerSeitz
 
 # ---------------------------------------------------------------------------------------- #
-# Extensions: loaded via Requires.jl on Julia versions <v1.9; otherwise via the Pkg
+# SNOOPPRECOMPILE
+
+using SnoopPrecompile
+include("precompile.jl")
+
+# ---------------------------------------------------------------------------------------- #
+# EXTENSIONS: loaded via Requires.jl on Julia versions <v1.9; otherwise via the Pkg
 #             extension system
 
 if !isdefined(Base, :get_extension)
