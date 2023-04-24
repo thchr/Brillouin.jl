@@ -17,7 +17,7 @@ end
 # same as Table 94 of the HPKOT paper (i.e. paper "behind" SeeK). It simply returns the
 # extended Bravais symbol as a `Symbol`. Note the input direct basis is expected to
 # be a conventional cell in ITA settings
-function extended_bravais(sgnum::Integer,
+function extended_bravais(sgnum::Int,
                           bt::String,
                           Rs::Union{Nothing, StaticVector{3, <:StaticVector{3, <:Real}}},
                           Dᵛ::Val{3})
@@ -153,7 +153,7 @@ function extended_bravais(sgnum::Integer,
 end # function
 
 # --- 2D ---
-function extended_bravais(sgnum::Integer,
+function extended_bravais(sgnum::Int,
                           bt::String,
                           Rs::Union{Nothing, StaticVector{2, <:StaticVector{2, <:Real}}},
                           Dᵛ::Val{2})
