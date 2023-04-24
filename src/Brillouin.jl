@@ -50,7 +50,7 @@ include("WignerSeitz.jl")
 # ---------------------------------------------------------------------------------------- #
 # SNOOPPRECOMPILE
 
-using SnoopPrecompile
+using PrecompileTools
 include("precompile.jl")
 
 # ---------------------------------------------------------------------------------------- #

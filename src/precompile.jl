@@ -1,4 +1,4 @@
-@precompile_setup begin
+@setup_workload begin
     using Bravais: directbasis
 
     Rs2D_v = [(@SVector [1.0,0]), (@SVector [0,1.0])]
@@ -6,7 +6,7 @@
     Rs3D_v = [(@SVector [1.0,0,0]), (@SVector [0,1.0,0]), (@SVector [0,0,1.0])]
     Rs3D = directbasis(227, Val(3))
 
-    @precompile_all_calls begin
+    @compile_workload begin
         function _precompile(sgnum, Rs, Dᵛ::Val{D}) where D
             kp = irrfbz_path(sgnum, Rs, Dᵛ)
             cartesianize(kp)
