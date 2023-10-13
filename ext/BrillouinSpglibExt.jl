@@ -20,7 +20,7 @@ associated primitive cell is returned (in the basis of supercell reciprocal latt
 function Brillouin.KPaths.irrfbz_path(cell::Spglib.Cell)
     # extract a standardized primitive basis `pRs` assoc. w/ `cell` via Spglib
     dset = Spglib.get_dataset(cell)
-    sgnum = dset.spacegroup_number
+    sgnum = Int(dset.spacegroup_number)
     pRs = SVector{3}(SVector{3,Float64}(col) for col in eachcol(dset.std_lattice))
 
     # print warning if the input cell is a supercell (without any distortion)
