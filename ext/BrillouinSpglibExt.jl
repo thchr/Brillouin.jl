@@ -24,7 +24,7 @@ function Brillouin.KPaths.irrfbz_path(cell::Spglib.Cell)
     pRs = SVector{3}(SVector{3,Float64}(col) for col in eachcol(dset.std_lattice))
 
     # print warning if the input cell is a supercell (without any distortion)
-    if !isapprox(det(cell.lattice), det(dset.primitive_lattice)) # check volumes agree
+    if !isapprox(det(parent(cell.lattice)), det(parent(dset.primitive_lattice))) # check volumes agree
         @warn "The provided cell is a supercell: the returned k-path is the standard k-path " *
               "of the associated primitive cell in the basis of the supercell reciprocal lattice." cell
     end
