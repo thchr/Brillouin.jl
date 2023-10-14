@@ -40,7 +40,7 @@ function Brillouin.KPaths.irrfbz_path(cell::Spglib.Cell)
     #   of the lattice basis vectors.
     # `transformation` is not used, but is commented here just for information. It can be
     # obtained via
-    #   `transformation = inv(primitivebasismatrix(centering(sgnum, 3))) * dset.transformation_matrix'`
+    #   `transformation = inv(primitivebasismatrix(centering(sgnum, 3))) * dset.transformation_matrix`
     rotation = dset.std_rotation_matrix
 
     # Rotate k-points in Cartesian space by `rotation`
@@ -48,7 +48,7 @@ function Brillouin.KPaths.irrfbz_path(cell::Spglib.Cell)
     pGs_original = reciprocalbasis(pRs_original)
     cartesianize!(kp)
     for (lab, kv) in points(kp)
-        points(kp)[lab] = rotation * kv
+        points(kp)[lab] = rotation' * kv  # transpose because k coords are in reciprocal space
     end
     return latticize(kp, pGs_original)
 end
