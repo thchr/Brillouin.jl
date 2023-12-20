@@ -7,6 +7,21 @@ const AVec = AbstractVector
 const BasisLike{D} = AVec{<:SVector{D,<:Real}}
 const SHOWDIGITS = 6
 # ---------------------------------------------------------------------------------------- #
+"""
+    BasisEnum <: Enum{Int8}
+
+Enum type with instances
+
+```
+CARTESIAN
+LATTICE
+```
+
+Used to indicate whether the coordinates of a `KPath` instance are referred to a lattice
+basis (`LATTICE`) or a cartesian basis (`CARTESIAN`).
+
+See also [`setting`](@ref) and `set_setting!`.
+"""
 @enum BasisEnum CARTESIAN LATTICE
 
 """

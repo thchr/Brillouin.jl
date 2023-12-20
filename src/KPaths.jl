@@ -171,10 +171,10 @@ different) over any dimension specified in the third input argument.
 [^2].
 
 ## References
-[^1] Aroyo et al., [Acta Cryst. A70, 126 (2014)](https://doi.org/10.1107/S205327331303091X).
-[^2] Hinuma, Pizzi, Kumagai, Oba, & Tanaka, *Band structure diagram paths based on
-    crystallography*, [Comp. Mat. Sci. **128**, 140 (2017)]
-    (http://dx.doi.org/10.1016/j.commatsci.2016.10.015).
+[^1]: Aroyo et al., [Acta Cryst. A70, 126 (2014)](https://doi.org/10.1107/S205327331303091X).
+[^2]: Hinuma, Pizzi, Kumagai, Oba, & Tanaka, *Band structure diagram paths based on
+      crystallography*, [Comp. Mat. Sci. **128**, 140 (2017)]
+      (http://dx.doi.org/10.1016/j.commatsci.2016.10.015).
 """
 function irrfbz_path(sgnum::Integer, Rs, Dᵛ::Val{D}=Val(3)) where D
     D′ = length(Rs)::Int
@@ -280,9 +280,22 @@ export interpolate, splice, cumdists
 
 # ---------------------------------------------------------------------------------------- #
 
+"""
+    cartesianize(kp::KPath{D})
+
+Transform a **k**-path `kp` in a lattice basis to a Cartesian basis with (primitive)
+reciprocal basis vectors `basis(kp)`.
+"""
 function cartesianize(x::Union{KPath, KPathInterpolant})
     return setting(x) === LATTICE ? cartesianize!(deepcopy(x)) : deepcopy(x)
 end
+
+"""
+    latticize(kp::KPath)
+
+Transform a **k**-path `kp` in a Cartesian basis to a lattice basis with (primitive)
+reciprocal lattice vectors `basis(kp)`.
+"""
 function latticize(x::Union{KPath, KPathInterpolant})
     return setting(x) === CARTESIAN ? latticize!(deepcopy(x)) : deepcopy(x)
 end

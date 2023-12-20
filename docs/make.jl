@@ -19,9 +19,17 @@ function Base.show(io::IO, ::MIME"text/html", p::HTMLPlot)
     print(io, "<object type=\"text/html\" data=\"../$(relpath(path, ROOT_DIR))\" style=\"width:100%;height:$(p.h)px;\"></object>")
 end
 # ---------------------------------------------------------------------------------------- #
+using Makie # trigger/load extension modules
+using Spglib
+# ---------------------------------------------------------------------------------------- #
 
 makedocs(;
-    modules=[Brillouin],
+    modules=[
+        Brillouin,
+        isdefined(Base, :get_extension) ? Base.get_extension(Brillouin, :BrillouinPlotlyJSExt) : Brillouin.BrillouinPlotlyJSExt,
+        isdefined(Base, :get_extension) ? Base.get_extension(Brillouin, :BrillouinMakieExt)    : Brillouin.BrillouinMakieExt,
+        isdefined(Base, :get_extension) ? Base.get_extension(Brillouin, :BrillouinSpglibExt)   : Brillouin.BrillouinSpglibExt,
+        ],
     authors="Thomas Christensen <tchr@mit.edu> and contributors",
     repo="https://github.com/thchr/Brillouin.jl/blob/{commit}{path}#L{line}",
     sitename="Brillouin.jl",
@@ -35,6 +43,7 @@ makedocs(;
         "Wigner–Seitz cells" => "wignerseitz.md",
         "k-space paths" => "kpaths.md",
         "API" => "api.md",
+        "Internal API" => "internal-api.md",
     ],
 )
 
