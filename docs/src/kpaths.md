@@ -82,7 +82,7 @@ Main.HTMLPlot(P¹², 525) # hide
 ```
 
 ```@docs
-plot(::KPathInterpolant, ::Any, ::Layout)
+PlotlyJS.plot
 ```
 
 ## Treating unit cells in non-standard settings
