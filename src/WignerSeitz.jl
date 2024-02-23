@@ -119,9 +119,7 @@ function wignerseitz(basis::AVec{<:SVector{D,<:Real}};
     vor = DirectQhull.Voronoi(reduce(hcat, lattice)) # voronoi tesselation of lattice
 
     # grab all the vertices of the central voronoi region enclosing origo
-    # [NB: offsets by 1 due to Julia 1-based vs. C++ 0-based indexing; 
-    #      see https://github.com/JuhaHeiskala/DirectQhull.jl/issues/7]
-    verts_cntr = vor.vertices[:, vor.regions[vor.point_region[idx_cntr]+1] .+ 1]
+    verts_cntr = vor.vertices[:, vor.regions[vor.point_region[idx_cntr]]]
     
     # get convex hull of central vertices
     hull = DirectQhull.ConvexHull(verts_cntr)
