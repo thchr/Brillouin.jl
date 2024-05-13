@@ -88,3 +88,27 @@ function eval_label_positions(kvs, basis)
         end
     end
 end
+
+# ---------------------------------------------------------------------------------------- #
+# Combined `Cell` and `KPath` plot
+
+function Makie.plot(
+    c::Union{Observable{Cell{D}}, Cell{D}},
+    kp::Union{Observable{KPath{D}}, KPath{D}};
+    hideaxis::Bool = true,
+    axis = NamedTuple(),
+    figure = NamedTuple(), 
+    cell = NamedTuple(),
+    kpath = NamedTuple()
+    ) where D
+
+    f = Makie.Figure(; figure...)
+    ax = _default_bare_axis!(f, Val(D); hideaxis, axis)
+
+    pc  = Makie.plot!(ax, c; cell...)
+    pkp = Makie.plot!(ax, kp; kpath...)
+
+    # TODO: This is kinda broken because it does not return any reference to the `pc` plot
+    #       but it seems there's no real way to return multiple Plots in Makie currently
+    return Makie.FigureAxisPlot(f, ax, pkp)
+end
