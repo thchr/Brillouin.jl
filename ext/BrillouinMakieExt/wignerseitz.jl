@@ -53,7 +53,6 @@ function _default_bare_axis!(f, ::Val{3}; hideaxis::Bool=true, axis=NamedTuple()
     f[1,1] = ax = Makie.Axis3(f;
         aspect=:data,
         viewmode=:fit,
-        xautolimitmargin=(0f0,0f0), yautolimitmargin=(0f0,0f0), zautolimitmargin=(0f0,0f0),
         axis...)
     if hideaxis
         Makie.hidedecorations!(ax); ax.protrusions[] = 0 # cf. https://github.com/MakieOrg/Makie.jl/issues/2259
@@ -64,7 +63,6 @@ end
 function _default_bare_axis!(f, ::Val{2}; hideaxis::Bool=true, axis=NamedTuple())
     f[1,1] = ax = Makie.Axis(f;
         aspect=Makie.DataAspect(),
-        xautolimitmargin=(0f0,0f0), yautolimitmargin=(0f0,0f0),
         axis...)
     hideaxis && (Makie.hidedecorations!(ax); Makie.hidespines!(ax))
     return ax
