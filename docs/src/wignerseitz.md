@@ -46,7 +46,7 @@ Pᴳ = plot(cᴳ)
 Main.HTMLPlot(Pᴳ) # hide
 ```
 
-## Reducing points to the interior of Wigner-Seitz cell
+## Reducing points to the interior of a Wigner-Seitz cell
 
 Points can be reduced to their equivalent image in the Wigner-Seitz cell via  [`reduce_to_wignerseitz`](@ref).
 The resulting point has the least possible norm of all equivalent images.
@@ -66,3 +66,19 @@ addtraces!(Pᴳ, scatter(x=vᶜ[1:1],  y=vᶜ[2:2],  hovertext="v (unreduced)"))
 addtraces!(Pᴳ, scatter(x=v′ᶜ[1:1], y=v′ᶜ[2:2], hovertext="v′ (reduced)"))
 Main.HTMLPlot(Pᴳ) # hide
 ```
+
+## Determine whether a point is in the interior of a Wigner-Seitz cell
+
+Whether a point is inside the Wigner-Seitz cell can be tested via [`in_wignerseitz`](@ref). This is determined by checking which "side" the point is on, relative to the half-spaces spanned by the Wigner-Seitz cell's faces.
+
+As an example, we can confirm that the point `v = [0.8, 0.2]` in the above example was originally outside the Wigner-Seitz cell, but that the moved point `v′` is inside:
+
+```@example wignerseitz-2d
+in_wignerseitz(v, c)
+in_wignerseitz(v′, c)
+```
+To minimize repeated evaluation of face normals, the function can also be called with a list of points:
+```@example wignerseitz-2d
+in_wignerseitz([v, v′], c)
+```
+
