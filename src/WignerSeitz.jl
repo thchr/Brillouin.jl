@@ -30,7 +30,7 @@ import Base: getindex, size, IndexStyle, show, summary
 
 # ---------------------------------------------------------------------------------------- #
 
-export Cell, wignerseitz, faces, vertices, reduce_to_wignerseitz
+export Cell, wignerseitz, faces, vertices, reduce_to_wignerseitz, in_wignerseitz
 
 # ---------------------------------------------------------------------------------------- #
 # STRUCTURES
@@ -415,4 +415,74 @@ function search_shortest_norm_among_neighbors_recursive(
     end
     return v₀
 end
+
+# ---------------------------------------------------------------------------------------- #
+
+"""
+    in_wignerseitz(v::AbstractVector{<:Real}, c::Cell)  -->  Bool
+
+Return whether the point `v` is inside the Wigner-Seitz cell `c`. 
+
+The point `v` is assumed be provided in the same basis as the vertices of `c`.
+
+If `c` and `v` are provided in the lattice basis (see [`setting`](@ref)), the function
+must first convert `c` and `v` to a Cartesian basis internally; accordingly, for repeated
+calls, it is recommended that `c` be provided in a Cartesian basis to avoid redundant
+conversions.
+"""
+function in_wignerseitz(v::StaticVector{D, <:Real}, c::Cell{D}) where D
+    # Check whether `v` is inside the Wigner-Seitz cell `c`. We exploit that a Wigner-Seitz
+    # cell is convex, such that `v` is inside the cell if it is "inside" the half-spaces
+    # made up by the faces of the cell. 
+    # We need to do this in a Cartesian basis: so, if `c` is provided in the lattice basis,
+    # we must first go to a Cartesian basis (and we also then assume that `v` is provided
+    # in the lattice basis)
+    v′ = setting(c) !== CARTESIAN ? cartesianize(v, basis(c)) : v
+    c′ = setting(c) !== CARTESIAN ? cartesianize(c) : c
+
+    for (i, f) in enumerate(faces(c))
+        n = face_normal(c′, i) # we already know they face outward, no need to check further
+        vᵢ = vertices(c′)[first(f)] # pick any vertex in the face
+        δ = dot(v′ - vᵢ, n)
+        if δ > 0
+            return false
+        end
+    end
+    return true
+end
+function in_wignerseitz(v::AbstractVector{<:Real}, c::Cell{D}) where D
+    length(v) == D || throw(DimensionMismatch("mis-matched dimensions of `v` and `c`"))
+    return in_wignerseitz(SVector{D, eltype(v)}(v), c)
+end
+
+"""
+    in_wignerseitz(v::AbstractVector{<:AbstractVector{<:Real}}, c::Cell)  -->  BitVector
+
+For a list of points `vs`, return whether each of the points are inside the Wigner-Seitz
+cell `c`. 
+
+See also `in_wigner_seitz(v::AbstractVector(<:Real), c::Cell)`.
+"""
+function in_wignerseitz(vs::AbstractVector{<:AbstractVector{<:Real}}, c::Cell{D}) where D
+    # same implementation as above, but trying to recompute the face normals only once, even
+    # when there are multiple query points
+    c′ = setting(c) !== CARTESIAN ? cartesianize(c) : c
+    vs′ = setting(c) !== CARTESIAN ? cartesianize.(vs, Ref(basis(c))) : vs
+
+    inside = trues(length(vs))
+    for (i, f) in enumerate(faces(c))
+        n = face_normal(c′, i) # we already know they face outward, no need to check further
+        vᵢ = vertices(c′)[first(f)] # pick any vertex in the face
+        for (j, v′) in enumerate(vs′)
+            inside[j] || continue
+            δ = dot(v′ - vᵢ, n)
+            if δ > 0 && break
+                inside[j] = false
+            end
+        end
+    end
+    return inside
+end
+
+# ---------------------------------------------------------------------------------------- #
 end # module
