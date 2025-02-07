@@ -244,7 +244,10 @@ function get_paths(ext_bt::Symbol, Dᵛ::Val{D}) where D
     end
 
     paths === nothing && throw(DomainError(ext_bt, "invalid extended Bravais type"))
-    return paths
+    # right now, we're holding a reference to data in `pathsd_3d` or `pathsd_2d` - to ensure
+    # that the user cannot modify this data (and then break this lookup), we make a copy now
+    paths′ = [copy(p) for p in paths]
+    return paths′
 end
 
 function unshuffle_hpkot_setting!(lab2kvs, bt, D)
