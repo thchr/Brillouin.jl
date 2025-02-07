@@ -74,11 +74,11 @@ Whether a point is inside the Wigner-Seitz cell can be tested via [`in_wignersei
 As an example, we can confirm that the point `v = [0.8, 0.2]` in the above example was originally outside the Wigner-Seitz cell, but that the moved point `v′` is inside:
 
 ```@example wignerseitz-2d
-in_wignerseitz(v, c)
-in_wignerseitz(v′, c)
+in_wignerseitz(v, cᴳ)
+in_wignerseitz(v′, cᴳ)
 ```
 To minimize repeated evaluation of face normals, the function can also be called with a list of points:
 ```@example wignerseitz-2d
-in_wignerseitz([v, v′], c)
+in_wignerseitz([v, v′], cᴳ)
 ```
 

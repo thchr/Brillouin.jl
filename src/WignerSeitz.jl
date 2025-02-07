@@ -476,7 +476,7 @@ function in_wignerseitz(vs::AbstractVector{<:AbstractVector{<:Real}}, c::Cell{D}
         for (j, v′) in enumerate(vs′)
             inside[j] || continue
             δ = dot(v′ - vᵢ, n)
-            if δ > 0 && break
+            if δ > 0
                 inside[j] = false
             end
         end
