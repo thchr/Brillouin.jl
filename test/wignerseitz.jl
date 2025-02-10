@@ -172,3 +172,30 @@ end
     @test_throws DimensionMismatch reduce_to_wignerseitz(r′′[1:2], Rs)
     @test_throws DimensionMismatch reduce_to_wignerseitz(r′′, [Rs[1][1:3], Rs[2][1:3], Rs[3][1:2]])
 end
+
+@testset "in_wignerseitz" begin
+    Rs = convert(SVector{3,SVector{3,Float64}}, [[1.0,0,0], [-.5,√3/2,0], [0,0,1.25]])
+    cell = wignerseitz(Rs)
+    vs = vertices(cell)
+    
+    vs_inside = 0.9 * vs
+    @test all(v->in_wignerseitz(v, cell), vs_inside) == true
+    @test all(in_wignerseitz(vs_inside, cell)) == true
+    
+    vs_outside = 1.1 * vs
+    @test all(v->in_wignerseitz(v, cell), vs_outside) == false
+    @test all(in_wignerseitz(vs_outside, cell)) == false
+
+    # points that are not simply related to a vertex points
+    @test in_wignerseitz((@SVector [0.0,0.0,0.0]), cell) == true
+    @test in_wignerseitz(([0.0,0.0,0.0]), cell) == true
+    
+    vs_face = [0.3*vs[f[1]] + 0.2*vs[f[2]] + 0.5*vs[f[3]] for f in faces(cell)] # random points on each face
+    @test all(v->in_wignerseitz(0.9 * v, cell), vs_face) == true
+    @test all(in_wignerseitz(0.9 .* vs_face, cell)) == true
+    @test all(v->in_wignerseitz(1.1 * v, cell), vs_face) == false
+    @test all(in_wignerseitz(1.1 .* vs_face, cell)) == false
+    
+    # we don't make guarantees about points on the boundary (face, edge, or vertex) of the
+    # Wigner-Seitz cell, since this can't be done robustly without a tolerance
+end
