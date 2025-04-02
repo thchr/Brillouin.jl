@@ -23,7 +23,7 @@ using StaticArrays
     # 2D
     sgnum = 5
     cntr = Bravais.centering(sgnum, 2) # c-type centered
-    Rs = convert(SVector{2,SVector{2,Float64}}, [[1.0,0], [0,.8]])
+    Rs = Bravais.DirectBasis(convert(SVector{2,SVector{2,Float64}}, [[1.0,0], [0,.8]]))
     pGs = Bravais.primitivize(Bravais.dualbasis(Rs), cntr)
 
     cell = wignerseitz(pGs)
