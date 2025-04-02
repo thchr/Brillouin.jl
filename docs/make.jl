@@ -31,7 +31,7 @@ makedocs(;
         isdefined(Base, :get_extension) ? Base.get_extension(Brillouin, :BrillouinSpglibExt)   : Brillouin.BrillouinSpglibExt,
         ],
     authors="Thomas Christensen <tchr@mit.edu> and contributors",
-    repo="https://github.com/thchr/Brillouin.jl/blob/{commit}{path}#L{line}",
+    repo=Remotes.Github("thchr", "Brillouin.jl"),
     sitename="Brillouin.jl",
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", nothing) == "true",
