@@ -22,7 +22,7 @@ end
 $(TYPEDEF)
 $(TYPEDFIELDS)
 """
-struct KPathInterpolant{D, E} <: AbstractPath{SVector{D, Float64}}
+struct KPathInterpolant{D} <: AbstractPath{SVector{D, Float64}}
     kpaths  :: Vector{Vector{SVector{D, Float64}}}
     labels  :: Vector{Dict{Int, Symbol}}
     basis   :: ReciprocalBasis{D, Float64}
