@@ -1,6 +1,6 @@
 using Brillouin, Test
 using Brillouin.KPaths: Bravais
-using Spglib
+import Spglib
 
 @testset "KPath for Spglib cell" begin
     # Trigonal lattice, space group R-3m, 166
