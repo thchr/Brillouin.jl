@@ -2,7 +2,7 @@ module BrillouinSpglibExt
 using Brillouin
 isdefined(Base, :get_extension) ? (import Spglib) : (import ..Spglib)
 
-using Bravais: dualbasis
+using Bravais: dualbasis, DirectBasis
 using StaticArrays: SVector
 using LinearAlgebra: det
 
@@ -21,7 +21,7 @@ function Brillouin.KPaths.irrfbz_path(cell::Spglib.Cell)
     # extract a standardized primitive basis `pRs` assoc. w/ `cell` via Spglib
     dset = Spglib.get_dataset(cell)
     sgnum = Int(dset.spacegroup_number)
-    pRs = SVector{3}(Spglib.basisvectors(dset.std_lattice))
+    pRs = DirectBasis{3}(Spglib.basisvectors(dset.std_lattice))
 
     # print warning if the input cell is a supercell (without any distortion)
     if !isapprox(det(parent(cell.lattice)), det(parent(dset.primitive_lattice))) # check volumes agree
@@ -44,7 +44,7 @@ function Brillouin.KPaths.irrfbz_path(cell::Spglib.Cell)
     rotation = dset.std_rotation_matrix
 
     # Rotate k-points in Cartesian space by `rotation`
-    pRs_original = SVector{3}(Spglib.basisvectors(cell.lattice))
+    pRs_original = DirectBasis{3}(Spglib.basisvectors(cell.lattice))
     pGs_original = dualbasis(pRs_original)
     cartesianize!(kp)
     for (lab, kv) in points(kp)
