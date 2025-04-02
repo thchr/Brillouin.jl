@@ -16,9 +16,9 @@ The **k**-path functionalities are inspired by the Python [SeeK-path package](ht
 To generate the Brillouin zone of a crystal in space group 147 (Hermann-Mauguin symbol, P-3; Bravais type, hP), we first define its reciprocal basis `Gs` (e.g., using [Bravais.jl](https://github.com/thchr/Crystalline.jl)) and then call Brillouin's `wignerseitz`:
 ```jl
 julia> using Brillouin, 
-julia> using Bravais: reciprocalbasis
+julia> using Bravais: dualbasis
 julia> Rs = ([1.0, 0.0, 0.0], [-0.5, sqrt(3)/2, 0.0],   [0, 0, 1.25]) # direct basis for space group 147
-julia> Gs = reciprocalbasis(Rs) # using Bravais to create the reciprocal basis
+julia> Gs = dualbasis(Rs) # using Bravais to obtain the reciprocal basis
 julia> cell = wignerseitz(Gs)   # construct associated Brillouin zone
 Cell{3} (8 faces, 12 vertices):
   verts: [0.666667, -0.333333, -0.5]

@@ -2,7 +2,7 @@ module BrillouinSpglibExt
 using Brillouin
 isdefined(Base, :get_extension) ? (import Spglib) : (import ..Spglib)
 
-using Bravais: reciprocalbasis
+using Bravais: dualbasis
 using StaticArrays: SVector
 using LinearAlgebra: det
 
@@ -45,7 +45,7 @@ function Brillouin.KPaths.irrfbz_path(cell::Spglib.Cell)
 
     # Rotate k-points in Cartesian space by `rotation`
     pRs_original = SVector{3}(Spglib.basisvectors(cell.lattice))
-    pGs_original = reciprocalbasis(pRs_original)
+    pGs_original = dualbasis(pRs_original)
     cartesianize!(kp)
     for (lab, kv) in points(kp)
         points(kp)[lab] = rotation' * kv  # transpose because k coords are in reciprocal space

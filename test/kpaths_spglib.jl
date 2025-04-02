@@ -26,9 +26,9 @@ using Spglib
     kp_nonstandard = irrfbz_path(cell_nonstandard)
     kp_rotated = irrfbz_path(cell_rotated)
 
-    @test Bravais.reciprocalbasis(basis(kp_standard)) ≈ pRs_standard
-    @test Bravais.reciprocalbasis(basis(kp_nonstandard)) ≈ pRs_nonstandard
-    @test Bravais.reciprocalbasis(basis(kp_rotated)) ≈ pRs_rotated
+    @test Bravais.dualbasis(basis(kp_standard)) ≈ pRs_standard
+    @test Bravais.dualbasis(basis(kp_nonstandard)) ≈ pRs_nonstandard
+    @test Bravais.dualbasis(basis(kp_rotated)) ≈ pRs_rotated
 
     @test paths(kp_nonstandard) == paths(kp_standard)
     @test paths(kp_rotated) == paths(kp_standard)
@@ -43,7 +43,7 @@ using Spglib
     cell_super = Spglib.Cell(pRs_super, [[0, 0, 0], [0, 0, 0.5]], [0, 0])
     kp_super = irrfbz_path(cell_super)
 
-    @test Bravais.reciprocalbasis(basis(kp_super)) ≈ pRs_super
+    @test Bravais.dualbasis(basis(kp_super)) ≈ pRs_super
     @test paths(kp_super) == paths(kp_standard)
 
     # Check that the Cartesian coordinates of the high-symmetry k points are identical

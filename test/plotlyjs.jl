@@ -12,7 +12,7 @@ using StaticArrays
     # 3D
     sgnum = 147
     Rs = convert(SVector{3,SVector{3,Float64}}, [[1.0,0,0], [-.5,√3/2,0], [0,0,1.25]])
-    Gs = Bravais.reciprocalbasis(Rs)
+    Gs = Bravais.dualbasis(Rs)
 
     cell = wignerseitz(Gs)
     kp = irrfbz_path(sgnum, Rs)
@@ -24,7 +24,7 @@ using StaticArrays
     sgnum = 5
     cntr = Bravais.centering(sgnum, 2) # c-type centered
     Rs = convert(SVector{2,SVector{2,Float64}}, [[1.0,0], [0,.8]])
-    pGs = Bravais.primitivize(Bravais.reciprocalbasis(Rs), cntr)
+    pGs = Bravais.primitivize(Bravais.dualbasis(Rs), cntr)
 
     cell = wignerseitz(pGs)
     kp = irrfbz_path(sgnum, Rs)

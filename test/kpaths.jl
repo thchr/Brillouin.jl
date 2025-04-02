@@ -121,7 +121,7 @@ using Brillouin.KPaths: cartesianize, latticize, Bravais
     # test that `cartesianize` commutes with `interpolate` when applied to a `kp`/`kpi`
     cntr = Bravais.centering(5, 2)         # centering type 'c' in plane group 5
     Rs   = Bravais.directbasis(5, Val(2))
-    Gs   = Bravais.reciprocalbasis(Rs)
+    Gs   = Bravais.dualbasis(Rs)
     pGs  = Bravais.primitivize(Gs, cntr)
 
     kp   = irrfbz_path(5, Rs, Val(2))
