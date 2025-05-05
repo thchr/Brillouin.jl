@@ -12,7 +12,7 @@ else
     import ..PlotlyJS: plot
 end
 
-include("../default_colors.jl")
+include("../shared_plotting_utils.jl")
 include("dispersion.jl")
 include("wignerseitz.jl")
 include("kpaths.jl")

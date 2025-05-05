@@ -23,8 +23,7 @@ const DEFAULT_PLOTLY_LAYOUT_3D  = Layout(
         dragmode = "turntable",
         ),
     margin=attr(l=0, r=0, b=0, t=0),
-    autosize=false,
-    #width=200, height=200,
+    autosize=true,
     plot_bgcolor=TRANSPARENT_COL[], paper_bgcolor=TRANSPARENT_COL[],
     )
 
@@ -132,7 +131,7 @@ const DEFAULT_PLOTLY_LAYOUT_2D  = Layout(
     aspectmode = "data",
     hovermode="closest",
     margin=attr(l=0, r=0, b=0, t=0),
-    autosize=false,
+    autosize=true,
     plot_bgcolor=TRANSPARENT_COL[], paper_bgcolor=TRANSPARENT_COL[],
     annotations=PlotlyBase.PlotlyAttribute[]
     )

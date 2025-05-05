@@ -42,7 +42,7 @@ To get a conventional "flat" vector, we can simply call `collect(kpi)`.
 Internally, `KPathInterpolant` includes additional structure and information: namely, the high-symmetry points and associated labels along the path as well as a partitioning into connected vs. disconnected path segments.
 
 ## Band structure
-The additional structure of `KPathInterpolation` enables convenient and clear visualizations of band structure diagrams in combination with PlotlyJS.
+The additional structure of `KPathInterpolation` enables convenient and clear visualizations of band structure diagrams in combination in using GLMakie or PlotlyJS, facilitated via Brillouin package extensions.
 
 To illustrate this, suppose we are considering a tight-binding problem for an *s*-orbital situated at the 1a Wyckoff position. Such a problem has a single band with dispersion [^1] (assuming a cubic side length ``a = 1``):
 ```math

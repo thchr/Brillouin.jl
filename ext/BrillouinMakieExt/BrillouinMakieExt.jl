@@ -1,7 +1,7 @@
 module BrillouinMakieExt
     
 using Brillouin
-using Brillouin: CARTESIAN
+using Brillouin: CARTESIAN, cumdists, cartesianize, KPathInterpolant
 using LinearAlgebra: norm
 using StaticArrays: normalize
 if isdefined(Base, :get_extension)
@@ -10,8 +10,10 @@ else
     using ..Makie
 end
 
-include("../default_colors.jl")
+include("../shared_plotting_utils.jl")
+include("dispersion.jl")
 include("wignerseitz.jl")
 include("kpaths.jl")
+include("plot_overload_hack.jl")
 
 end # BrillouinMakieExt

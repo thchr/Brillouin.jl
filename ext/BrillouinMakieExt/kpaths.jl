@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------------------------------- #
 # `KPath`
 
-@recipe(KPathPlot) do scene
+@recipe(KPathPlot, kp) do scene
     Attributes(
         linecolor = KPATH_COL[],
         linewidth = 3,
@@ -56,23 +56,7 @@ function Makie.plot!(kpp::KPathPlot{Tuple{KPath{D}}}) where D
     return kpp
 end
 
-function Makie.plot!(ax::Makie.Block, kp::Union{Observable{<:KPath}, <:KPath}; kws...)
-    kpathplot!(ax, kp; kws...)
-end
-function Makie.plot!(kp::Union{Observable{<:KPath}, <:KPath}; kws...)
-    Makie.plot!(Makie.current_axis(), kp; kws...)
-end
-
-function Makie.plot(kp::Union{Observable{KPath{D}}, KPath{D}};
-                    hideaxis::Bool = true,
-                    axis = NamedTuple(), figure = NamedTuple(), kws...) where D
-    f = Makie.Figure(; figure...)
-    ax = _default_bare_axis!(f, Val(D); hideaxis, axis)
-
-    p = Makie.plot!(ax, kp; kws...)
-
-    return Makie.FigureAxisPlot(f, ax, p)
-end
+Makie.plottype(::KPath) = KPathPlot # alias `kpathplot` to `plot`
 
 # ---------------------------------------------------------------------------------------- #
 # Utilities
@@ -92,23 +76,18 @@ end
 # ---------------------------------------------------------------------------------------- #
 # Combined `Cell` and `KPath` plot
 
-function Makie.plot(
-    c::Union{Observable{Cell{D}}, Cell{D}},
-    kp::Union{Observable{KPath{D}}, KPath{D}};
-    hideaxis::Bool = true,
-    axis = NamedTuple(),
-    figure = NamedTuple(), 
-    cell = NamedTuple(),
-    kpath = NamedTuple()
-    ) where D
-
-    f = Makie.Figure(; figure...)
-    ax = _default_bare_axis!(f, Val(D); hideaxis, axis)
-
-    pc  = Makie.plot!(ax, c; cell...)
-    pkp = Makie.plot!(ax, kp; kpath...)
-
-    # TODO: This is kinda broken because it does not return any reference to the `pc` plot
-    #       but it seems there's no real way to return multiple Plots in Makie currently
-    return Makie.FigureAxisPlot(f, ax, pkp)
+@recipe(CellKPathPlot, c, kp) do scene
+    Attributes(
+        kpath = (;),
+        cell = (;),
+    )
 end
+function Makie.plot!(ckpp::CellKPathPlot{Tuple{Cell{D}, KPath{D}}}) where D
+    oc  = ckpp[1] # NB:   an `Observable{Cell{D}}` not a `Cell{D}`, so needs [] to access
+    okp = ckpp[2] # same: an `Observable{KPath{D}}` not a `KPath{D}`
+    Makie.plot!(ckpp, oc; ckpp.cell...)
+    Makie.plot!(ckpp, okp; ckpp.kpath...)
+    return ckpp
+end
+
+Makie.plottype(::Cell{D}, ::KPath{D}) where D = CellKPathPlot # alias `cellkpathplot` to `plot`

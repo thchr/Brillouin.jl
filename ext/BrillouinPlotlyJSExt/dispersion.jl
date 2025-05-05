@@ -12,9 +12,6 @@ const DEFAULT_PLOTLY_LAYOUT_DISPERSION = Layout(
             ),
     hovermode = "closest",
     autosize = true,
-    width = 480, height = 480,
-    #margin=attr(l=50, r=5, b=15, t=10),
-
     plot_bgcolor=TRANSPARENT_COL[], paper_bgcolor=TRANSPARENT_COL[],
     )
 
@@ -81,7 +78,7 @@ function plot(kpi::KPathInterpolant, bands,
     if isnothing(ylims)
         if !haskey(yaxis, :range)
             ylims = default_dispersion_ylims(bands)
-            yaxis[:range] = ylims
+            yaxis[:range] = collect(ylims) # Tuple → Vector
         else
             ylims = yaxis[:range] # grab what was already in `layout`
         end
@@ -180,23 +177,7 @@ end
 # `bands` can also be supplied as a matrix (w/ distinct bands in distinct columns)
 function plot(kpi::KPathInterpolant, bands::AbstractMatrix{<:Real},
               layout::Layout = Layout(); kwargs...)
-    # TODO: would be nice to avoid collecting `eachcol` here, but if we don't, then we run
-    #       into problems with not being able to index into `eachcol(bands)` since it's a
-    #       generator... problem is gone if https://github.com/JuliaLang/julia/pull/32310
-    #       or https://github.com/JuliaLang/julia/pull/37648 are merged
-    plot(kpi, collect(eachcol(bands)), layout; kwargs...)
-end
-
-function default_dispersion_ylims(bands)
-    ylims = [mapfoldl(minimum, min, bands, init=Inf), 
-             mapfoldl(maximum, max, bands, init=-Inf)]
-    δ = (ylims[2]-ylims[1])/30
-    if isapprox(ylims[1], 0, atol=1e-6)
-        ylims[2] += δ
-    else
-        ylims .+= (-δ, δ)
-    end
-    return ylims
+    plot(kpi, eachcol(bands), layout; kwargs...)
 end
 
 function _get_value_if_in_ranges(d::Dict, i::Integer)
