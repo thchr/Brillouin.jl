@@ -365,7 +365,7 @@ end
 
 # ---------------------------------------------------------------------------------------- #
 
-reduce_to_symmetric_unitcell(x::Real) = mod(x + 1//2, 1) - 1//2
+reduce_to_symmetric_unitcell(x::Real) = abs(x) > 1//2 ? mod(x + 1//2, 1) - 1//2 : x
 reduce_to_symmetric_unitcell(v::AbstractVector{<:Real}) = reduce_to_symmetric_unitcell.(v)
 
 """

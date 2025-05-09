@@ -58,6 +58,9 @@ function Makie.convert_arguments(
 
         # assign axis & associated plot to position in grid of axes (shortly, a GridLayout)
         axs[path_idx] = ax
+
+        # prepare for next iteration
+        start_idx = stop_idx + 1
     end
 
     layout = S.GridLayout(axs; colsizes = Relative.(rel_xs_lengths), yaxislinks = vec(axs))
