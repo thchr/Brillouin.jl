@@ -9,37 +9,53 @@ import Makie.SpecApi as S
 
 # keyword arguments must be explicitly marked in SpecApi :(
 function Makie.used_attributes(::KPathInterpolant, ::AbstractVector{<:AbstractVector{<:Real}})
-    (:color, :linewidth)
+    (:color, :linewidth, :linestyle, :ylabel)
 end
 
 # the conversion method creates a grid of `Axis` objects with `Lines` plots inside
 function Makie.convert_arguments(
     ::Type{<:AbstractPlot}, # makes `plot`, `lines`, `scatter` etc. dispatch here
     kpi::KPathInterpolant,
-    bands::AbstractVector{<:AbstractVector{<:Real}};
+    bandsv::AbstractVector{<:AbstractVector{<:Real}}...;
     # keyword arguments below; must be explicit in SpecApi :(
     color     = BAND_COL[],
-    linewidth = 3 # or, could have been set to `Makie.theme(:linewidth)` (=1.5, I think)
+    linewidth = 3, # or, could have been set to `Makie.theme(:linewidth)` (=1.5, I think)
+    linestyle = nothing,
+    ylabel    = "Energy"
     )
 
     # check input
     Nk = length(kpi)
-    if !all(band -> length(band) == Nk, bands)
-        throw(DimensionMismatch("mismatched dimensions of `kpi` and `bands`"))
+    for bands in bandsv
+        if !all(band -> length(band) == Nk, bands)
+            throw(DimensionMismatch("mismatched dimensions of `kpi` and `bandsv[i]`"))
+        end
     end
 
     # prepare to plot band diagram
     Npaths           = length(kpi.kpaths)
+    Nbands           = sum(length, bandsv)
     local_xs         = cumdists.(cartesianize(kpi).kpaths)
     local_xs_lengths = last.(local_xs)
     rel_xs_lengths   = local_xs_lengths./sum(local_xs_lengths)
-    ylims = default_dispersion_ylims(bands)
+    ylims = mapreduce(default_dispersion_ylims, (x,y)->(min(x[1], y[1]), max(x[2], y[2])), 
+                      bandsv; init=(Inf, -Inf))
     axs = Matrix{typeof(S.Axis())}(undef, 1, Npaths)
     start_idx = 1
     for (path_idx, (local_x, labels)) in enumerate(zip(local_xs, kpi.labels))
         # `lines` for energy bands, in the SpecApi style
         stop_idx = start_idx+length(local_x)-1
-        plots = [S.Lines(local_x, band[start_idx:stop_idx]; color, linewidth) for band in bands]
+        plots = Vector{PlotSpec}(undef, Nbands)
+        j = 0
+        for (i, bands) in enumerate(bandsv)
+            col = color isa AbstractVector ? color[i] : color
+            lw = linewidth isa AbstractVector ? linewidth[i] : linewidth
+            ls = linestyle isa AbstractVector ? linestyle[i] : linestyle
+            for band in bands
+                plots[j+=1] = S.Lines(local_x, band[start_idx:stop_idx];
+                                      color=col, linewidth=lw, linestyle=ls)
+            end
+        end
         
         # add plots to an Axis object
         ax = S.Axis(; plots)
@@ -51,7 +67,7 @@ function Makie.convert_arguments(
         ax.xgridvisible = true
         ax.ygridvisible = false
         if path_idx == 1
-            ax.ylabel = "Energy (arb. units)"
+            ax.ylabel = ylabel
         else
             ax.yticklabelsvisible = false
         end
@@ -70,15 +86,14 @@ end
 # ---------------------------------------------------------------------------------------- #
 # make it possible to also provide bands as a `Matrix` (bands in columns)
 
-function Makie.used_attributes(kpi::KPathInterpolant, bands::AbstractMatrix{<:Real})
-    Makie.used_attributes(kpi, eachcol(bands))
+function Makie.used_attributes(kpi::KPathInterpolant, bandsv::AbstractMatrix{<:Real}...)
+    Makie.used_attributes(kpi, eachcol(bandsv[1]))
 end
 function Makie.convert_arguments(
     P::Type{<:AbstractPlot}, # makes `plot`, `lines`, `scatter` etc. dispatch here
     kpi::KPathInterpolant,
-    bands::AbstractMatrix{<:Real};
-    color     = BAND_COL[],
-    linewidth = 3
+    bandsv::AbstractMatrix{<:Real}...;
+    kws...
     )
-    Makie.convert_arguments(P, kpi, eachcol(bands); color, linewidth)
+    Makie.convert_arguments(P, kpi, (eachcol(bands) for bands in bandsv)...; kws...)
 end
