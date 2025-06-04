@@ -12,6 +12,20 @@ function Makie.used_attributes(::KPathInterpolant, ::AbstractVector{<:AbstractVe
     (:color, :linewidth, :linestyle, :ylabel, :label, :annotations)
 end
 
+#=
+Interim doc-string, until I figure out how to add one properly (TODO):
+
+Plot a band structure over a `KPathInterpolant`, for vararg band arguments `bandsv`.
+
+## Keyword arguments
+- `annotations`: allows annotating text to high-symmetry points in the band structure.
+  E.g., to label the 1st band at the M point, the 2nd and 3rd band at Y, and the
+  average energy of the 4th and 5th band at X, `annotations` could be set to:
+    Dict(:M => [1:1 => "Band 1 at X"], 
+         :Y => [2:2 => "Band 2 at Y, 3 => "Band 3 at Y"] # scalar or a 1-element range is equivalent
+         :X => [4:5 => "Average of bands 4 and 5 at X"])
+- TODO: 
+=#
 # the conversion method creates a grid of `Axis` objects with `Lines` plots inside
 function Makie.convert_arguments(
     ::Type{<:AbstractPlot}, # makes `plot`, `lines`, `scatter` etc. dispatch here
