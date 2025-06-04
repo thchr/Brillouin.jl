@@ -24,14 +24,24 @@ const ANNOTATE_COL = Ref("rgb(53, 59, 72)")     # "blue nights" (dark gray)
 ## --------------------------------------------------------------------------------------- #
 # Utilities
 
-function default_dispersion_ylims(bands)
-    ylims = mapreduce(extrema,
-                      (x,y)->(min(x[1],y[1]), max(x[2],y[2])),
-                      bands, init=(Inf, -Inf))
-    δ = (ylims[2]-ylims[1])/20
-    if isapprox(ylims[1], 0, atol=1e-5)
-        return (ylims[1], ylims[2] + δ)
+extrema_skipnan(x; kws...) = extrema(Iterators.filter(!isnan, x); kws...)
+function extrema_tuplewise(x::Tuple{Real, Real}, y::Tuple{Real, Real})
+    return (min(x[1], y[1]), max(x[2], y[2]))
+end
+function default_dispersion_ylims(bands::AbstractVector)
+    ylims = mapreduce(band->extrema_skipnan(band; init=(Inf, -Inf)),
+                      extrema_tuplewise,
+                      bands; init=(Inf, -Inf))
+    pad_ylims(ylims)
+end
+function default_dispersion_ylims(bands::AbstractMatrix{<:Real})
+    return pad_ylims(extrema_skipnan(bands; init=(Inf, -Inf)))
+end
+function pad_ylims(ylims::Tuple{Real, Real})
+    pad = (ylims[2]-ylims[1]) * 0.05
+    if isapprox(ylims[1], zero(pad), atol=1e-4)
+        return (ylims[1], ylims[2] + pad)
     else
-        return (ylims[1] - δ, ylims[2] + δ)
+        return (ylims[1] - pad, ylims[2] + pad)
     end
 end

@@ -38,8 +38,7 @@ function Makie.convert_arguments(
     local_xs         = cumdists.(cartesianize(kpi).kpaths)
     local_xs_lengths = last.(local_xs)
     rel_xs_lengths   = local_xs_lengths./sum(local_xs_lengths)
-    ylims = mapreduce(default_dispersion_ylims, (x,y)->(min(x[1], y[1]), max(x[2], y[2])), 
-                      bandsv; init=(Inf, -Inf))
+    ylims = mapreduce(default_dispersion_ylims, extrema_tuplewise, bandsv; init=(Inf, -Inf))
     axs = Matrix{typeof(S.Axis())}(undef, 1, Npaths)
     start_idx = 1
     for (path_idx, (local_x, labels)) in enumerate(zip(local_xs, kpi.labels))
