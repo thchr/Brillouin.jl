@@ -1,7 +1,7 @@
 name = "Brillouin"
 uuid = "23470ee3-d0df-4052-8b1a-8cbd6363e7f0"
 authors = ["Thomas Christensen <tchr@mit.edu> and contributors"]
-version = "0.5.25"
+version = "0.5.26"
 
 [deps]
 Bravais = "ada6cbde-b013-4edf-aa94-f6abe8bd6e6b"
