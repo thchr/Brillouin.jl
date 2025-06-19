@@ -111,8 +111,7 @@ function Makie.convert_arguments(
                             y = sum(bands[b][y_idx] for b in bands_idxs) / length(bands_idxs)
                             push!(a_y, y)
                         end
-                        push!(text, x_idx == firstindex(local_x) ? " "*a_label  : 
-                                    x_idx == lastindex(local_x)  ? a_label*" "  : a_label)
+                        push!(text, a_label)
                     end
                 end
             end
@@ -121,9 +120,10 @@ function Makie.convert_arguments(
                 x_min, x_max = extrema(local_x)
                 align = [x==x_min ? (:left,:bottom) :
                          x==x_max ? (:right,:bottom) : (:center,:bottom) for x in a_local_x]
-                # TODO: replace by `annotate` when a new Makie version is released
-                t = S.Text(a_local_x, a_y; text, align, color=color, offset=(0.0, 8.0))
-                push!(plots, t)
+                t = S.Annotation(a_local_x, a_y; text, color=color)
+                m = S.Scatter(a_local_x, a_y; color=color, markersize=2.5*linewidth, 
+                              strokecolor=:white, strokewidth=linewidth*.65)
+                push!(plots, t, m)
             end
         end
         
