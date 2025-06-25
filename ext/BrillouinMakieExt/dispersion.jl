@@ -9,7 +9,7 @@ import Makie.SpecApi as S
 
 # keyword arguments must be explicitly marked in SpecApi :(
 function Makie.used_attributes(::KPathInterpolant, ::AbstractVector{<:AbstractVector{<:Real}})
-    (:color, :linewidth, :linestyle, :ylabel, :label, :annotations)
+    (:color, :linewidth, :linestyle, :ylabel, :label, :annotations, :ylims)
 end
 
 #=
@@ -40,6 +40,7 @@ function Makie.convert_arguments(
     annotations::Union{Dict{<:Union{String, Symbol}, 
                             <:Vector{<:Pair{<:Union{Int, UnitRange{Int}}, String}}},
                        Nothing} = nothing,
+    ylims::Union{Nothing, Tuple{Real, Real}} = nothing
     )
 
     # check input
@@ -70,7 +71,12 @@ function Makie.convert_arguments(
     local_xs         = cumdists.(cartesianize(kpi).kpaths)
     local_xs_lengths = last.(local_xs)
     rel_xs_lengths   = local_xs_lengths./sum(local_xs_lengths)
-    ylims = mapreduce(default_dispersion_ylims, extrema_tuplewise, bandsv; init=(Inf, -Inf))
+    ylims = @something(
+        ylims, 
+        mapreduce(default_dispersion_ylims, extrema_tuplewise, bandsv; init=(Inf, -Inf))
+    )
+    # avoid subnormal zeros, cf. `ax.limits` NB comment below
+    iszero(ylims[1]) && (ylims = (-1.0e-307, ylims[2]))
     axs = Matrix{typeof(S.Axis())}(undef, 1, Npaths)
     start_idx = 1
     for (path_idx, (local_x, labels)) in enumerate(zip(local_xs, kpi.labels))
@@ -117,9 +123,6 @@ function Makie.convert_arguments(
             end
             if !isempty(a_local_x)
                 # special-case alignment at labels at first/last x-points
-                x_min, x_max = extrema(local_x)
-                align = [x==x_min ? (:left,:bottom) :
-                         x==x_max ? (:right,:bottom) : (:center,:bottom) for x in a_local_x]
                 t = S.Annotation(a_local_x, a_y; text, color=color)
                 m = S.Scatter(a_local_x, a_y; color=color, markersize=2.5*linewidth, 
                               strokecolor=:white, strokewidth=linewidth*.65)
@@ -131,7 +134,13 @@ function Makie.convert_arguments(
         ax = S.Axis(; plots)
 
         # set axis properties (must be declaritive in SpecApi, not functional)
-        ax.limits = (first(local_x), last(local_x), ylims...)
+        ax.limits = (first(local_x) - 1.0e-307, last(local_x), ylims...)
+        # NB: ↑ we subtract `1.0e-307` from the the first x-coordinate above (whose value is
+        #     0.0) because there is an annoying bug, related to subnormal zeros, where the
+        #     first x-tick will be omitted if its value and lowest `limits` value are both
+        #     0.0, basically because 0.0 and -0.0 do not compare meaningfully under Julia's
+        #     default choice of `set_zero_subnormals(true)`. The value 1.0e-307 is the
+        #     smallest value x such that `0.0 - x ≠ 0.0` is true
         ax.xticks = ([local_x[x_idx] for x_idx in keys(labels)], #= x-tick-coords =#
                      [string(x_lab) for x_lab in values(labels)] #= x-tick-labels =# )
         ax.xgridvisible = true
