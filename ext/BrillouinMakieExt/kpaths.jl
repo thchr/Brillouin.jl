@@ -44,14 +44,14 @@ function Makie.plot!(kpp::KPathPlot{Tuple{KPath{D}}}) where D
     update_plot!(okp[]) # populate `segments`, `pts`, `labels`, `labelspos` for initial call
 
     Makie.lines!(kpp, segments;
-                 color = kpp.linecolor, linewidth = kpp.linewidth, kpp.linekws...)
+                 color = kpp.linecolor, linewidth = kpp.linewidth, to_value(kpp.linekws)...)
     Makie.scatter!(kpp, pts; 
                    color=kpp.markercolor, markersize=kpp.markersize, marker=:circle,
-                   kpp.markerkws...)
+                   to_value(kpp.markerkws)...)
     Makie.text!(kpp, labelspos[]; text=labels[],
                 align = (0.5,0.5), fontsize = 22,
                 color = kpp.textcolor, strokewidth = D==3 ? 2 : 0, strokecolor = :white,
-                kpp.textkws...)
+                to_value(kpp.textkws)...)
 
     return kpp
 end
