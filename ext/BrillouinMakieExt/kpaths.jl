@@ -44,14 +44,14 @@ function Makie.plot!(kpp::KPathPlot{Tuple{KPath{D}}}) where D
     update_plot!(okp[]) # populate `segments`, `pts`, `labels`, `labelspos` for initial call
 
     Makie.lines!(kpp, segments;
-                 color = kpp.linecolor, linewidth = kpp.linewidth, kpp.linekws...)
+                 color = kpp.linecolor, linewidth = kpp.linewidth, to_value(kpp.linekws)...)
     Makie.scatter!(kpp, pts; 
                    color=kpp.markercolor, markersize=kpp.markersize, marker=:circle,
-                   kpp.markerkws...)
+                   to_value(kpp.markerkws)...)
     Makie.text!(kpp, labelspos[]; text=labels[],
                 align = (0.5,0.5), fontsize = 22,
                 color = kpp.textcolor, strokewidth = D==3 ? 2 : 0, strokecolor = :white,
-                kpp.textkws...)
+                to_value(kpp.textkws)...)
 
     return kpp
 end
@@ -85,8 +85,8 @@ end
 function Makie.plot!(ckpp::CellKPathPlot{Tuple{Cell{D}, KPath{D}}}) where D
     oc  = ckpp[1] # NB:   an `Observable{Cell{D}}` not a `Cell{D}`, so needs [] to access
     okp = ckpp[2] # same: an `Observable{KPath{D}}` not a `KPath{D}`
-    Makie.plot!(ckpp, oc; ckpp.cell...)
-    Makie.plot!(ckpp, okp; ckpp.kpath...)
+    Makie.plot!(ckpp, oc; to_value(ckpp.cell)...)
+    Makie.plot!(ckpp, okp; to_value(ckpp.kpath)...)
     return ckpp
 end
 
