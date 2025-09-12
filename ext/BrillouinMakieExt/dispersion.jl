@@ -8,7 +8,7 @@ import Makie.SpecApi as S
 ## --------------------------------------------------------------------------------------- #
 
 # keyword arguments must be explicitly marked in SpecApi :(
-function Makie.used_attributes(::KPathInterpolant, ::AbstractVector{<:AbstractVector{<:Real}})
+function Makie.used_attributes(::KPathInterpolant, ::Vararg{AbstractVector{<:AbstractVector{<:Real}}})
     (:color, :linewidth, :linestyle, :ylabel, :label, :annotations, :ylims)
 end
 
