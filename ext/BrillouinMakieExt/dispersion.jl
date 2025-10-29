@@ -108,16 +108,20 @@ function Makie.convert_arguments(
                 x_idxs = get(klab2idxs[path_idx], Symbol(klab), nothing)
                 isnothing(x_idxs) && continue
                 for x_idx in x_idxs
-                    append!(a_local_x, Iterators.repeated(local_x[x_idx], length(as)))
+                    x = local_x[x_idx]
+                    y_idx = start_idx - 1 + x_idx
                     for (bands_idxs, a_label) in as
-                        if length(bands_idxs) == 1
-                            push!(a_y, bands[bands_idxs[1]][start_idx - 1 + x_idx])
+                        y = if length(bands_idxs) == 1
+                            bands[bands_idxs[1]][y_idx]
                         else
-                            y_idx = (start_idx - 1) .+ x_idx
-                            y = sum(bands[b][y_idx] for b in bands_idxs) / length(bands_idxs)
-                            push!(a_y, y)
+                            sum((bands[b][y_idx] for b in bands_idxs); 
+                                init = zero(eltype(eltype(bands)))) / length(bands_idxs)
                         end
-                        push!(text, a_label)
+                        if ylims[1] <= y <= ylims[2] # only add annotation if inside ylims
+                            push!(text, a_label)
+                            push!(a_y, y)
+                            push!(a_local_x, x)
+                        end
                     end
                 end
             end
