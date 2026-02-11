@@ -9,7 +9,10 @@ import Makie.SpecApi as S
 
 # keyword arguments must be explicitly marked in SpecApi :(
 function Makie.used_attributes(::KPathInterpolant, ::Vararg{AbstractVector{<:AbstractVector{<:Real}}})
-    (:color, :linewidth, :linestyle, :ylabel, :label, :annotations, :ylims)
+    (
+        :color, :linewidth, :linestyle, :ylabel, :label, :annotations, :annotations_args,
+        :ylims
+    )
 end
 
 #=
@@ -40,6 +43,7 @@ function Makie.convert_arguments(
     annotations::Union{Dict{<:Union{String, Symbol}, 
                             <:Vector{<:Pair{<:Union{Int, UnitRange{Int}}, String}}},
                        Nothing} = nothing,
+    annotations_args::NamedTuple = (; color=color),
     ylims::Union{Nothing, Tuple{Real, Real}} = nothing
     )
 
@@ -102,7 +106,7 @@ function Makie.convert_arguments(
             end
             bands = bandsv[1]
             a_local_x = Vector{Float64}() # x-coordinates for annotations
-            a_y       = Vector{Float64}() # y-coordinates for annotations
+            a_y = Vector{Float64}() # y-coordinates for annotations
             text  = Vector{String}()
             for (klab, as) in annotations
                 x_idxs = get(klab2idxs[path_idx], Symbol(klab), nothing)
@@ -112,8 +116,11 @@ function Makie.convert_arguments(
                     y_idx = start_idx - 1 + x_idx
                     for (bands_idxs, a_label) in as
                         y = if length(bands_idxs) == 1
+                            b = bands_idxs[1]
+                            (b ≤ lastindex(bands) && b ≥ firstindex(bands)) || error("annotation band index $b is outside provided plotting bands' range")
                             bands[bands_idxs[1]][y_idx]
                         else
+                            (last(bands_idxs) ≤ lastindex(bands) && last(bands_idxs) ≥ firstindex(bands)) || error("annotation band index $(last(bands_idxs)) is outside provided plotting bands' range")
                             sum((bands[b][y_idx] for b in bands_idxs); 
                                 init = zero(eltype(eltype(bands)))) / length(bands_idxs)
                         end
@@ -126,10 +133,13 @@ function Makie.convert_arguments(
                 end
             end
             if !isempty(a_local_x)
-                # special-case alignment at labels at first/last x-points
-                t = S.Annotation(a_local_x, a_y; text, color=color)
-                m = S.Scatter(a_local_x, a_y; color=color, markersize=2.5*linewidth, 
-                              strokecolor=:white, strokewidth=linewidth*.65)
+                t = S.Annotation(a_local_x, a_y; text, annotations_args...)
+                m = S.Scatter(a_local_x, a_y;
+                    markersize = 2.5 * linewidth, 
+                    strokewidth = 0.65 * linewidth,
+                    strokecolor = :white,
+                    color = get(annotations_args, :color, :black)
+                )
                 push!(plots, t, m)
             end
         end
