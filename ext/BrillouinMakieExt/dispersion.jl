@@ -96,6 +96,9 @@ function Makie.convert_arguments(
             for band in bands
                 plots[j+=1] = S.Lines(local_x, band[start_idx:stop_idx];
                                       color=col, linewidth=lw, linestyle=ls, label=lb)
+                # reset `lb` so there is only _one_ label entry per `bandsv` argument, not
+                # per band; otherwise, labels repeat `length(bands)` times in the legend
+                lb = nothing
             end
         end
 
