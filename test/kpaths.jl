@@ -1,5 +1,5 @@
 using Brillouin, Test
-using Brillouin.KPaths: cartesianize, latticize, Bravais
+using Brillouin.KPaths: cartesianize, latticize, Bravais, SVector
 
 @testset "KPath & KPathInterpolant" begin
     # --- `cumdist` ---
@@ -44,6 +44,35 @@ using Brillouin.KPaths: cartesianize, latticize, Bravais
              [6.283185, -6.283185, 6.283185]
              [6.283185, 6.283185, -6.283185]"""
     test_show(kp, kp_show_reference)
+
+    # `KPath` convenience constructors (conversion of "loose" input types)
+    let points′ = Dict(:Γ => [0, 0, 0], :X => [1//2, 0, 1//2], :L => SVector(0.5, 0.5, 0.5)),
+        paths′  = [[:Γ, :X], [:X, :L, :Γ]],
+        basis′  = Bravais.ReciprocalBasis([1,0,0], [0,1,0], [0,0,1])
+
+        kp′ = KPath(points′, paths′, basis′)
+        @test kp′ isa KPath{3}
+        @test points(kp′) isa Dict{Symbol, SVector{3, Float64}}
+        @test points(kp′) == Dict(:Γ => [0.0,0.0,0.0], :X => [0.5,0.0,0.5], :L => [0.5,0.5,0.5])
+        @test paths(kp′) === paths′
+        @test Brillouin.basis(kp′) isa Bravais.ReciprocalBasis{3, Float64}
+        @test Brillouin.setting(kp′) === Brillouin.LATTICE # default setting
+
+        # explicitly parameterized constructor agrees with the inferred one; also allows a
+        # "loose" (non-`ReciprocalBasis`) basis
+        @test collect(KPath{3}(points′, paths′, basis′)) == collect(kp′)
+        @test Brillouin.basis(KPath{3}(points′, paths′, [[1,0,0], [0,1,0], [0,0,1]])) == basis′
+
+        # `setting` can be given either as a `BasisEnum` or as a `RefValue{BasisEnum}`
+        @test Brillouin.setting(KPath(points′, paths′, basis′, Brillouin.CARTESIAN)) === Brillouin.CARTESIAN
+        @test Brillouin.setting(KPath(points′, paths′, basis′, Ref(Brillouin.CARTESIAN))) === Brillouin.CARTESIAN
+
+        # `paths` may reference only labels that exist in `points`
+        @test_throws ArgumentError KPath(points′, [[:Γ, :Z]], basis′)
+
+        # all `points` must have dimension `D`
+        @test_throws DimensionMismatch KPath(Dict(:Γ => [0,0,0], :X => [0.5, 0.5]), paths′[1:1], basis′)
+    end
 
     # `cartesianize` & `latticize`
     pGs = 2π.*[[-1,1,1], [1,-1,1], [1,1,-1]] # primitive reciprocal basis

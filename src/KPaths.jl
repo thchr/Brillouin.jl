@@ -68,6 +68,36 @@ struct KPath{D} <: AbstractPath{Pair{Symbol, SVector{D, Float64}}}
     paths   :: Vector{Vector{Symbol}}
     basis   :: ReciprocalBasis{D, Float64}
     setting :: Base.RefValue{BasisEnum}
+    # convenience constructor with automatic conversions and checks of input data
+    function KPath{D}(
+        points::Dict{Symbol, <:AVec},
+        paths::AVec{<:AVec{Symbol}},
+        basis::Union{ReciprocalBasis{D, <:Real}, AVec{<:AVec{<:Real}}},
+        setting::Union{BasisEnum, Base.RefValue{BasisEnum}} = Ref(LATTICE)
+    ) where D
+        # check that all points in `paths` are in `points`
+        all(klab -> klab ∈ keys(points), Iterators.flatten(paths)) || throw(ArgumentError(lazy"a label in `path` is not featured in the labels of `points`"))
+        # conversion of inputs
+        setting′ = (setting isa Base.RefValue ? setting : Ref(setting)) :: Base.RefValue{BasisEnum}
+        points′ = if points isa Dict{Symbol, SVector{D, Float64}}
+            points
+        else # convert & also check consistent input dimensions
+            all(k -> length(k) == D, values(points)) || throw(DimensionMismatch(lazy"one or more elements of input `points` does not have dimension $D"))
+            Dict{Symbol, SVector{D, Float64}}(klab => convert(SVector{D, Float64}, k) for (klab, k) in points)
+        end :: Dict{Symbol, SVector{D, Float64}}
+        paths′ = (paths isa Vector{Vector{Symbol}} ? paths : convert(Vector{Vector{Symbol}}, paths)) :: Vector{Vector{Symbol}}
+        basis′ = (basis isa ReciprocalBasis{D, Float64} ? basis : convert(ReciprocalBasis{D, Float64}, basis)) :: ReciprocalBasis{D, Float64}
+        return new{D}(points′, paths′, basis′, setting′)
+    end
+end
+
+function KPath(
+    points::Dict{Symbol, <:AVec},
+    paths::AVec{<:AVec{Symbol}},
+    basis::ReciprocalBasis{D, <:Real}, # cannot be a mere `AVec`, since we need inferred `D`
+    setting::Union{BasisEnum, Base.RefValue{BasisEnum}} = Ref(LATTICE)
+) where D
+    return KPath{D}(points, paths, basis, setting)
 end
 
 """
